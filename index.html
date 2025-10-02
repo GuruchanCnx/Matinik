@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kréyòl Matinik - Martinican Creole Heritage Course</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --martinique-red: #d32f2f;
+            --martinique-blue: #1976d2;
+            --martinique-yellow: #ffd700;
+            --primary-gold: #d97706;
+            --primary-orange: #f59e0b;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e8f4f8 100%);
+            min-height: 100vh;
+        }
+        
+        /* iOS 26 Liquid Glass UI Navigation */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background: var(--glass-bg);
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-gold), var(--primary-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--primary-gold);
+        }
+        
+        /* Language Dropdown */
+        .language-selector {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .language-btn {
+            background: linear-gradient(135deg, var(--martinique-red), var(--martinique-blue));
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+        }
+        
+        .language-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(211, 47, 47, 0.4);
+        }
+        
+        .language-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
+            padding: 0.8rem 0;
+            min-width: 160px;
+            z-index: 1001;
+            display: none;
+        }
+        
+        .language-dropdown.show {
+            display: block;
+        }
+        
+        .language-option {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            text-align: left;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .language-option:hover {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--primary-gold);
+        }
+        
+        .language-option.active {
+            background: rgba(217, 119, 6, 0.2);
+            color: var(--primary-gold);
+            font-weight: 600;
+        }
+        
+        /* Header with Liquid Glass Effect */
+        header {
+            background: linear-gradient(120deg, var(--martinique-red) 0%, var(--martinique-blue) 50%, var(--martinique-yellow) 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            font-weight: 800;
+        }
+        
+        .subtitle {
+            font-size: 1.6rem;
+            opacity: 0.95;
+            font-weight: 300;
+            line-height: 1.8;
+        }
+        
+        .martinique-flag-overlay {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 100%;
+            background: linear-gradient(90deg, var(--martinique-red) 33%, var(--martinique-blue) 66%, var(--martinique-yellow) 100%);
+            opacity: 0.15;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        /* Liquid Glass Cards */
+        .hero-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            margin: 3rem 0;
+            padding: 3.5rem;
+            border-radius: 28px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            text-align: center;
+        }
+        
+        .hero-section h2 {
+            color: var(--primary-gold);
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .hero-section p {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.8;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, var(--primary-gold), var(--primary-orange));
+            color: white;
+            padding: 1.2rem 3rem;
+            font-size: 1.3rem;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.4s ease;
+            box-shadow: 0 12px 28px rgba(217, 119, 6, 0.4);
+            backdrop-filter: blur(10px);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 36px rgba(217, 119, 6, 0.5);
+        }
+        
+        .course-section {
+            margin: 3.5rem 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            position: relative;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--primary-orange));
+            border-radius: 2px;
+        }
+        
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 2.5rem;
+            margin: 2.5rem 0;
+        }
+        
+        .course-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2.5rem;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: all 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .course-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border-color: rgba(217, 119, 6, 0.3);
+        }
+        
+        .course-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--primary-orange), var(--primary-gold));
+            background-size: 200% 100%;
+            animation: gradientShift 3s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .course-card h3 {
+            color: var(--primary-gold);
+            margin-bottom: 1.5rem;
+            font-size: 1.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .course-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .course-card li {
+            padding: 0.8rem 0;
+            padding-left: 2rem;
+            position: relative;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(217, 119, 6, 0.1);
+            margin-bottom: 0.6rem;
+            font-size: 1.05rem;
+        }
+        
+        .course-card li:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .course-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--primary-gold);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .features-section {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(255, 255, 255, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 28px;
+            padding: 3.5rem;
+            margin: 3.5rem 0;
+            border: 2px solid rgba(217, 119, 6, 0.2);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 2.5rem;
+            margin-top: 2.5rem;
+        }
+        
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 2.2rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(217, 119, 6, 0.3);
+        }
+        
+        .feature-card h3 {
+            color: var(--primary-gold);
+            margin: 1.2rem 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .testimonial {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 3rem;
+            border-radius: 24px;
+            margin: 3.5rem 0;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            position: relative;
+        }
+        
+        .testimonial:before {
+            content: """;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 6rem;
+            color: rgba(217, 119, 6, 0.1);
+            font-family: serif;
+            line-height: 1;
+        }
+        
+        .testimonial blockquote {
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            font-style: italic;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .testimonial cite {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .pricing {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 3.5rem;
+            border-radius: 28px;
+            text-align: center;
+            margin: 3.5rem 0;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+        
+        .pricing h2 {
+            color: var(--primary-gold);
+            margin-bottom: 2.5rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .price {
+            font-size: 3.5rem;
+            color: var(--primary-gold);
+            font-weight: 800;
+            margin: 1.5rem 0;
+            background: linear-gradient(135deg, var(--primary-gold), var(--primary-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .price span {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        footer {
+            background: linear-gradient(120deg, var(--martinique-red) 0%, var(--martinique-blue) 100%);
+            color: white;
+            text-align: center;
+            padding: 3.5rem 0;
+            margin-top: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .footer-content p {
+            margin: 0.8rem 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .footer-flag {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(90deg, var(--martinique-red) 33%, var(--martinique-blue) 66%, var(--martinique-yellow) 100%);
+        }
+        
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary-gold), var(--primary-orange));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(217, 119, 6, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .back-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(217, 119, 6, 0.5);
+        }
+        
+        .back-to-top svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .hero-section, .features-section, .pricing {
+                padding: 2rem 1.5rem;
+            }
+            
+            .course-grid, .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .back-to-top {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                width: 48px;
+                height: 48px;
+            }
+        }
+        
+        /* Language flag icons */
+        .flag-icon {
+            width: 20px;
+            height: 14px;
+            display: inline-block;
+            border-radius: 2px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        .flag-fr {
+            background: linear-gradient(90deg, #002654 33%, #ffffff 66%, #ce1126 100%);
+        }
+        
+        .flag-us {
+            background: linear-gradient(90deg, #b22234 40%, #3c3b6e 100%);
+        }
+        
+        .flag-mq {
+            background: linear-gradient(90deg, var(--martinique-red) 33%, var(--martinique-blue) 66%, var(--martinique-yellow) 100%);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sticky Navigation Bar -->
+    <nav class="navbar">
+        <div class="logo">Kréyòl Matinik</div>
+        <div class="nav-links">
+            <a href="#courses" class="nav-link">Courses</a>
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#testimonials" class="nav-link">Testimonials</a>
+            <a href="#pricing" class="nav-link">Pricing</a>
+            <div class="language-selector">
+                <button class="language-btn" id="languageBtn">
+                    <span class="flag-icon flag-mq"></span>
+                    Kréyòl
+                </button>
+                <div class="language-dropdown" id="languageDropdown">
+                    <button class="language-option active" data-lang="mq">
+                        <span class="flag-icon flag-mq"></span>
+                        Kréyòl Matinik
+                    </button>
+                    <button class="language-option" data-lang="fr">
+                        <span class="flag-icon flag-fr"></span>
+                        Français
+                    </button>
+                    <button class="language-option" data-lang="en">
+                        <span class="flag-icon flag-us"></span>
+                        English
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header>
+        <div class="martinique-flag-overlay"></div>
+        <div class="header-content">
+            <h1>🎓 Kréyòl Matinik</h1>
+            <p class="subtitle">The Premier Online Course for Martinican Creole Heritage & Cultural Immersion</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="hero-section">
+            <h2>Preserve Your Heritage, Connect With Your Roots</h2>
+            <p>Join the first comprehensive online platform exclusively dedicated to Martinican Creole (Kréyòl Matinik). Designed by linguistic experts for diaspora families, heritage learners, and cultural enthusiasts worldwide. Learn authentic Martinican Creole through immersive cultural experiences, family-friendly modules, and a global community of learners.</p>
+            <button class="cta-button">Enroll Now - Start Your Journey</button>
+        </div>
+        
+        <div class="course-section" id="courses">
+            <h2 class="section-title">📚 Our Signature Course Modules</h2>
+            <div class="course-grid">
+                <div class="course-card">
+                    <h3>👨‍👩‍👧‍👦 Kréyòl Pou Zanmi (Creole for Families)</h3>
+                    <ul>
+                        <li>Parent-child learning activities & games</li>
+                        <li>Traditional lullabies and nursery rhymes</li>
+                        <li>Family vocabulary and daily expressions</li>
+                        <li>Intergenerational storytelling techniques</li>
+                        <li>Creating family language journals</li>
+                        <li>Weekend cultural immersion projects</li>
+                    </ul>
+                </div>
+                
+                <div class="course-card">
+                    <h3>🎶 Ritmo Kréyòl: Music & Language</h3>
+                    <ul>
+                        <li>Learning through traditional Chouval Bwa</li>
+                        <li>Modern Zouk and Creole lyrics analysis</li>
+                        <li>Proverbs in popular Martinican songs</li>
+                        <li>Interactive music-based pronunciation</li>
+                        <li>Cultural context of musical expressions</li>
+                        <li>Virtual music appreciation sessions</li>
+                    </ul>
+                </div>
+                
+                <div class="course-card">
+                    <h3>👨‍🍳 Kouzin Kréyòl: Language Through Cuisine</h3>
+                    <ul>
+                        <li>Cooking instructions in authentic Creole</li>
+                        <li>Food-related vocabulary and expressions</li>
+                        <li>Traditional recipes with linguistic notes</li>
+                        <li>Market conversations and ingredient names</li>
+                        <li>Cultural significance of Martinican dishes</li>
+                        <li>Virtual cooking demonstrations</li>
+                    </ul>
+                </div>
+                
+                <div class="course-card">
+                    <h3>📖 Pawòl Granmè: Wisdom of Elders</h3>
+                    <ul>
+                        <li>Traditional proverbs and their meanings</li>
+                        <li>Elder storytelling techniques</li>
+                        <li>Historical context of Creole expressions</li>
+                        <li>Recording and preserving family stories</li>
+                        <li>Respectful communication with elders</li>
+                        <li>Oral history documentation methods</li>
+                    </ul>
+                </div>
+                
+                <div class="course-card">
+                    <h3>🌍 Diaspora Connection: Kréyòl Worldwide</h3>
+                    <ul>
+                        <li>Regional variations in diaspora communities</li>
+                        <li>Code-switching between French/Creole/English</li>
+                        <li>Building diaspora language learning groups</li>
+                        <li>Virtual cultural exchange programs</li>
+                        <li>Resources for teaching children abroad</li>
+                        <li>Global Martinican community events</li>
+                    </ul>
+                </div>
+                
+                <div class="course-card">
+                    <h3>🎓 Kréyòl Akadémik: Advanced Studies</h3>
+                    <ul>
+                        <li>Linguistic analysis of Creole structures</li>
+                        <li>Comparative studies with other Creoles</li>
+                        <li>Academic writing in Martinican Creole</li>
+                        <li>Research methodologies for heritage languages</li>
+                        <li>Language policy and preservation strategies</li>
+                        <li>Certification for educators</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="features-section" id="features">
+            <h2 class="section-title">✨ What Makes Us Unique</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>🇲🇶 Martinican Specificity</h3>
+                    <p>Exclusively focused on authentic Martinican Creole, not generic French Creole</p>
+                </div>
+                <div class="feature-card">
+                    <h3>👨‍👩‍👧‍👦 Family-Centric Design</h3>
+                    <p>Specialized modules for heritage transmission across generations</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🎵 Cultural Immersion</h3>
+                    <p>Authentic integration of music, cuisine, traditions, and real-life contexts</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🌐 Global Community</h3>
+                    <p>Connect with Martinicans worldwide through virtual meetups and forums</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🎓 Linguistic Expertise</h3>
+                    <p>Developed by certified linguists with deep Martinican cultural knowledge</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📱 Modern Learning</h3>
+                    <p>Interactive exercises, speech recognition, and mobile-friendly design</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="testimonial" id="testimonials">
+            <blockquote>
+                "As a Martinican living in Canada for 15 years, I struggled to teach my children our beautiful language. This course has been a lifeline for our family. The cultural immersion through music and cuisine made learning natural and joyful. My children now proudly speak Kréyòl with their grandparents during video calls!"
+            </blockquote>
+            <cite>— Marie-Louise D., Montreal, Canada</cite>
+        </div>
+        
+        <div class="pricing" id="pricing">
+            <h2>💰 Investment in Your Heritage</h2>
+            <div class="price">$29<span>/month</span></div>
+            <p>Family subscription includes access for up to 4 family members</p>
+            <p>Annual plan: $299/year (save 15%)</p>
+            <p>7-day free trial • Cancel anytime • 30-day money-back guarantee</p>
+            <button class="cta-button" style="margin-top: 2rem;">Start Your Free Trial</button>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>© 2024 Kréyòl Matinik - Martinican Creole Heritage Course</p>
+                <p>"Chak pawòl sé yon timoun ki pé viv" (Every word is a child that will live)</p>
+                <p>Preserving Language • Connecting Generations • Celebrating Martinican Culture</p>
+            </div>
+        </div>
+        <div class="footer-flag"></div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+        </svg>
+    </button>
+
+    <script>
+        // Language dropdown functionality
+        const languageBtn = document.getElementById('languageBtn');
+        const languageDropdown = document.getElementById('languageDropdown');
+        const languageOptions = document.querySelectorAll('.language-option');
+        
+        languageBtn.addEventListener('click', () => {
+            languageDropdown.classList.toggle('show');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!languageBtn.contains(e.target) && !languageDropdown.contains(e.target)) {
+                languageDropdown.classList.remove('show');
+            }
+        });
+        
+        // Language selection
+        languageOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const selectedLang = option.getAttribute('data-lang');
+                const languageNames = {
+                    'mq': 'Kréyòl',
+                    'fr': 'Français',
+                    'en': 'English'
+                };
+                
+                // Update button text
+                languageBtn.innerHTML = `<span class="flag-icon flag-${selectedLang === 'mq' ? 'mq' : selectedLang === 'fr' ? 'fr' : 'us'}"></span> ${languageNames[selectedLang]}`;
+                
+                // Update active class
+                languageOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                // Close dropdown
+                languageDropdown.classList.remove('show');
+                
+                // In a real implementation, this would trigger language change
+                console.log('Language changed to:', selectedLang);
+            });
+        });
+        
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+        
+        // Back to Top functionality
+        const backToTopButton = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('show');
+            } else {
+                backToTopButton.classList.remove('show');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>
