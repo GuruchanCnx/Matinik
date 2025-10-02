@@ -1,16 +1,17 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kréyòl Matinik - Complete Course</title>
+    <title>Kréyòl Matinik - Martinican Creole Heritage Course</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
         
         :root {
@@ -212,202 +213,324 @@
             padding: 0 2rem;
         }
         
-        .course-dashboard {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-        
-        /* Sidebar */
-        .course-sidebar {
+        /* Hero Section */
+        .hero-section {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 1.5rem;
+            margin: 2rem 0;
+            padding: 3rem;
+            border-radius: 28px;
             border: 1px solid var(--glass-border);
             box-shadow: var(--glass-shadow);
-            height: fit-content;
-            position: sticky;
-            top: 100px;
+            text-align: center;
         }
         
-        .sidebar-title {
+        .hero-section h2 {
             color: var(--primary-gold);
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.8rem;
-            border-bottom: 2px solid var(--primary-gold);
-            font-size: 1.4rem;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            font-weight: 700;
         }
         
-        .module-list {
-            list-style: none;
+        .hero-section p {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.8;
         }
         
-        .module-item {
-            margin-bottom: 1rem;
-            border-radius: 12px;
+        .cta-button {
+            background: linear-gradient(135deg, var(--primary-gold), var(--primary-orange));
+            color: white;
+            padding: 1.2rem 3rem;
+            font-size: 1.3rem;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.4s ease;
+            box-shadow: 0 12px 28px rgba(217, 119, 6, 0.4);
+            backdrop-filter: blur(10px);
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 36px rgba(217, 119, 6, 0.5);
+        }
+        
+        /* Course Modules */
+        .course-section {
+            margin: 3rem 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            position: relative;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--primary-orange));
+            border-radius: 2px;
+        }
+        
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 2.5rem;
+            margin: 2.5rem 0;
+        }
+        
+        .course-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2.5rem;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: all 0.5s ease;
+            position: relative;
             overflow: hidden;
         }
         
-        .module-header {
-            background: rgba(217, 119, 6, 0.1);
-            padding: 0.8rem 1rem;
-            font-weight: 600;
+        .course-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border-color: rgba(217, 119, 6, 0.3);
+        }
+        
+        .course-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--primary-orange), var(--primary-gold));
+            background-size: 200% 100%;
+            animation: gradientShift 3s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .course-card h3 {
             color: var(--primary-gold);
-            cursor: pointer;
+            margin-bottom: 1.5rem;
+            font-size: 1.7rem;
+            font-weight: 700;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 15px;
         }
         
-        .module-header i {
-            transition: transform 0.3s ease;
+        .course-card ul {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 1.5rem;
         }
         
-        .module-header.active i {
-            transform: rotate(180deg);
+        .course-card li {
+            padding: 0.8rem 0;
+            padding-left: 2rem;
+            position: relative;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(217, 119, 6, 0.1);
+            margin-bottom: 0.6rem;
+            font-size: 1.05rem;
+        }
+        
+        .course-card li:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .course-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--primary-gold);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .course-cta {
+            background: linear-gradient(135deg, var(--primary-gold), var(--primary-orange));
+            color: white;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+            width: 100%;
+            text-align: center;
+            display: block;
+            text-decoration: none;
+        }
+        
+        .course-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(217, 119, 6, 0.4);
+        }
+        
+        /* Curriculum Section */
+        .curriculum-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2.5rem;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            margin: 2rem 0;
+        }
+        
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .module-card {
+            background: rgba(245, 158, 11, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(217, 119, 6, 0.2);
+        }
+        
+        .module-card h4 {
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .lessons-list {
             list-style: none;
-            background: white;
-            border-top: 1px solid var(--glass-border);
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        
-        .module-item.active .lessons-list {
-            max-height: 500px;
-        }
-        
-        .lesson-item {
-            padding: 0.8rem 1rem;
-            border-bottom: 1px solid var(--glass-border);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .lesson-item:hover {
-            background: rgba(217, 119, 6, 0.05);
-        }
-        
-        .lesson-item.active {
-            background: rgba(217, 119, 6, 0.15);
-            color: var(--primary-gold);
-            font-weight: 600;
-        }
-        
-        /* Main Content Area */
-        .course-content {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 2.5rem;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
-        }
-        
-        .content-header {
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 2px solid var(--primary-gold);
-        }
-        
-        .content-header h2 {
-            color: var(--primary-gold);
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .content-header p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-        }
-        
-        /* Lesson Content */
-        .lesson-section {
-            margin-bottom: 2.5rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px dashed var(--glass-border);
-        }
-        
-        .lesson-section:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-        
-        .section-title {
-            color: var(--primary-gold);
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.5rem;
-        }
-        
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .content-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            border: 1px solid var(--glass-border);
-        }
-        
-        .content-card h4 {
-            color: var(--primary-gold);
+            padding-left: 0;
             margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         
-        .content-card p {
+        .lessons-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
             color: var(--text-secondary);
-            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .lessons-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary-gold);
+            font-weight: bold;
+        }
+        
+        .objectives-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .objectives-list li {
+            padding: 0.4rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        
+        .objectives-list li:before {
+            content: "🎯";
+            position: absolute;
+            left: 0;
+            font-size: 0.8rem;
         }
         
         /* Interactive Elements */
+        .interactive-section {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(255, 255, 255, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 28px;
+            padding: 3.5rem;
+            margin: 3.5rem 0;
+            border: 2px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .interactive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+            margin-top: 2.5rem;
+        }
+        
+        .interactive-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            text-align: center;
+        }
+        
+        .interactive-card h4 {
+            color: var(--interactive-blue);
+            margin: 1rem 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
         .quiz-container {
             background: rgba(245, 158, 11, 0.1);
-            padding: 2rem;
+            padding: 1.5rem;
             border-radius: 16px;
             margin: 1.5rem 0;
         }
         
         .quiz-question {
-            font-weight: 700;
-            margin-bottom: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
             color: var(--text-primary);
-            font-size: 1.2rem;
         }
         
         .quiz-options {
             display: grid;
-            gap: 1rem;
+            gap: 0.8rem;
         }
         
         .quiz-option {
-            padding: 1rem;
+            padding: 0.8rem;
             background: white;
             border: 2px solid #e5e7eb;
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
         
         .quiz-option:hover {
@@ -429,66 +552,140 @@
         
         .assignment-title {
             color: var(--success-color);
-            font-weight: 700;
+            font-weight: 600;
             margin-bottom: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
         
         .assignment-desc {
+            font-size: 0.95rem;
             color: var(--text-secondary);
+        }
+        
+        /* Features Section */
+        .features-section {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(255, 255, 255, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 28px;
+            padding: 3.5rem;
+            margin: 3.5rem 0;
+            border: 2px solid rgba(217, 119, 6, 0.2);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 2.5rem;
+            margin-top: 2.5rem;
+        }
+        
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 2.2rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(217, 119, 6, 0.3);
+        }
+        
+        .feature-card h3 {
+            color: var(--primary-gold);
+            margin: 1.2rem 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 1rem;
             line-height: 1.6;
         }
         
-        .submit-btn {
-            background: linear-gradient(135deg, var(--primary-gold), var(--primary-orange));
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 12px;
+        /* Testimonial */
+        .testimonial {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 3rem;
+            border-radius: 24px;
+            margin: 3.5rem 0;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            position: relative;
+        }
+        
+        .testimonial:before {
+            content: """;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 6rem;
+            color: rgba(217, 119, 6, 0.1);
+            font-family: serif;
+            line-height: 1;
+        }
+        
+        .testimonial blockquote {
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            font-style: italic;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .testimonial cite {
+            color: var(--text-secondary);
             font-weight: 600;
-            cursor: pointer;
-            margin-top: 1rem;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 1.1rem;
         }
         
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(217, 119, 6, 0.3);
+        /* Pricing */
+        .pricing {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 3.5rem;
+            border-radius: 28px;
+            text-align: center;
+            margin: 3.5rem 0;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
         }
         
-        /* Progress Bar */
-        .progress-container {
-            margin: 2rem 0;
-            background: rgba(217, 119, 6, 0.1);
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-        
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.8rem;
+        .pricing h2 {
             color: var(--primary-gold);
-            font-weight: 600;
+            margin-bottom: 2.5rem;
+            font-size: 2.5rem;
+            font-weight: 700;
         }
         
-        .progress-bar {
-            height: 12px;
-            background: #e5e7eb;
-            border-radius: 6px;
-            overflow: hidden;
+        .price {
+            font-size: 3.5rem;
+            color: var(--primary-gold);
+            font-weight: 800;
+            margin: 1.5rem 0;
+            background: linear-gradient(135deg, var(--primary-gold), var(--primary-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary-gold), var(--primary-orange));
-            width: 65%;
-            border-radius: 6px;
+        .price span {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
         
         /* Footer */
@@ -496,8 +693,8 @@
             background: linear-gradient(120deg, var(--martinique-red) 0%, var(--martinique-blue) 100%);
             color: white;
             text-align: center;
-            padding: 2rem 0;
-            margin-top: 3rem;
+            padding: 3.5rem 0;
+            margin-top: 4rem;
             position: relative;
             overflow: hidden;
         }
@@ -508,27 +705,86 @@
             padding: 0 2rem;
         }
         
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            opacity: 0.9;
+            transition: opacity 0.3s ease;
+        }
+        
+        .footer-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+        
         .footer-flag {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 30px;
+            height: 40px;
             background: linear-gradient(90deg, var(--martinique-red) 33%, var(--martinique-blue) 66%, var(--martinique-yellow) 100%);
         }
         
-        /* Responsive Design */
-        @media (max-width: 992px) {
-            .course-dashboard {
-                grid-template-columns: 1fr;
-            }
-            
-            .course-sidebar {
-                position: static;
-                margin-bottom: 2rem;
-            }
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary-gold), var(--primary-orange));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(217, 119, 6, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
         }
         
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .back-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(217, 119, 6, 0.5);
+        }
+        
+        .back-to-top svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        /* Language-specific content */
+        .lang-content {
+            display: none;
+        }
+        
+        .lang-content.active {
+            display: block;
+        }
+        
+        /* Responsive Design */
         @media (max-width: 768px) {
             .navbar {
                 padding: 1rem;
@@ -550,49 +806,56 @@
                 font-size: 1.1rem;
             }
             
+            .hero-section, .features-section, .pricing {
+                padding: 2rem 1.5rem;
+            }
+            
+            .course-grid, .features-grid, .modules-grid, .interactive-grid {
+                grid-template-columns: 1fr;
+            }
+            
             .container {
                 padding: 0 1rem;
             }
             
-            .course-content {
-                padding: 1.5rem;
+            .back-to-top {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                width: 48px;
+                height: 48px;
+            }
+            
+            .footer-links {
+                gap: 1rem;
+                flex-direction: column;
+                align-items: center;
             }
         }
         
-        /* Language-specific content */
-        .lang-content {
-            display: none;
-        }
-        
-        .lang-content.active {
-            display: block;
+        /* Success indicator */
+        .success-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            margin-right: 8px;
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
+    <!-- Sticky Navigation Bar -->
     <nav class="navbar">
         <div class="logo">
             <i class="fas fa-language"></i>
             Kréyòl Matinik
         </div>
         <div class="nav-links">
-            <a href="#" class="nav-link active">
-                <i class="fas fa-home"></i>
-                Dashboard
-            </a>
-            <a href="#" class="nav-link">
-                <i class="fas fa-book"></i>
-                Curriculum
-            </a>
-            <a href="#" class="nav-link">
-                <i class="fas fa-users"></i>
-                Community
-            </a>
-            <a href="#" class="nav-link">
-                <i class="fas fa-certificate"></i>
-                Progress
-            </a>
+            <a href="#courses" class="nav-link" data-key="courses_nav">Courses</a>
+            <a href="#curriculum" class="nav-link" data-key="curriculum_nav">Curriculum</a>
+            <a href="#interactive" class="nav-link" data-key="interactive_nav">Interactive</a>
+            <a href="#testimonials" class="nav-link" data-key="testimonials_nav">Testimonials</a>
+            <a href="#pricing" class="nav-link" data-key="pricing_nav">Pricing</a>
             <div class="language-selector">
                 <button class="language-btn" id="languageBtn">
                     <span class="flag-icon flag-mq"></span>
@@ -616,210 +879,1176 @@
         </div>
     </nav>
 
-    <!-- Header -->
     <header>
+        <div class="martinique-flag-overlay"></div>
         <div class="header-content">
-            <h1>🎓 Kréyòl Matinik</h1>
-            <p class="subtitle">Complete Martinican Creole Heritage Course with Interactive Lessons</p>
+            <div class="lang-content active" data-lang="en">
+                <h1>🎓 Kréyòl Matinik</h1>
+                <p class="subtitle">The Premier Online Course for Martinican Creole Heritage & Cultural Immersion</p>
+            </div>
+            <div class="lang-content" data-lang="fr">
+                <h1>🎓 Kréyòl Matinik</h1>
+                <p class="subtitle">Le cours en ligne premium pour le patrimoine créole martiniquais et l'immersion culturelle</p>
+            </div>
+            <div class="lang-content" data-lang="mq">
+                <h1>🎓 Kréyòl Matinik</h1>
+                <p class="subtitle">Kou online pémmyé a pou èritaj Kréyòl Matinik ak imèsjon kiltirèl</p>
+            </div>
         </div>
     </header>
     
-    <!-- Main Content -->
     <div class="container">
-        <div class="course-dashboard">
-            <!-- Sidebar -->
-            <div class="course-sidebar">
-                <h3 class="sidebar-title">Course Modules</h3>
-                <ul class="module-list">
-                    <!-- Module 1 -->
-                    <li class="module-item active">
-                        <div class="module-header">
-                            <span>Module 1: Bonjou! (Greetings)</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <ul class="lessons-list">
-                            <li class="lesson-item active" data-lesson="1-1">Lesson 1.1: Basic Greetings</li>
-                            <li class="lesson-item" data-lesson="1-2">Lesson 1.2: Introducing Family</li>
-                            <li class="lesson-item" data-lesson="1-3">Lesson 1.3: Daily Expressions</li>
-                            <li class="lesson-item" data-lesson="1-4">Lesson 1.4: Simple Questions</li>
+        <div class="hero-section">
+            <div class="lang-content active" data-lang="en">
+                <h2>Preserve Your Heritage, Connect With Your Roots</h2>
+                <p>Join the first comprehensive online platform exclusively dedicated to Martinican Creole (Kréyòl Matinik). Designed by linguistic experts for diaspora families, heritage learners, and cultural enthusiasts worldwide. Learn authentic Martinican Creole through immersive cultural experiences, family-friendly modules, and a global community of learners.</p>
+                <a href="#pricing" class="cta-button" data-key="enroll_cta">Enroll Now - Start Your Journey</a>
+            </div>
+            <div class="lang-content" data-lang="fr">
+                <h2>Préservez votre patrimoine, reconnectez-vous à vos racines</h2>
+                <p>Rejoignez la première plateforme en ligne exclusivement dédiée au créole martiniquais (Kréyòl Matinik). Conçue par des experts linguistiques pour les familles de la diaspora, les apprenants du patrimoine et les passionnés de culture du monde entier. Apprenez le créole martiniquais authentique grâce à des expériences culturelles immersives, des modules adaptés aux familles et une communauté mondiale d'apprenants.</p>
+                <a href="#pricing" class="cta-button" data-key="enroll_cta">Inscrivez-vous maintenant - Commencez votre parcours</a>
+            </div>
+            <div class="lang-content" data-lang="mq">
+                <h2>Konèv èritaj ou, konekte ou ak rasin ou</h2>
+                <p>Reyennou sou platfòm online premyé a eksklizivman konsakré a Kréyòl Matinik la. Konsev pa èspèsyalis lingwis pou fanmi diaspora, zélèv èritaj ak antouziyas kiltirèl mondyalman. Aprann Kréyòl Matinik otenntik la atravè èksperyans kiltirèl imèsyonèl, modil ki fèy pou fanmi yo ak yon kominote mondyal zélèv.</p>
+                <a href="#pricing" class="cta-button" data-key="enroll_cta">Enske ou koulyé a - Komanse vwayaj ou</a>
+            </div>
+        </div>
+        
+        <div class="course-section" id="courses">
+            <div class="lang-content active" data-lang="en">
+                <h2 class="section-title">📚 Our Signature Course Modules</h2>
+            </div>
+            <div class="lang-content" data-lang="fr">
+                <h2 class="section-title">📚 Nos modules de cours signature</h2>
+            </div>
+            <div class="lang-content" data-lang="mq">
+                <h2 class="section-title">📚 Modil kou nou yo</h2>
+            </div>
+            
+            <div class="course-grid">
+                <!-- Course 1 -->
+                <div class="course-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h3>👨‍👩‍👧‍👦 Kréyòl Pou Zanmi (Creole for Families)</h3>
+                        <ul>
+                            <li>Parent-child learning activities & games</li>
+                            <li>Traditional lullabies and nursery rhymes</li>
+                            <li>Family vocabulary and daily expressions</li>
+                            <li>Intergenerational storytelling techniques</li>
+                            <li>Creating family language journals</li>
+                            <li>Weekend cultural immersion projects</li>
                         </ul>
-                    </li>
-                    
-                    <!-- Module 2 -->
-                    <li class="module-item">
-                        <div class="module-header">
-                            <span>Module 2: Lakay Nou (Our Home)</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <ul class="lessons-list">
-                            <li class="lesson-item" data-lesson="2-1">Lesson 2.1: Rooms & Furniture</li>
-                            <li class="lesson-item" data-lesson="2-2">Lesson 2.2: Household Activities</li>
-                            <li class="lesson-item" data-lesson="2-3">Lesson 2.3: Family Roles</li>
-                            <li class="lesson-item" data-lesson="2-4">Lesson 2.4: Telling Time</li>
-                        </ul>
-                    </li>
-                    
-                    <!-- Module 3 -->
-                    <li class="module-item">
-                        <div class="module-header">
-                            <span>Module 3: Kouzin Kréyòl (Cuisine)</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <ul class="lessons-list">
-                            <li class="lesson-item" data-lesson="3-1">Lesson 3.1: Market Conversations</li>
-                            <li class="lesson-item" data-lesson="3-2">Lesson 3.2: Traditional Recipes</li>
-                            <li class="lesson-item" data-lesson="3-3">Lesson 3.3: Cultural Significance</li>
-                        </ul>
-                    </li>
-                </ul>
-                
-                <div class="progress-container">
-                    <div class="progress-header">
-                        <span>Course Progress</span>
-                        <span>65%</span>
+                        <a href="#curriculum" class="course-cta">View Full Curriculum</a>
                     </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill"></div>
+                    <div class="lang-content" data-lang="fr">
+                        <h3>👨‍👩‍👧‍👦 Kréyòl Pou Zanmi (Créole pour les familles)</h3>
+                        <ul>
+                            <li>Activités et jeux d'apprentissage parent-enfant</li>
+                            <li>Berceuses traditionnelles et comptines</li>
+                            <li>Vocabulaire familial et expressions quotidiennes</li>
+                            <li>Techniques de narration intergénérationnelle</li>
+                            <li>Création de journaux linguistiques familiaux</li>
+                            <li>Projets d'immersion culturelle de week-end</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">Voir le programme complet</a>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h3>👨‍👩‍👧‍👦 Kréyòl Pou Zanmi</h3>
+                        <ul>
+                            <li>Aktivite ak jwèt aprantisaj paran-timoun</li>
+                            <li>Berse tradisyonèl ak chante timoun</li>
+                            <li>Vokabilè fanmi ak èkspresyon chak jou</li>
+                            <li>Teknik rikont interjenerasyonèl</li>
+                            <li>Kreyasyon jounal lang fanmi</li>
+                            <li>Pwojè imèsjon kiltirèl nwit fenn</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">Wè pwogram konplè a</a>
+                    </div>
+                </div>
+                
+                <!-- Course 2 -->
+                <div class="course-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h3>🎶 Ritmo Kréyòl: Music & Language</h3>
+                        <ul>
+                            <li>Learning through traditional Chouval Bwa</li>
+                            <li>Modern Zouk and Creole lyrics analysis</li>
+                            <li>Proverbs in popular Martinican songs</li>
+                            <li>Interactive music-based pronunciation</li>
+                            <li>Cultural context of musical expressions</li>
+                            <li>Virtual music appreciation sessions</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">View Full Curriculum</a>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h3>🎶 Ritmo Kréyòl : Musique et Langue</h3>
+                        <ul>
+                            <li>Apprentissage à travers le Chouval Bwa traditionnel</li>
+                            <li>Analyse des paroles de Zouk moderne et créole</li>
+                            <li>Proverbes dans les chansons martiniquaises populaires</li>
+                            <li>Prononciation interactive basée sur la musique</li>
+                            <li>Contexte culturel des expressions musicales</li>
+                            <li>Sessions virtuelles d'appréciation musicale</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">Voir le programme complet</a>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h3>🎶 Ritmo Kréyòl : Mizik ak Lang</h3>
+                        <ul>
+                            <li>Aprantisaj atravè Chouval Bwa tradisyonèl</li>
+                            <li>Analis parol Zouk modèn ak kréyòl</li>
+                            <li>Pwovèb nan chant popilè Matinik</li>
+                            <li>Pwonnonsiyasyon interaktif bazé sou mizik</li>
+                            <li>Kontèks kiltirèl èkspresyon mizikal</li>
+                            <li>Sesyon apresyasyon mizikal vityèl</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">Wè pwogram konplè a</a>
+                    </div>
+                </div>
+                
+                <!-- Course 3 -->
+                <div class="course-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h3>👨‍🍳 Kouzin Kréyòl: Language Through Cuisine</h3>
+                        <ul>
+                            <li>Cooking instructions in authentic Creole</li>
+                            <li>Food-related vocabulary and expressions</li>
+                            <li>Traditional recipes with linguistic notes</li>
+                            <li>Market conversations and ingredient names</li>
+                            <li>Cultural significance of Martinican dishes</li>
+                            <li>Virtual cooking demonstrations</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">View Full Curriculum</a>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h3>👨‍🍳 Kouzin Kréyòl : La langue à travers la cuisine</h3>
+                        <ul>
+                            <li>Instructions de cuisine en créole authentique</li>
+                            <li>Vocabulaire et expressions liés à la nourriture</li>
+                            <li>Recettes traditionnelles avec notes linguistiques</li>
+                            <li>Conversations au marché et noms d'ingrédients</li>
+                            <li>Signification culturelle des plats martiniquais</li>
+                            <li>Démonstrations culinaires virtuelles</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">Voir le programme complet</a>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h3>👨‍🍳 Kouzin Kréyòl : Lang atravè kouzin</h3>
+                        <ul>
+                            <li>Enstriksyon kouzin an kréyòl otenntik</li>
+                            <li>Vokabilè ak èkspresyon ki gen rapò ak manje</li>
+                            <li>Recèt tradisyonèl ak nòt lingwis</li>
+                            <li>Konvèsasyon maché ak non endrèdyan</li>
+                            <li>Sinifikasyon kiltirèl plato Matinik</li>
+                            <li>Demonstrasyon kouzin vityèl</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">Wè pwogram konplè a</a>
+                    </div>
+                </div>
+                
+                <!-- Course 4 -->
+                <div class="course-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h3>📖 Pawòl Granmè: Wisdom of Elders</h3>
+                        <ul>
+                            <li>Traditional proverbs and their meanings</li>
+                            <li>Elder storytelling techniques</li>
+                            <li>Historical context of Creole expressions</li>
+                            <li>Recording and preserving family stories</li>
+                            <li>Respectful communication with elders</li>
+                            <li>Oral history documentation methods</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">View Full Curriculum</a>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h3>📖 Pawòl Granmè : Sagesse des aînés</h3>
+                        <ul>
+                            <li>Proverbes traditionnels et leurs significations</li>
+                            <li>Techniques de narration des aînés</li>
+                            <li>Contexte historique des expressions créoles</li>
+                            <li>Enregistrement et préservation des histoires familiales</li>
+                            <li>Communication respectueuse avec les aînés</li>
+                            <li>Méthodes de documentation de l'histoire orale</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">Voir le programme complet</a>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h3>📖 Pawòl Granmè : Sajès granmoun</h3>
+                        <ul>
+                            <li>Pwovèb tradisyonèl ak siyifikasyon yo</li>
+                            <li>Teknik rikont granmoun</li>
+                            <li>Kontèks istòrik èkspresyon kréyòl</li>
+                            <li>Anrejistreman ak konsèvasyon istwa fanmi</li>
+                            <li>Kominikasyon respè avèk granmoun</li>
+                            <li>Metòd dokimantasyon istwa orèl</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">Wè pwogram konplè a</a>
+                    </div>
+                </div>
+                
+                <!-- Course 5 -->
+                <div class="course-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h3>🌍 Diaspora Connection: Kréyòl Worldwide</h3>
+                        <ul>
+                            <li>Regional variations in diaspora communities</li>
+                            <li>Code-switching between French/Creole/English</li>
+                            <li>Building diaspora language learning groups</li>
+                            <li>Virtual cultural exchange programs</li>
+                            <li>Resources for teaching children abroad</li>
+                            <li>Global Martinican community events</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">View Full Curriculum</a>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h3>🌍 Connexion diaspora : Kréyòl dans le monde</h3>
+                        <ul>
+                            <li>Variations régionales dans les communautés de la diaspora</li>
+                            <li>Changement de code entre français/créole/anglais</li>
+                            <li>Création de groupes d'apprentissage de la langue en diaspora</li>
+                            <li>Programmes d'échange culturel virtuel</li>
+                            <li>Ressources pour enseigner aux enfants à l'étranger</li>
+                            <li>Événements communautaires martiniquais mondiaux</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">Voir le programme complet</a>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h3>🌍 Koneksyon diaspora : Kréyòl mondyalman</h3>
+                        <ul>
+                            <li>Varyasyon rejyonal nan kominote diaspora</li>
+                            <li>Chanjman kòd ant fransè/kréyòl/anglè</li>
+                            <li>Kreyasyon gwoup aprantisaj lang diaspora</li>
+                            <li>Pwogram echannj kiltirèl vityèl</li>
+                            <li>Rèsous pou anseye timoun lòt peyi</li>
+                            <li>Evennman kominote Matinik mondyal</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">Wè pwogram konplè a</a>
+                    </div>
+                </div>
+                
+                <!-- Course 6 -->
+                <div class="course-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h3>🎓 Kréyòl Akadémik: Advanced Studies</h3>
+                        <ul>
+                            <li>Linguistic analysis of Creole structures</li>
+                            <li>Comparative studies with other Creoles</li>
+                            <li>Academic writing in Martinican Creole</li>
+                            <li>Research methodologies for heritage languages</li>
+                            <li>Language policy and preservation strategies</li>
+                            <li>Certification for educators</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">View Full Curriculum</a>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h3>🎓 Kréyòl Akadémik : Études avancées</h3>
+                        <ul>
+                            <li>Analyse linguistique des structures créoles</li>
+                            <li>Études comparatives avec d'autres créoles</li>
+                            <li>Rédaction académique en créole martiniquais</li>
+                            <li>Méthodologies de recherche pour les langues du patrimoine</li>
+                            <li>Politiques linguistiques et stratégies de préservation</li>
+                            <li>Certification pour les éducateurs</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">Voir le programme complet</a>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h3>🎓 Kréyòl Akadémik : Etid avanse</h3>
+                        <ul>
+                            <li>Analis lingwis strikti kréyòl</li>
+                            <li>Etid konparatif avèk lòt kréyòl</li>
+                            <li>Rédaksyon akadémik an Kréyòl Matinik</li>
+                            <li>Metòdoloji rechèch pou lang èritaj</li>
+                            <li>Politik lang ak estratèji konsèvasyon</li>
+                            <li>Sètifikasyon pou edikatè</li>
+                        </ul>
+                        <a href="#curriculum" class="course-cta">Wè pwogram konplè a</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="curriculum-section" id="curriculum">
+            <div class="lang-content active" data-lang="en">
+                <h2 class="section-title">📖 Detailed Curriculum</h2>
+            </div>
+            <div class="lang-content" data-lang="fr">
+                <h2 class="section-title">📖 Programme détaillé</h2>
+            </div>
+            <div class="lang-content" data-lang="mq">
+                <h2 class="section-title">📖 Pwogram detaye</h2>
+            </div>
+            
+            <div class="curriculum-section">
+                <div class="lang-content active" data-lang="en">
+                    <h3>👨‍👩‍👧‍👦 Kréyòl Pou Zanmi (Creole for Families)</h3>
+                </div>
+                <div class="lang-content" data-lang="fr">
+                    <h3>👨‍👩‍👧‍👦 Kréyòl Pou Zanmi (Créole pour les familles)</h3>
+                </div>
+                <div class="lang-content" data-lang="mq">
+                    <h3>👨‍👩‍👧‍👦 Kréyòl Pou Zanmi</h3>
+                </div>
+                
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <div class="lang-content active" data-lang="en">
+                            <h4>Module 1: Bonjou! (Greetings & Introductions)</h4>
+                            <ul class="lessons-list">
+                                <li>Lesson 1: Basic greetings and responses</li>
+                                <li>Lesson 2: Introducing family members</li>
+                                <li>Lesson 3: Daily routines vocabulary</li>
+                                <li>Lesson 4: Simple questions and answers</li>
+                            </ul>
+                            <h5>Learning Objectives:</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Greet family members appropriately</li>
+                                <li><span class="success-indicator"></span>Introduce immediate family in Creole</li>
+                                <li><span class="success-indicator"></span>Use basic daily routine vocabulary</li>
+                                <li><span class="success-indicator"></span>Ask and answer simple questions</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="fr">
+                            <h4>Module 1 : Bonjou ! (Salutations et présentations)</h4>
+                            <ul class="lessons-list">
+                                <li>Leçon 1 : Salutations de base et réponses</li>
+                                <li>Leçon 2 : Présenter les membres de la famille</li>
+                                <li>Leçon 3 : Vocabulaire des routines quotidiennes</li>
+                                <li>Leçon 4 : Questions et réponses simples</li>
+                            </ul>
+                            <h5>Objectifs d'apprentissage :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Saluer les membres de la famille de manière appropriée</li>
+                                <li><span class="success-indicator"></span>Présenter la famille proche en créole</li>
+                                <li><span class="success-indicator"></span>Utiliser le vocabulaire de base des routines quotidiennes</li>
+                                <li><span class="success-indicator"></span>Poser et répondre à des questions simples</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="mq">
+                            <h4>Modil 1 : Bonjou ! (Saliitasyon ak prezantasyon)</h4>
+                            <ul class="lessons-list">
+                                <li>Leson 1 : Saliitasyon senp ak repons</li>
+                                <li>Leson 2 : Prezante manm fanmi</li>
+                                <li>Leson 3 : Vokabilè rotin chak jou</li>
+                                <li>Leson 4 : Kesyon senp ak repons</li>
+                            </ul>
+                            <h5>Objektif aprantisaj :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Saliite manm fanmi a bon fason</li>
+                                <li><span class="success-indicator"></span>Prezante fanmi pwòch ou an kréyòl</li>
+                                <li><span class="success-indicator"></span>Itilize vokabilè rotin chak jou</li>
+                                <li><span class="success-indicator"></span>Poze ak reponn kesyon senp</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="module-card">
+                        <div class="lang-content active" data-lang="en">
+                            <h4>Module 2: Lakay Nou (Our Home)</h4>
+                            <ul class="lessons-list">
+                                <li>Lesson 1: Rooms and furniture vocabulary</li>
+                                <li>Lesson 2: Household activities</li>
+                                <li>Lesson 3: Family roles and responsibilities</li>
+                                <li>Lesson 4: Telling time and daily schedules</li>
+                            </ul>
+                            <h5>Learning Objectives:</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Identify and name household items</li>
+                                <li><span class="success-indicator"></span>Describe daily household activities</li>
+                                <li><span class="success-indicator"></span>Discuss family roles in Creole</li>
+                                <li><span class="success-indicator"></span>Express time and daily routines</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="fr">
+                            <h4>Module 2 : Lakay Nou (Notre maison)</h4>
+                            <ul class="lessons-list">
+                                <li>Leçon 1 : Vocabulaire des pièces et du mobilier</li>
+                                <li>Leçon 2 : Activités ménagères</li>
+                                <li>Leçon 3 : Rôles et responsabilités familiales</li>
+                                <li>Leçon 4 : Dire l'heure et les emplois du temps quotidiens</li>
+                            </ul>
+                            <h5>Objectifs d'apprentissage :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Identifier et nommer les objets domestiques</li>
+                                <li><span class="success-indicator"></span>Décrire les activités ménagères quotidiennes</li>
+                                <li><span class="success-indicator"></span>Discuter des rôles familiaux en créole</li>
+                                <li><span class="success-indicator"></span>Exprimer l'heure et les routines quotidiennes</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="mq">
+                            <h4>Modil 2 : Lakay Nou (Kaz nou)</h4>
+                            <ul class="lessons-list">
+                                <li>Leson 1 : Vokabilè pyès ak mobilye</li>
+                                <li>Leson 2 : Aktivite menajyè</li>
+                                <li>Leson 3 : Wòl ak responsabilite fanmi</li>
+                                <li>Leson 4 : Di lè ak orè chak jou</li>
+                            </ul>
+                            <h5>Objektif aprantisaj :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Idantifye ak nonmen objè menaj</li>
+                                <li><span class="success-indicator"></span>Deskri aktivite menaj chak jou</li>
+                                <li><span class="success-indicator"></span>Discite sou wòl fanmi an kréyòl</li>
+                                <li><span class="success-indicator"></span>Eprime lè ak rotin chak jou</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="module-card">
+                        <div class="lang-content active" data-lang="en">
+                            <h4>Module 3: Zanmi Nou (Our Friends & Community)</h4>
+                            <ul class="lessons-list">
+                                <li>Lesson 1: Describing friends and neighbors</li>
+                                <li>Lesson 2: Community places and services</li>
+                                <li>Lesson 3: Invitations and social gatherings</li>
+                                <li>Lesson 4: Cultural celebrations and traditions</li>
+                            </ul>
+                            <h5>Learning Objectives:</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Describe friends and community members</li>
+                                <li><span class="success-indicator"></span>Navigate community spaces in Creole</li>
+                                <li><span class="success-indicator"></span>Extend and respond to invitations</li>
+                                <li><span class="success-indicator"></span>Participate in cultural celebrations</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="fr">
+                            <h4>Module 3 : Zanmi Nou (Nos amis et notre communauté)</h4>
+                            <ul class="lessons-list">
+                                <li>Leçon 1 : Décrire les amis et les voisins</li>
+                                <li>Leçon 2 : Lieux et services communautaires</li>
+                                <li>Leçon 3 : Invitations et rassemblements sociaux</li>
+                                <li>Leçon 4 : Célébrations culturelles et traditions</li>
+                            </ul>
+                            <h5>Objectifs d'apprentissage :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Décrire les amis et les membres de la communauté</li>
+                                <li><span class="success-indicator"></span>Naviguer dans les espaces communautaires en créole</li>
+                                <li><span class="success-indicator"></span>Envoyer et répondre aux invitations</li>
+                                <li><span class="success-indicator"></span>Participer aux célébrations culturelles</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="mq">
+                            <h4>Modil 3 : Zanmi Nou (Zanmi nou ak kominote a)</h4>
+                            <ul class="lessons-list">
+                                <li>Leson 1 : Deskri zanmi ak vwazin</li>
+                                <li>Leson 2 : Espas ak sèvis kominote</li>
+                                <li>Leson 3 : Envitasyon ak reyinyon sosyal</li>
+                                <li>Leson 4 : Selebrasyon kiltirèl ak tradisyon</li>
+                            </ul>
+                            <h5>Objektif aprantisaj :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Deskri zanmi ak manm kominote</li>
+                                <li><span class="success-indicator"></span>Navige nan espas kominote an kréyòl</li>
+                                <li><span class="success-indicator"></span>Fè ak reponn envitasyon</li>
+                                <li><span class="success-indicator"></span>Patisipe nan selebrasyon kiltirèl</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Main Content Area -->
-            <div class="course-content">
-                <div class="content-header">
-                    <h2>Module 1: Bonjou! (Greetings & Introductions)</h2>
-                    <p>Learn essential greetings and family introductions in Martinican Creole</p>
+            <div class="curriculum-section">
+                <div class="lang-content active" data-lang="en">
+                    <h3>🎶 Ritmo Kréyòl: Music & Language</h3>
+                </div>
+                <div class="lang-content" data-lang="fr">
+                    <h3>🎶 Ritmo Kréyòl : Musique et Langue</h3>
+                </div>
+                <div class="lang-content" data-lang="mq">
+                    <h3>🎶 Ritmo Kréyòl : Mizik ak Lang</h3>
                 </div>
                 
-                <!-- Lesson Content -->
-                <div class="lesson-section">
-                    <h3 class="section-title">
-                        <i class="fas fa-book-open"></i>
-                        Lesson 1.1: Basic Greetings
-                    </h3>
-                    
-                    <div class="content-grid">
-                        <div class="content-card">
-                            <h4><i class="fas fa-comment"></i> Vocabulary</h4>
-                            <p><strong>Bonjou</strong> - Good morning/Hello</p>
-                            <p><strong>Bonso</strong> - Good evening</p>
-                            <p><strong>Kouman ou yé?</strong> - How are you?</p>
-                            <p><strong>M'ap boule</strong> - I'm fine (literally "I'm burning")</p>
-                            <p><strong>Mèsi</strong> - Thank you</p>
-                            <p><strong>Orevwa</strong> - Goodbye</p>
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <div class="lang-content active" data-lang="en">
+                            <h4>Module 1: Chouval Bwa Traditions</h4>
+                            <ul class="lessons-list">
+                                <li>Lesson 1: History and cultural significance</li>
+                                <li>Lesson 2: Musical instruments and terminology</li>
+                                <li>Lesson 3: Traditional song lyrics analysis</li>
+                                <li>Lesson 4: Pronunciation through rhythm</li>
+                            </ul>
+                            <h5>Learning Objectives:</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Understand Chouval Bwa cultural context</li>
+                                <li><span class="success-indicator"></span>Identify traditional instruments</li>
+                                <li><span class="success-indicator"></span>Analyze song lyrics for vocabulary</li>
+                                <li><span class="success-indicator"></span>Improve pronunciation through music</li>
+                            </ul>
                         </div>
-                        
-                        <div class="content-card">
-                            <h4><i class="fas fa-headphones"></i> Pronunciation Guide</h4>
-                            <p><strong>Bonjou</strong>: [bon-zhoo]</p>
-                            <p><strong>Kouman ou yé?</strong>: [koo-man oo yay]</p>
-                            <p><strong>M'ap boule</strong>: [m-ap bool]</p>
-                            <p><strong>Mèsi</strong>: [meh-see]</p>
-                            <p><strong>Orevwa</strong>: [oh-reh-vwah]</p>
+                        <div class="lang-content" data-lang="fr">
+                            <h4>Module 1 : Traditions du Chouval Bwa</h4>
+                            <ul class="lessons-list">
+                                <li>Leçon 1 : Histoire et signification culturelle</li>
+                                <li>Leçon 2 : Instruments de musique et terminologie</li>
+                                <li>Leçon 3 : Analyse des paroles de chansons traditionnelles</li>
+                                <li>Leçon 4 : Prononciation à travers le rythme</li>
+                            </ul>
+                            <h5>Objectifs d'apprentissage :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Comprendre le contexte culturel du Chouval Bwa</li>
+                                <li><span class="success-indicator"></span>Identifier les instruments traditionnels</li>
+                                <li><span class="success-indicator"></span>Analyser les paroles de chansons pour le vocabulaire</li>
+                                <li><span class="success-indicator"></span>Améliorer la prononciation grâce à la musique</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="mq">
+                            <h4>Modil 1 : Tradisyon Chouval Bwa</h4>
+                            <ul class="lessons-list">
+                                <li>Leson 1 : Istwa ak sinifikasyon kiltirèl</li>
+                                <li>Leson 2 : Enstriman mizikal ak tèminoloji</li>
+                                <li>Leson 3 : Analiz parol chant tradisyonèl</li>
+                                <li>Leson 4 : Pwonnonsiyasyon atravè ritm</li>
+                            </ul>
+                            <h5>Objektif aprantisaj :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Konprann kontèks kiltirèl Chouval Bwa</li>
+                                <li><span class="success-indicator"></span>Idantifye enstriman tradisyonèl</li>
+                                <li><span class="success-indicator"></span>Anlize parol chant pou vokabilè</li>
+                                <li><span class="success-indicator"></span>Amelyore pwonnonsiyasyon atravè mizik</li>
+                            </ul>
                         </div>
                     </div>
                     
-                    <div class="content-card">
-                        <h4><i class="fas fa-play-circle"></i> Audio Examples</h4>
-                        <p>Listen to native speakers pronounce these greetings:</p>
-                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                            <button class="submit-btn">
-                                <i class="fas fa-volume-up"></i> Bonjou
-                            </button>
-                            <button class="submit-btn">
-                                <i class="fas fa-volume-up"></i> Kouman ou yé?
-                            </button>
-                            <button class="submit-btn">
-                                <i class="fas fa-volume-up"></i> M'ap boule
-                            </button>
+                    <div class="module-card">
+                        <div class="lang-content active" data-lang="en">
+                            <h4>Module 2: Modern Zouk & Compas</h4>
+                            <ul class="lessons-list">
+                                <li>Lesson 1: Evolution of Martinican music</li>
+                                <li>Lesson 2: Contemporary artist vocabulary</li>
+                                <li>Lesson 3: Love and relationship expressions</li>
+                                <li>Lesson 4: Dance terminology and instructions</li>
+                            </ul>
+                            <h5>Learning Objectives:</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Trace musical evolution in Martinique</li>
+                                <li><span class="success-indicator"></span>Learn modern musical vocabulary</li>
+                                <li><span class="success-indicator"></span>Express emotions through song lyrics</li>
+                                <li><span class="success-indicator"></span>Follow dance instructions in Creole</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="fr">
+                            <h4>Module 2 : Zouk moderne et Compas</h4>
+                            <ul class="lessons-list">
+                                <li>Leçon 1 : Évolution de la musique martiniquaise</li>
+                                <li>Leçon 2 : Vocabulaire des artistes contemporains</li>
+                                <li>Leçon 3 : Expressions d'amour et de relations</li>
+                                <li>Leçon 4 : Terminologie et instructions de danse</li>
+                            </ul>
+                            <h5>Objectifs d'apprentissage :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Tracer l'évolution musicale en Martinique</li>
+                                <li><span class="success-indicator"></span>Apprendre le vocabulaire musical moderne</li>
+                                <li><span class="success-indicator"></span>Exprimer des émotions à travers les paroles de chansons</li>
+                                <li><span class="success-indicator"></span>Suivre les instructions de danse en créole</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="mq">
+                            <h4>Modil 2 : Zouk modèn ak Compas</h4>
+                            <ul class="lessons-list">
+                                <li>Leson 1 : Evolisyon mizik Matinik</li>
+                                <li>Leson 2 : Vokabilè artist kontanporèn</li>
+                                <li>Leson 3 : Èkspresyon lanmou ak relasyon</li>
+                                <li>Leson 4 : Tèminoloji ak enstriksyon danse</li>
+                            </ul>
+                            <h5>Objektif aprantisaj :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Trase evolisyon mizikal Matinik</li>
+                                <li><span class="success-indicator"></span>Aprann vokabilè mizikal modèn</li>
+                                <li><span class="success-indicator"></span>Eprime emosyon atravè parol chant</li>
+                                <li><span class="success-indicator"></span>Suiv enstriksyon danse an kréyòl</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="module-card">
+                        <div class="lang-content active" data-lang="en">
+                            <h4>Module 3: Proverbs in Popular Music</h4>
+                            <ul class="lessons-list">
+                                <li>Lesson 1: Common proverbs and sayings</li>
+                                <li>Lesson 2: Metaphorical language in songs</li>
+                                <li>Lesson 3: Cultural wisdom through music</li>
+                                <li>Lesson 4: Creating original musical expressions</li>
+                            </ul>
+                            <h5>Learning Objectives:</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Recognize and use common proverbs</li>
+                                <li><span class="success-indicator"></span>Understand metaphorical expressions</li>
+                                <li><span class="success-indicator"></span>Connect music to cultural wisdom</li>
+                                <li><span class="success-indicator"></span>Create original Creole expressions</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="fr">
+                            <h4>Module 3 : Proverbes dans la musique populaire</h4>
+                            <ul class="lessons-list">
+                                <li>Leçon 1 : Proverbes et dictons courants</li>
+                                <li>Leçon 2 : Langage métaphorique dans les chansons</li>
+                                <li>Leçon 3 : Sagesse culturelle à travers la musique</li>
+                                <li>Leçon 4 : Création d'expressions musicales originales</li>
+                            </ul>
+                            <h5>Objectifs d'apprentissage :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Reconnaître et utiliser des proverbes courants</li>
+                                <li><span class="success-indicator"></span>Comprendre les expressions métaphoriques</li>
+                                <li><span class="success-indicator"></span>Relier la musique à la sagesse culturelle</li>
+                                <li><span class="success-indicator"></span>Créer des expressions créoles originales</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="mq">
+                            <h4>Modil 3 : Pwovèb nan mizik popilè</h4>
+                            <ul class="lessons-list">
+                                <li>Leson 1 : Pwovèb ak dire kouran</li>
+                                <li>Leson 2 : Langaj metafòrik nan chant</li>
+                                <li>Leson 3 : Sajès kiltirèl atravè mizik</li>
+                                <li>Leson 4 : Kreyasyon èkspresyon mizikal orijinal</li>
+                            </ul>
+                            <h5>Objektif aprantisaj :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Rekonnèt ak itilize pwovèb kouran</li>
+                                <li><span class="success-indicator"></span>Konprann èkspresyon metafòrik</li>
+                                <li><span class="success-indicator"></span>Konekte mizik ak sajès kiltirèl</li>
+                                <li><span class="success-indicator"></span>Kreye èkspresyon kréyòl orijinal</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Interactive Quiz -->
-                <div class="lesson-section">
-                    <h3 class="section-title">
-                        <i class="fas fa-graduation-cap"></i>
-                        Interactive Quiz
-                    </h3>
-                    
-                    <div class="quiz-container">
-                        <div class="quiz-question">What does "M'ap boule" mean in English?</div>
-                        <div class="quiz-options">
-                            <div class="quiz-option" onclick="selectQuizOption(this)">
-                                <span>A)</span> I'm burning
-                            </div>
-                            <div class="quiz-option" onclick="selectQuizOption(this)">
-                                <span>B)</span> I'm fine
-                            </div>
-                            <div class="quiz-option" onclick="selectQuizOption(this)">
-                                <span>C)</span> I'm hungry
-                            </div>
-                            <div class="quiz-option" onclick="selectQuizOption(this)">
-                                <span>D)</span> I'm tired
-                            </div>
-                        </div>
-                        <button class="submit-btn" style="margin-top: 1.5rem;" onclick="checkQuizAnswer()">
-                            <i class="fas fa-check-circle"></i> Submit Answer
-                        </button>
-                    </div>
+            </div>
+            
+            <div class="curriculum-section">
+                <div class="lang-content active" data-lang="en">
+                    <h3>👨‍🍳 Kouzin Kréyòl: Language Through Cuisine</h3>
+                </div>
+                <div class="lang-content" data-lang="fr">
+                    <h3>👨‍🍳 Kouzin Kréyòl : La langue à travers la cuisine</h3>
+                </div>
+                <div class="lang-content" data-lang="mq">
+                    <h3>👨‍🍳 Kouzin Kréyòl : Lang atravè kouzin</h3>
                 </div>
                 
-                <!-- Assignment -->
-                <div class="lesson-section">
-                    <h3 class="section-title">
-                        <i class="fas fa-tasks"></i>
-                        Practical Assignment
-                    </h3>
-                    
-                    <div class="assignment-card">
-                        <div class="assignment-title">
-                            <i class="fas fa-video"></i> Family Introduction Video
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <div class="lang-content active" data-lang="en">
+                            <h4>Module 1: Market Conversations</h4>
+                            <ul class="lessons-list">
+                                <li>Lesson 1: Food vocabulary and ingredients</li>
+                                <li>Lesson 2: Shopping and bargaining phrases</li>
+                                <li>Lesson 3: Quality and freshness descriptions</li>
+                                <li>Lesson 4: Traditional market etiquette</li>
+                            </ul>
+                            <h5>Learning Objectives:</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Name local ingredients and foods</li>
+                                <li><span class="success-indicator"></span>Navigate market conversations</li>
+                                <li><span class="success-indicator"></span>Describe food quality in Creole</li>
+                                <li><span class="success-indicator"></span>Practice market etiquette phrases</li>
+                            </ul>
                         </div>
-                        <div class="assignment-desc">
-                            Record a 2-minute video introducing yourself and your family members in Martinican Creole. 
-                            Practice using the greetings and expressions you've learned. Focus on clear pronunciation 
-                            and natural delivery. Submit your video through the course platform for feedback.
+                        <div class="lang-content" data-lang="fr">
+                            <h4>Module 1 : Conversations au marché</h4>
+                            <ul class="lessons-list">
+                                <li>Leçon 1 : Vocabulaire alimentaire et ingrédients</li>
+                                <li>Leçon 2 : Phrases pour faire les courses et négocier</li>
+                                <li>Leçon 3 : Descriptions de qualité et de fraîcheur</li>
+                                <li>Leçon 4 : Étiquette traditionnelle au marché</li>
+                            </ul>
+                            <h5>Objectifs d'apprentissage :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Nommer les ingrédients et aliments locaux</li>
+                                <li><span class="success-indicator"></span>Naviguer dans les conversations au marché</li>
+                                <li><span class="success-indicator"></span>Décrire la qualité des aliments en créole</li>
+                                <li><span class="success-indicator"></span>Pratiquer les phrases d'étiquette au marché</li>
+                            </ul>
                         </div>
-                        <button class="submit-btn">
-                            <i class="fas fa-upload"></i> Submit Assignment
-                        </button>
+                        <div class="lang-content" data-lang="mq">
+                            <h4>Modil 1 : Konvèsasyon maché</h4>
+                            <ul class="lessons-list">
+                                <li>Leson 1 : Vokabilè manje ak endrèdyan</li>
+                                <li>Leson 2 : Fras pou fè kouwi ak negosye</li>
+                                <li>Leson 3 : Deskripsyon kalite ak frèchè</li>
+                                <li>Leson 4 : Etikèt tradisyonèl maché</li>
+                            </ul>
+                            <h5>Objektif aprantisaj :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Nonmen endrèdyan ak manje lokal</li>
+                                <li><span class="success-indicator"></span>Navige nan konvèsasyon maché</li>
+                                <li><span class="success-indicator"></span>Deskri kalite manje an kréyòl</li>
+                                <li><span class="success-indicator"></span>Pratike fras etikèt maché</li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Cultural Context -->
-                <div class="lesson-section">
-                    <h3 class="section-title">
-                        <i class="fas fa-globe-americas"></i>
-                        Cultural Context
-                    </h3>
                     
-                    <div class="content-card">
-                        <p>In Martinican culture, greetings are extremely important and often more elaborate than in Western cultures. 
-                        It's customary to greet everyone individually when entering a room, and to ask about their well-being and family. 
-                        The expression "M'ap boule" (I'm burning) reflects the vibrant, energetic spirit of Martinican people - it conveys 
-                        that you're doing well and full of life!</p>
-                        
-                        <p>When meeting someone for the first time, it's common to shake hands firmly while maintaining eye contact. 
-                        Among friends and family, cheek kisses (usually two or three) are common. Always use formal greetings with 
-                        elders and in professional settings.</p>
+                    <div class="module-card">
+                        <div class="lang-content active" data-lang="en">
+                            <h4>Module 2: Traditional Recipes</h4>
+                            <ul class="lessons-list">
+                                <li>Lesson 1: Colombo spice blend preparation</li>
+                                <li>Lesson 2: Accras de morue (cod fritters)</li>
+                                <li>Lesson 3: Boudin créole (blood sausage)</li>
+                                <li>Lesson 4: Desserts: Blancmange and flan</li>
+                            </ul>
+                            <h5>Learning Objectives:</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Follow recipes in authentic Creole</li>
+                                <li><span class="success-indicator"></span>Use cooking action verbs</li>
+                                <li><span class="success-indicator"></span>Measure and quantify in Creole</li>
+                                <li><span class="success-indicator"></span>Describe cooking processes</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="fr">
+                            <h4>Module 2 : Recettes traditionnelles</h4>
+                            <ul class="lessons-list">
+                                <li>Leçon 1 : Préparation du mélange d'épices Colombo</li>
+                                <li>Leçon 2 : Accras de morue (beignets de morue)</li>
+                                <li>Leçon 3 : Boudin créole (boudin noir)</li>
+                                <li>Leçon 4 : Desserts : Blanc-manger et flan</li>
+                            </ul>
+                            <h5>Objectifs d'apprentissage :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Suivre des recettes en créole authentique</li>
+                                <li><span class="success-indicator"></span>Utiliser des verbes d'action culinaire</li>
+                                <li><span class="success-indicator"></span>Mesurer et quantifier en créole</li>
+                                <li><span class="success-indicator"></span>Décrire les processus de cuisson</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="mq">
+                            <h4>Modil 2 : Recèt tradisyonèl</h4>
+                            <ul class="lessons-list">
+                                <li>Leson 1 : Preparasyon melanj epis Colombo</li>
+                                <li>Leson 2 : Akra mori (bèyèt mori)</li>
+                                <li>Leson 3 : Boudin kréyòl (boudin nwa)</li>
+                                <li>Leson 4 : Dèsè : Blanmang ak flan</li>
+                            </ul>
+                            <h5>Objektif aprantisaj :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Suiv recèt an kréyòl otenntik</li>
+                                <li><span class="success-indicator"></span>Itilize vèb aksyon kouzin</li>
+                                <li><span class="success-indicator"></span>Mize ak kantifye an kréyòl</li>
+                                <li><span class="success-indicator"></span>Deskri pwosesis kouzin</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="module-card">
+                        <div class="lang-content active" data-lang="en">
+                            <h4>Module 3: Cultural Significance</h4>
+                            <ul class="lessons-list">
+                                <li>Lesson 1: Food in Martinican celebrations</li>
+                                <li>Lesson 2: Historical influences on cuisine</li>
+                                <li>Lesson 3: Family mealtime traditions</li>
+                                <li>Lesson 4: Food-related proverbs and expressions</li>
+                            </ul>
+                            <h5>Learning Objectives:</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Connect food to cultural celebrations</li>
+                                <li><span class="success-indicator"></span>Understand historical culinary influences</li>
+                                <li><span class="success-indicator"></span>Participate in family meal traditions</li>
+                                <li><span class="success-indicator"></span>Use food-related expressions</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="fr">
+                            <h4>Module 3 : Signification culturelle</h4>
+                            <ul class="lessons-list">
+                                <li>Leçon 1 : La nourriture dans les célébrations martiniquaises</li>
+                                <li>Leçon 2 : Influences historiques sur la cuisine</li>
+                                <li>Leçon 3 : Traditions familiales aux repas</li>
+                                <li>Leçon 4 : Proverbes et expressions liés à la nourriture</li>
+                            </ul>
+                            <h5>Objectifs d'apprentissage :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Relier la nourriture aux célébrations culturelles</li>
+                                <li><span class="success-indicator"></span>Comprendre les influences culinaires historiques</li>
+                                <li><span class="success-indicator"></span>Participer aux traditions familiales aux repas</li>
+                                <li><span class="success-indicator"></span>Utiliser des expressions liées à la nourriture</li>
+                            </ul>
+                        </div>
+                        <div class="lang-content" data-lang="mq">
+                            <h4>Modil 3 : Sinifikasyon kiltirèl</h4>
+                            <ul class="lessons-list">
+                                <li>Leson 1 : Manje nan selebrasyon Matinik</li>
+                                <li>Leson 2 : Enflyans istòrik sou kouzin</li>
+                                <li>Leson 3 : Tradisyon fanmi lè manje</li>
+                                <li>Leson 4 : Pwovèb ak èkspresyon ki gen rapò ak manje</li>
+                            </ul>
+                            <h5>Objektif aprantisaj :</h5>
+                            <ul class="objectives-list">
+                                <li><span class="success-indicator"></span>Konekte manje ak selebrasyon kiltirèl</li>
+                                <li><span class="success-indicator"></span>Konprann enflyans kouzin istòrik</li>
+                                <li><span class="success-indicator"></span>Patisipe nan tradisyon manje fanmi</li>
+                                <li><span class="success-indicator"></span>Itilize èkspresyon ki gen rapò ak manje</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <div class="interactive-section" id="interactive">
+            <div class="lang-content active" data-lang="en">
+                <h2 class="section-title">🎮 Interactive Learning Elements</h2>
+            </div>
+            <div class="lang-content" data-lang="fr">
+                <h2 class="section-title">🎮 Éléments d'apprentissage interactifs</h2>
+            </div>
+            <div class="lang-content" data-lang="mq">
+                <h2 class="section-title">🎮 Eleman aprantisaj entèraktif</h2>
+            </div>
+            
+            <div class="interactive-grid">
+                <div class="interactive-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h4>📝 Interactive Quizzes</h4>
+                        <div class="quiz-container">
+                            <div class="quiz-question">What does "Bonjou" mean in English?</div>
+                            <div class="quiz-options">
+                                <div class="quiz-option" onclick="selectOption(this)">Good evening</div>
+                                <div class="quiz-option" onclick="selectOption(this)">Good morning/Hello</div>
+                                <div class="quiz-option" onclick="selectOption(this)">Good night</div>
+                                <div class="quiz-option" onclick="selectOption(this)">Goodbye</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h4>📝 Quiz interactifs</h4>
+                        <div class="quiz-container">
+                            <div class="quiz-question">Que signifie "Bonjou" en français ?</div>
+                            <div class="quiz-options">
+                                <div class="quiz-option" onclick="selectOption(this)">Bonsoir</div>
+                                <div class="quiz-option" onclick="selectOption(this)">Bonjour</div>
+                                <div class="quiz-option" onclick="selectOption(this)">Bonne nuit</div>
+                                <div class="quiz-option" onclick="selectOption(this)">Au revoir</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h4>📝 Kiz entèraktif</h4>
+                        <div class="quiz-container">
+                            <div class="quiz-question">Ki sa "Bonjou" vle di an kréyòl ?</div>
+                            <div class="quiz-options">
+                                <div class="quiz-option" onclick="selectOption(this)">Bonswa</div>
+                                <div class="quiz-option" onclick="selectOption(this)">Bonjou</div>
+                                <div class="quiz-option" onclick="selectOption(this)">Bonnwit</div>
+                                <div class="quiz-option" onclick="selectOption(this)">Orevwa</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="interactive-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h4>🎯 Practical Assignments</h4>
+                        <div class="assignment-card">
+                            <div class="assignment-title">Family Introduction Assignment</div>
+                            <div class="assignment-desc">Record a 2-minute video introducing your family members in Martinican Creole. Practice greetings, names, ages, and relationships.</div>
+                        </div>
+                        <div class="assignment-card">
+                            <div class="assignment-title">Cultural Recipe Assignment</div>
+                            <div class="assignment-desc">Cook a traditional Martinican dish and write the recipe in Creole. Share photos and your experience with the class.</div>
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h4>🎯 Devoirs pratiques</h4>
+                        <div class="assignment-card">
+                            <div class="assignment-title">Devoir de présentation familiale</div>
+                            <div class="assignment-desc">Enregistrez une vidéo de 2 minutes présentant les membres de votre famille en créole martiniquais. Pratiquez les salutations, les noms, les âges et les relations.</div>
+                        </div>
+                        <div class="assignment-card">
+                            <div class="assignment-title">Devoir de recette culturelle</div>
+                            <div class="assignment-desc">Cuisinez un plat traditionnel martiniquais et écrivez la recette en créole. Partagez des photos et votre expérience avec la classe.</div>
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h4>🎯 Travay pratik</h4>
+                        <div class="assignment-card">
+                            <div class="assignment-title">Travay prezantasyon fanmi</div>
+                            <div class="assignment-desc">Anrejistre yon videyo 2 minit pou prezante manm fanmi ou an kréyòl Matinik. Pratike saliitasyon, non, laj ak relasyon.</div>
+                        </div>
+                        <div class="assignment-card">
+                            <div class="assignment-title">Travay recèt kiltirèl</div>
+                            <div class="assignment-desc">Kwèy yon plato tradisyonèl Matinik ak ekri recèt la an kréyòl. Pataje foto ak èksperyans ou avèk klas la.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="interactive-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h4>🎧 Audio Pronunciation Practice</h4>
+                        <div class="assignment-card">
+                            <div class="assignment-title">Listen & Repeat Exercises</div>
+                            <div class="assignment-desc">Practice pronunciation with native speaker audio recordings. Record your voice and compare with authentic pronunciation.</div>
+                        </div>
+                        <div class="assignment-card">
+                            <div class="assignment-title">Conversation Simulations</div>
+                            <div class="assignment-desc">Interactive dialogues with AI-powered conversation partners. Practice real-life scenarios like market shopping or family gatherings.</div>
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h4>🎧 Pratique de prononciation audio</h4>
+                        <div class="assignment-card">
+                            <div class="assignment-title">Exercices d'écoute et de répétition</div>
+                            <div class="assignment-desc">Pratiquez la prononciation avec des enregistrements audio de locuteurs natifs. Enregistrez votre voix et comparez avec la prononciation authentique.</div>
+                        </div>
+                        <div class="assignment-card">
+                            <div class="assignment-title">Simulations de conversation</div>
+                            <div class="assignment-desc">Dialogues interactifs avec des partenaires de conversation alimentés par l'IA. Pratiquez des scénarios de la vie réelle comme faire les courses au marché ou les rassemblements familiaux.</div>
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h4>🎧 Pratik pwonnonsiyasyon odyo</h4>
+                        <div class="assignment-card">
+                            <div class="assignment-title">Ezèsik ekoute ak repete</div>
+                            <div class="assignment-desc">Pratike pwonnonsiyasyon ak anrejistman odyo pawòl natif. Anrejistre vwa ou ak konpare avèk pwonnonsiyasyon otenntik.</div>
+                        </div>
+                        <div class="assignment-card">
+                            <div class="assignment-title">Similasyon konvèsasyon</div>
+                            <div class="assignment-desc">Dyalòg entèraktif avèk patnè konvèsasyon alimante pa AI. Pratike senaryo reyèl tankou fè kouwi maché oswa reyinyon fanmi.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="features-section" id="features">
+            <div class="lang-content active" data-lang="en">
+                <h2 class="section-title">✨ What Makes Us Unique</h2>
+            </div>
+            <div class="lang-content" data-lang="fr">
+                <h2 class="section-title">✨ Ce qui nous rend unique</h2>
+            </div>
+            <div class="lang-content" data-lang="mq">
+                <h2 class="section-title">✨ Sa ki fè nou inik</h2>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h3>🇲🇶 Martinican Specificity</h3>
+                        <p>Exclusively focused on authentic Martinican Creole, not generic French Creole</p>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h3>🇲🇶 Spécificité martiniquaise</h3>
+                        <p>Exclusivement axé sur le créole martiniquais authentique, pas sur le créole français générique</p>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h3>🇲🇶 Espesifikite Matinik</h3>
+                        <p>Eksklizivman fòkize sou Kréyòl Matinik otenntik, pa sou Kréyòl Fransè jenerik</p>
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h3>👨‍👩‍👧‍👦 Family-Centric Design</h3>
+                        <p>Specialized modules for heritage transmission across generations</p>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h3>👨‍👩‍👧‍👦 Conception centrée sur la famille</h3>
+                        <p>Modules spécialisés pour la transmission du patrimoine à travers les générations</p>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h3>👨‍👩‍👧‍👦 Konsepsyon santralize sou fanmi</h3>
+                        <p>Modil espesyalize pou transmisyon èritaj travè jenerasyon</p>
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h3>🎵 Cultural Immersion</h3>
+                        <p>Authentic integration of music, cuisine, traditions, and real-life contexts</p>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h3>🎵 Immersion culturelle</h3>
+                        <p>Intégration authentique de la musique, de la cuisine, des traditions et des contextes de la vie réelle</p>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h3>🎵 Imèsjon kiltirèl</h3>
+                        <p>Entegrasyon otenntik mizik, kouzin, tradisyon ak kontèks reyèl</p>
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h3>🌐 Global Community</h3>
+                        <p>Connect with Martinicans worldwide through virtual meetups and forums</p>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h3>🌐 Communauté mondiale</h3>
+                        <p>Connectez-vous avec les Martiniquais du monde entier grâce à des rencontres virtuelles et des forums</p>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h3>🌐 Kominote mondyal</h3>
+                        <p>Konekte ou avèk Matinik mondyalman atravè reyinyon vityèl ak fòrim</p>
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h3>🎓 Linguistic Expertise</h3>
+                        <p>Developed by certified linguists with deep Martinican cultural knowledge</p>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h3>🎓 Expertise linguistique</h3>
+                        <p>Développé par des linguistes certifiés avec une connaissance approfondie de la culture martiniquaise</p>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h3>🎓 Espètis lingwis</h3>
+                        <p>Konsev pa lingwis sètifye avèk konesans pwofond kilti Matinik</p>
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h3>📱 Modern Learning</h3>
+                        <p>Interactive exercises, speech recognition, and mobile-friendly design</p>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h3>📱 Apprentissage moderne</h3>
+                        <p>Exercices interactifs, reconnaissance vocale et conception adaptée aux mobiles</p>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h3>📱 Aprantisaj modèn</h3>
+                        <p>Ezèsik entèraktif, rekonèt vwa ak konsepsyon ki fèy pou mobil</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="testimonial" id="testimonials">
+            <div class="lang-content active" data-lang="en">
+                <blockquote>
+                    "As a Martinican living in Canada for 15 years, I struggled to teach my children our beautiful language. This course has been a lifeline for our family. The cultural immersion through music and cuisine made learning natural and joyful. My children now proudly speak Kréyòl with their grandparents during video calls!"
+                </blockquote>
+                <cite>— Marie-Louise D., Montreal, Canada</cite>
+            </div>
+            <div class="lang-content" data-lang="fr">
+                <blockquote>
+                    "En tant que Martiniquaise vivant au Canada depuis 15 ans, j'ai eu du mal à enseigner notre belle langue à mes enfants. Ce cours a été une bouée de sauvetage pour notre famille. L'immersion culturelle à travers la musique et la cuisine a rendu l'apprentissage naturel et joyeux. Mes enfants parlent maintenant fièrement le créole avec leurs grands-parents lors des appels vidéo !"
+                </blockquote>
+                <cite>— Marie-Louise D., Montréal, Canada</cite>
+            </div>
+            <div class="lang-content" data-lang="mq">
+                <blockquote>
+                    "Kòm yon Matinik ki ap viv an Kanada depi 15 an, m'te gen difikilte pou m'enseyen timoun mwen bèl lang nou an. Kou sa a té yon kòd savè pou fanmi nou. Imèsjon kiltirèl atravè mizik ak kouzin fè aprantisaj lan natirèl ak jwaye. Timoun mwen ap pale Kréyòl koulyé a avèk granpè yo pandan apèl videyo yo !"
+                </blockquote>
+                <cite>— Marie-Louise D., Montréal, Kanada</cite>
+            </div>
+        </div>
+        
+        <div class="pricing" id="pricing">
+            <div class="lang-content active" data-lang="en">
+                <h2>💰 Investment in Your Heritage</h2>
+                <div class="price">$29<span>/month</span></div>
+                <p>Family subscription includes access for up to 4 family members</p>
+                <p>Annual plan: $299/year (save 15%)</p>
+                <p>7-day free trial • Cancel anytime • 30-day money-back guarantee</p>
+                <a href="https://www.paypal.com" class="cta-button">Start Your Free Trial</a>
+            </div>
+            <div class="lang-content" data-lang="fr">
+                <h2>💰 Investissement dans votre patrimoine</h2>
+                <div class="price">29€<span>/mois</span></div>
+                <p>L'abonnement familial inclut l'accès pour jusqu'à 4 membres de la famille</p>
+                <p>Formule annuelle : 299€/an (économie de 15%)</p>
+                <p>Essai gratuit de 7 jours • Annulation à tout moment • Garantie de remboursement de 30 jours</p>
+                <a href="https://www.paypal.com" class="cta-button">Commencez votre essai gratuit</a>
+            </div>
+            <div class="lang-content" data-lang="mq">
+                <h2>💰 Envestisman nan èritaj ou</h2>
+                <div class="price">29€<span>/mwa</span></div>
+                <p>Abskripsyon fanmi an gen akès pou 4 manm fanmi</p>
+                <p>Plan lane : 299€/an (epany 15%)</p>
+                <p>7 jou esey gratis • Anile nenpòt lè • Garanti rembousman 30 jou</p>
+                <a href="https://www.paypal.com" class="cta-button">Komanse esey gratis ou</a>
+            </div>
+        </div>
     </div>
     
-    <!-- Footer -->
     <footer>
-        <div class="footer-content">
-            <p>© 2024 Kréyòl Matinik - Martinican Creole Heritage Course</p>
-            <p>"Chak pawòl sé yon timoun ki pé viv" (Every word is a child that will live)</p>
+        <div class="container">
+            <div class="lang-content active" data-lang="en">
+                <div class="footer-content">
+                    <p>© 2024 Kréyòl Matinik - Martinican Creole Heritage Course</p>
+                    <p>"Chak pawòl sé yon timoun ki pé viv" (Every word is a child that will live)</p>
+                    <p>Preserving Language • Connecting Generations • Celebrating Martinican Culture</p>
+                    <div class="footer-links">
+                        <a href="https://www.martinique.gouv.fr" class="footer-link" target="_blank">Official Martinique Government</a>
+                        <a href="https://www.institut-creole.org" class="footer-link" target="_blank">Institut du Créole</a>
+                        <a href="https://www.alliance-francaise.org" class="footer-link" target="_blank">Alliance Française</a>
+                        <a href="https://www.unesco.org" class="footer-link" target="_blank">UNESCO Language Preservation</a>
+                        <a href="https://www.martinique-tourism.com" class="footer-link" target="_blank">Martinique Tourism</a>
+                    </div>
+                </div>
+            </div>
+            <div class="lang-content" data-lang="fr">
+                <div class="footer-content">
+                    <p>© 2024 Kréyòl Matinik - Cours du patrimoine créole martiniquais</p>
+                    <p>"Chaque parole est un enfant qui va vivre"</p>
+                    <p>Préserver la langue • Connecter les générations • Célébrer la culture martiniquaise</p>
+                    <div class="footer-links">
+                        <a href="https://www.martinique.gouv.fr" class="footer-link" target="_blank">Gouvernement officiel de la Martinique</a>
+                        <a href="https://www.institut-creole.org" class="footer-link" target="_blank">Institut du Créole</a>
+                        <a href="https://www.alliance-francaise.org" class="footer-link" target="_blank">Alliance Française</a>
+                        <a href="https://www.unesco.org" class="footer-link" target="_blank">Préservation des langues UNESCO</a>
+                        <a href="https://www.martinique-tourism.com" class="footer-link" target="_blank">Tourisme Martinique</a>
+                    </div>
+                </div>
+            </div>
+            <div class="lang-content" data-lang="mq">
+                <div class="footer-content">
+                    <p>© 2024 Kréyòl Matinik - Kou èritaj Kréyòl Matinik</p>
+                    <p>"Chak pawòl sé yon timoun ki pé viv"</p>
+                    <p>Konèv lang • Konekte jenerasyon • Selebre kilti Matinik</p>
+                    <div class="footer-links">
+                        <a href="https://www.martinique.gouv.fr" class="footer-link" target="_blank">Gouvènman ofisyèl Matinik</a>
+                        <a href="https://www.institut-creole.org" class="footer-link" target="_blank">Enstiti Kréyòl</a>
+                        <a href="https://www.alliance-francaise.org" class="footer-link" target="_blank">Alans Fransèz</a>
+                        <a href="https://www.unesco.org" class="footer-link" target="_blank">Konsèvasyon lang UNESCO</a>
+                        <a href="https://www.martinique-tourism.com" class="footer-link" target="_blank">Touris Matinik</a>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="footer-flag"></div>
     </footer>
 
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+        </svg>
+    </button>
+
     <script>
-        // Language functionality
+        // Language data
+        const translations = {
+            en: {
+                courses_nav: "Courses",
+                curriculum_nav: "Curriculum",
+                interactive_nav: "Interactive",
+                testimonials_nav: "Testimonials",
+                pricing_nav: "Pricing",
+                enroll_cta: "Enroll Now - Start Your Journey"
+            },
+            fr: {
+                courses_nav: "Cours",
+                curriculum_nav: "Programme",
+                interactive_nav: "Interactif",
+                testimonials_nav: "Témoignages",
+                pricing_nav: "Tarifs",
+                enroll_cta: "Inscrivez-vous maintenant - Commencez votre parcours"
+            },
+            mq: {
+                courses_nav: "Kou",
+                curriculum_nav: "Pwogram",
+                interactive_nav: "Entèraktif",
+                testimonials_nav: "Temoynaj",
+                pricing_nav: "Pri",
+                enroll_cta: "Enske ou koulyé a - Komanse vwayaj ou"
+            }
+        };
+        
+        // Current language
+        let currentLang = 'en';
+        
+        // Language dropdown functionality
         const languageBtn = document.getElementById('languageBtn');
         const languageDropdown = document.getElementById('languageDropdown');
         const languageOptions = document.querySelectorAll('.language-option');
@@ -828,21 +2057,25 @@
             languageDropdown.classList.toggle('show');
         });
         
+        // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!languageBtn.contains(e.target) && !languageDropdown.contains(e.target)) {
                 languageDropdown.classList.remove('show');
             }
         });
         
+        // Language selection
         languageOptions.forEach(option => {
             option.addEventListener('click', () => {
                 const selectedLang = option.getAttribute('data-lang');
-                updateLanguage(selectedLang);
+                changeLanguage(selectedLang);
             });
         });
         
-        function updateLanguage(lang) {
-            // Update button
+        function changeLanguage(lang) {
+            currentLang = lang;
+            
+            // Update button text
             const languageNames = {
                 'mq': 'Kréyòl',
                 'fr': 'Français',
@@ -860,73 +2093,72 @@
             languageOptions.forEach(opt => opt.classList.remove('active'));
             document.querySelector(`.language-option[data-lang="${lang}"]`).classList.add('active');
             
+            // Close dropdown
             languageDropdown.classList.remove('show');
             
-            // In a real implementation, this would update all content
-            console.log(`Language changed to: ${lang}`);
+            // Update all language content
+            document.querySelectorAll('.lang-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll(`.lang-content[data-lang="${lang}"]`).forEach(content => {
+                content.classList.add('active');
+            });
+            
+            // Update navigation links
+            document.querySelectorAll('[data-key]').forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
         }
         
-        // Module accordion functionality
-        document.querySelectorAll('.module-header').forEach(header => {
-            header.addEventListener('click', () => {
-                const moduleItem = header.parentElement;
-                moduleItem.classList.toggle('active');
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
             });
         });
         
-        // Lesson selection
-        document.querySelectorAll('.lesson-item').forEach(lesson => {
-            lesson.addEventListener('click', () => {
-                document.querySelectorAll('.lesson-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                lesson.classList.add('active');
-                
-                // In a real implementation, this would load the lesson content
-                console.log('Loading lesson:', lesson.getAttribute('data-lesson'));
+        // Back to Top functionality
+        const backToTopButton = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('show');
+            } else {
+                backToTopButton.classList.remove('show');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
             });
         });
         
         // Quiz functionality
-        let selectedOption = null;
-        
-        function selectQuizOption(element) {
-            if (selectedOption) {
-                selectedOption.classList.remove('selected');
-            }
+        function selectOption(element) {
+            // Remove selected class from all options
+            const options = element.parentElement.querySelectorAll('.quiz-option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selected class to clicked option
             element.classList.add('selected');
-            selectedOption = element;
+            
+            // In a real implementation, this would check the answer and provide feedback
+            console.log('Selected option:', element.textContent);
         }
         
-        function checkQuizAnswer() {
-            if (!selectedOption) {
-                alert('Please select an answer first!');
-                return;
-            }
-            
-            const correctAnswer = 'B';
-            const userAnswer = selectedOption.querySelector('span').textContent.trim();
-            
-            if (userAnswer === correctAnswer) {
-                alert('Correct! "M\'ap boule" means "I\'m fine" in Martinican Creole.');
-                selectedOption.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
-                selectedOption.style.borderColor = '#10b981';
-            } else {
-                alert('Not quite! The correct answer is B) I\'m fine. "M\'ap boule" literally means "I\'m burning" but is used to say you\'re doing well.');
-                selectedOption.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
-                selectedOption.style.borderColor = '#ef4444';
-            }
-        }
-        
-        // Audio playback simulation
-        document.querySelectorAll('.submit-btn').forEach(btn => {
-            if (btn.querySelector('.fa-volume-up')) {
-                btn.addEventListener('click', function() {
-                    const text = this.textContent.trim();
-                    alert(`Playing audio for: "${text.replace('🔊 ', '')}"`);
-                });
-            }
-        });
+        // Initialize with English
+        changeLanguage('en');
     </script>
 </body>
 </html>
+```
