@@ -446,28 +446,108 @@
         .badge {
             background: white;
             border-radius: 16px;
-            padding: 1.5rem 1rem;
+            padding: 1.4rem 0.85rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             border: 1px solid var(--glass-border);
             text-align: center;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 185px;
         }
         
         .badge i {
-            font-size: 2rem;
+            font-size: 2.2rem;
             color: var(--primary-gold);
             margin-bottom: 0.5rem;
+            transition: transform 0.3s ease;
         }
         
         .badge .name {
-            font-size: 0.9rem;
-            font-weight: 600;
+            font-size: 0.95rem;
+            font-weight: 700;
             color: var(--text-primary);
+            margin-bottom: 2px;
         }
         
         .badge .points {
             font-size: 0.8rem;
             color: var(--primary-gold);
+            font-weight: 800;
+        }
+
+        .badge-criteria {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin: 6px 0;
+            line-height: 1.3;
+        }
+
+        .badge-status-tag {
+            font-size: 0.68rem;
             font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: auto;
+        }
+
+        .badge-status-tag.locked {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+
+        .badge-status-tag.unlocked {
+            background: rgba(16, 185, 129, 0.15);
+            color: #065f46;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge.locked {
+            opacity: 0.65;
+            filter: grayscale(80%);
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+        }
+
+        .badge.unlocked {
+            border: 2px solid #f59e0b !important;
+            background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%) !important;
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25) !important;
+            opacity: 1 !important;
+            filter: none !important;
+            transform: translateY(-3px);
+        }
+
+        .badge.unlocked i {
+            color: #f59e0b;
+            filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.4));
+        }
+
+        .badge.unlocked::after {
+            content: "✓";
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #10b981;
+            color: #ffffff;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
         }
         
         /* Authority Badge */
@@ -753,6 +833,39 @@
             border-top: 1px solid #e2e8f0;
         }
 
+        .progress-secondary-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .share-achievement-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 9px 18px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+
+        .share-achievement-btn:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+        }
+
+        .share-achievement-btn:active {
+            transform: translateY(0);
+        }
+
         .module-toggle-btn {
             background: var(--success-color);
             color: #ffffff;
@@ -820,6 +933,28 @@
             letter-spacing: 0.5px;
         }
 
+        .quiz-keyboard-hint {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .quiz-keyboard-hint kbd {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 2px 7px;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+        }
+
         .quiz-option {
             display: flex;
             align-items: center;
@@ -831,12 +966,20 @@
             cursor: pointer;
             transition: all 0.25s ease;
             user-select: none;
+            outline: none;
         }
 
         .quiz-option:hover:not(.answered) {
             border-color: var(--interactive-blue);
             background: rgba(59, 130, 246, 0.05);
             transform: translateX(4px);
+        }
+
+        .quiz-option:focus-visible {
+            outline: 3px solid var(--martinique-blue);
+            outline-offset: 2px;
+            border-color: var(--martinique-blue);
+            background: rgba(25, 118, 210, 0.06);
         }
 
         .option-left-wrap {
@@ -974,29 +1117,35 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Gamification Badges Unlocked */
-        .badge.unlocked {
-            border-color: #f59e0b;
-            background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
-            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.25);
-            position: relative;
-        }
-
-        .badge.unlocked::after {
-            content: "✓";
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: #10b981;
+        /* Toast Notification Banner */
+        .app-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1e293b;
             color: #ffffff;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            font-size: 0.75rem;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-weight: 800;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            max-width: 90vw;
+            text-align: center;
+        }
+
+        .app-toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
         }
 
         /* Agentic AI Assistant Widget */
@@ -1596,12 +1745,20 @@
                     <i class="fas fa-check-double"></i>
                     <span id="markModuleBtnText">Mark Module 1 as Completed</span>
                 </button>
-                <button type="button" class="reset-progress-btn" onclick="resetUserProgress()" title="Reset saved progress in localStorage">
-                    <i class="fas fa-rotate-left"></i>
-                    <span class="lang-content active" data-lang="en">Reset Progress</span>
-                    <span class="lang-content" data-lang="fr">Réinitialiser</span>
-                    <span class="lang-content" data-lang="mq">Rikoumanse</span>
-                </button>
+                <div class="progress-secondary-actions">
+                    <button type="button" class="share-achievement-btn" id="shareAchievementBtn" onclick="shareAchievement()" title="Share your current XP and level with friends" aria-label="Share current achievement and level">
+                        <i class="fas fa-share-nodes"></i>
+                        <span class="lang-content active" data-lang="en">Share Achievement</span>
+                        <span class="lang-content" data-lang="fr">Partager ma progression</span>
+                        <span class="lang-content" data-lang="mq">Patajé siksè mwen</span>
+                    </button>
+                    <button type="button" class="reset-progress-btn" onclick="resetUserProgress()" title="Reset saved progress in localStorage">
+                        <i class="fas fa-rotate-left"></i>
+                        <span class="lang-content active" data-lang="en">Reset Progress</span>
+                        <span class="lang-content" data-lang="fr">Réinitialiser</span>
+                        <span class="lang-content" data-lang="mq">Rikoumanse</span>
+                    </button>
+                </div>
             </div>
         </div>
         
@@ -1832,8 +1989,8 @@
                         <span class="lang-content" data-lang="fr">Que signifie « M'ap kenbe » en français ?</span>
                         <span class="lang-content" data-lang="mq">Ki sa « M'ap kenbe » vlé di ?</span>
                     </div>
-                    <div class="quiz-options" data-quiz-id="quiz1">
-                        <div class="quiz-option" data-option="A" onclick="handleQuizSelection(this, 'quiz1', false, 'A')">
+                    <div class="quiz-options" data-quiz-id="quiz1" role="radiogroup" aria-label="Quiz Module 1 options">
+                        <div class="quiz-option" data-option="A" tabindex="0" role="radio" aria-checked="false" aria-label="Option A: I'm burning" onclick="handleQuizSelection(this, 'quiz1', false, 'A')">
                             <div class="option-left-wrap">
                                 <span class="option-letter">A</span>
                                 <div>
@@ -1844,7 +2001,7 @@
                             </div>
                             <div class="option-status-icon"></div>
                         </div>
-                        <div class="quiz-option" data-option="B" data-correct="true" onclick="handleQuizSelection(this, 'quiz1', true, 'B')">
+                        <div class="quiz-option" data-option="B" data-correct="true" tabindex="0" role="radio" aria-checked="false" aria-label="Option B: I'm doing well / Hanging in there" onclick="handleQuizSelection(this, 'quiz1', true, 'B')">
                             <div class="option-left-wrap">
                                 <span class="option-letter">B</span>
                                 <div>
@@ -1855,7 +2012,7 @@
                             </div>
                             <div class="option-status-icon"></div>
                         </div>
-                        <div class="quiz-option" data-option="C" onclick="handleQuizSelection(this, 'quiz1', false, 'C')">
+                        <div class="quiz-option" data-option="C" tabindex="0" role="radio" aria-checked="false" aria-label="Option C: I'm hungry" onclick="handleQuizSelection(this, 'quiz1', false, 'C')">
                             <div class="option-left-wrap">
                                 <span class="option-letter">C</span>
                                 <div>
@@ -1866,7 +2023,7 @@
                             </div>
                             <div class="option-status-icon"></div>
                         </div>
-                        <div class="quiz-option" data-option="D" onclick="handleQuizSelection(this, 'quiz1', false, 'D')">
+                        <div class="quiz-option" data-option="D" tabindex="0" role="radio" aria-checked="false" aria-label="Option D: I'm tired" onclick="handleQuizSelection(this, 'quiz1', false, 'D')">
                             <div class="option-left-wrap">
                                 <span class="option-letter">D</span>
                                 <div>
@@ -1878,8 +2035,15 @@
                             <div class="option-status-icon"></div>
                         </div>
                     </div>
+
+                    <div class="quiz-keyboard-hint">
+                        <i class="fas fa-keyboard"></i>
+                        <span class="lang-content active" data-lang="en">Keyboard navigation: Use <kbd>↑</kbd> <kbd>↓</kbd> or <kbd>←</kbd> <kbd>→</kbd> to navigate options, and <kbd>Enter</kbd> to select.</span>
+                        <span class="lang-content" data-lang="fr">Navigation clavier : Utilisez <kbd>↑</kbd> <kbd>↓</kbd> ou <kbd>←</kbd> <kbd>→</kbd> pour naviguer, puis <kbd>Entrée</kbd> pour valider.</span>
+                        <span class="lang-content" data-lang="mq">Navigasyon klavyé : Sèvi ak flèch <kbd>↑</kbd> <kbd>↓</kbd> pou chwazi, é <kbd>Enter</kbd> pou validé.</span>
+                    </div>
                     
-                    <div class="quiz-explanation-wrap" id="quiz-explanation-quiz1" style="display: none;"></div>
+                    <div class="quiz-explanation-wrap" id="quiz-explanation-quiz1" role="status" aria-live="polite" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -2100,8 +2264,8 @@
                         <span class="lang-content" data-lang="fr">Que signifie la tradition martiniquaise du « Koudmen » ?</span>
                         <span class="lang-content" data-lang="mq">Ki sa tradisyon Matinik « Koudmen » an vlé di ?</span>
                     </div>
-                    <div class="quiz-options" data-quiz-id="quiz2">
-                        <div class="quiz-option" data-option="A" onclick="handleQuizSelection(this, 'quiz2', false, 'A')">
+                    <div class="quiz-options" data-quiz-id="quiz2" role="radiogroup" aria-label="Quiz Module 2 options">
+                        <div class="quiz-option" data-option="A" tabindex="0" role="radio" aria-checked="false" aria-label="Option A: A carnival costume" onclick="handleQuizSelection(this, 'quiz2', false, 'A')">
                             <div class="option-left-wrap">
                                 <span class="option-letter">A</span>
                                 <div>
@@ -2112,7 +2276,7 @@
                             </div>
                             <div class="option-status-icon"></div>
                         </div>
-                        <div class="quiz-option" data-option="B" data-correct="true" onclick="handleQuizSelection(this, 'quiz2', true, 'B')">
+                        <div class="quiz-option" data-option="B" data-correct="true" tabindex="0" role="radio" aria-checked="false" aria-label="Option B: Mutual community solidarity / Helping hand" onclick="handleQuizSelection(this, 'quiz2', true, 'B')">
                             <div class="option-left-wrap">
                                 <span class="option-letter">B</span>
                                 <div>
@@ -2123,7 +2287,7 @@
                             </div>
                             <div class="option-status-icon"></div>
                         </div>
-                        <div class="quiz-option" data-option="C" onclick="handleQuizSelection(this, 'quiz2', false, 'C')">
+                        <div class="quiz-option" data-option="C" tabindex="0" role="radio" aria-checked="false" aria-label="Option C: A spicy fish stew" onclick="handleQuizSelection(this, 'quiz2', false, 'C')">
                             <div class="option-left-wrap">
                                 <span class="option-letter">C</span>
                                 <div>
@@ -2134,7 +2298,7 @@
                             </div>
                             <div class="option-status-icon"></div>
                         </div>
-                        <div class="quiz-option" data-option="D" onclick="handleQuizSelection(this, 'quiz2', false, 'D')">
+                        <div class="quiz-option" data-option="D" tabindex="0" role="radio" aria-checked="false" aria-label="Option D: A bamboo flute melody" onclick="handleQuizSelection(this, 'quiz2', false, 'D')">
                             <div class="option-left-wrap">
                                 <span class="option-letter">D</span>
                                 <div>
@@ -2146,8 +2310,15 @@
                             <div class="option-status-icon"></div>
                         </div>
                     </div>
+
+                    <div class="quiz-keyboard-hint">
+                        <i class="fas fa-keyboard"></i>
+                        <span class="lang-content active" data-lang="en">Keyboard navigation: Use <kbd>↑</kbd> <kbd>↓</kbd> or <kbd>←</kbd> <kbd>→</kbd> to navigate options, and <kbd>Enter</kbd> to select.</span>
+                        <span class="lang-content" data-lang="fr">Navigation clavier : Utilisez <kbd>↑</kbd> <kbd>↓</kbd> ou <kbd>←</kbd> <kbd>→</kbd> pour naviguer, puis <kbd>Entrée</kbd> pour valider.</span>
+                        <span class="lang-content" data-lang="mq">Navigasyon klavyé : Sèvi ak flèch <kbd>↑</kbd> <kbd>↓</kbd> pou chwazi, é <kbd>Enter</kbd> pou validé.</span>
+                    </div>
                     
-                    <div class="quiz-explanation-wrap" id="quiz-explanation-quiz2" style="display: none;"></div>
+                    <div class="quiz-explanation-wrap" id="quiz-explanation-quiz2" role="status" aria-live="polite" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -2368,8 +2539,8 @@
                         <span class="lang-content" data-lang="fr">Quel est l'ingrédient principal de « Lanmori », essentiel aux plats comme le Féroce d'avocat ?</span>
                         <span class="lang-content" data-lang="mq">Ki sa « Lanmori » yé nan manjé Matinik tankou Féwos ?</span>
                     </div>
-                    <div class="quiz-options" data-quiz-id="quiz3">
-                        <div class="quiz-option" data-option="A" data-correct="true" onclick="handleQuizSelection(this, 'quiz3', true, 'A')">
+                    <div class="quiz-options" data-quiz-id="quiz3" role="radiogroup" aria-label="Quiz Module 3 options">
+                        <div class="quiz-option" data-option="A" data-correct="true" tabindex="0" role="radio" aria-checked="false" aria-label="Option A: Salted codfish" onclick="handleQuizSelection(this, 'quiz3', true, 'A')">
                             <div class="option-left-wrap">
                                 <span class="option-letter">A</span>
                                 <div>
@@ -2380,7 +2551,7 @@
                             </div>
                             <div class="option-status-icon"></div>
                         </div>
-                        <div class="quiz-option" data-option="B" onclick="handleQuizSelection(this, 'quiz3', false, 'B')">
+                        <div class="quiz-option" data-option="B" tabindex="0" role="radio" aria-checked="false" aria-label="Option B: Fresh lobster" onclick="handleQuizSelection(this, 'quiz3', false, 'B')">
                             <div class="option-left-wrap">
                                 <span class="option-letter">B</span>
                                 <div>
@@ -2391,7 +2562,7 @@
                             </div>
                             <div class="option-status-icon"></div>
                         </div>
-                        <div class="quiz-option" data-option="C" onclick="handleQuizSelection(this, 'quiz3', false, 'C')">
+                        <div class="quiz-option" data-option="C" tabindex="0" role="radio" aria-checked="false" aria-label="Option C: Smoked river prawns" onclick="handleQuizSelection(this, 'quiz3', false, 'C')">
                             <div class="option-left-wrap">
                                 <span class="option-letter">C</span>
                                 <div>
@@ -2402,7 +2573,7 @@
                             </div>
                             <div class="option-status-icon"></div>
                         </div>
-                        <div class="quiz-option" data-option="D" onclick="handleQuizSelection(this, 'quiz3', false, 'D')">
+                        <div class="quiz-option" data-option="D" tabindex="0" role="radio" aria-checked="false" aria-label="Option D: Roast beef" onclick="handleQuizSelection(this, 'quiz3', false, 'D')">
                             <div class="option-left-wrap">
                                 <span class="option-letter">D</span>
                                 <div>
@@ -2414,8 +2585,15 @@
                             <div class="option-status-icon"></div>
                         </div>
                     </div>
+
+                    <div class="quiz-keyboard-hint">
+                        <i class="fas fa-keyboard"></i>
+                        <span class="lang-content active" data-lang="en">Keyboard navigation: Use <kbd>↑</kbd> <kbd>↓</kbd> or <kbd>←</kbd> <kbd>→</kbd> to navigate options, and <kbd>Enter</kbd> to select.</span>
+                        <span class="lang-content" data-lang="fr">Navigation clavier : Utilisez <kbd>↑</kbd> <kbd>↓</kbd> ou <kbd>←</kbd> <kbd>→</kbd> pour naviguer, puis <kbd>Entrée</kbd> pour valider.</span>
+                        <span class="lang-content" data-lang="mq">Navigasyon klavyé : Sèvi ak flèch <kbd>↑</kbd> <kbd>↓</kbd> pou chwazi, é <kbd>Enter</kbd> pou validé.</span>
+                    </div>
                     
-                    <div class="quiz-explanation-wrap" id="quiz-explanation-quiz3" style="display: none;"></div>
+                    <div class="quiz-explanation-wrap" id="quiz-explanation-quiz3" role="status" aria-live="polite" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -2640,77 +2818,125 @@
         </div>
         
         <div class="badges-grid">
-            <div class="badge">
+            <div class="badge" id="badge-beginner" data-badge-id="beginner">
+                <span class="badge-status-pill locked"><i class="fas fa-lock"></i> Locked</span>
                 <i class="fas fa-seedling"></i>
                 <div class="name">
                     <span class="lang-content active" data-lang="en">Beginner</span>
                     <span class="lang-content" data-lang="fr">Débutant</span>
                     <span class="lang-content" data-lang="mq">Koumanse</span>
                 </div>
-                <div class="points">10 XP</div>
+                <div class="points">+10 XP</div>
+                <div class="badge-criteria">
+                    <span class="lang-content active" data-lang="en">Complete Module 1</span>
+                    <span class="lang-content" data-lang="fr">Terminez le Module 1</span>
+                    <span class="lang-content" data-lang="mq">Fini Modil 1</span>
+                </div>
             </div>
-            <div class="badge">
+            <div class="badge" id="badge-learner" data-badge-id="learner">
+                <span class="badge-status-pill locked"><i class="fas fa-lock"></i> Locked</span>
                 <i class="fas fa-leaf"></i>
                 <div class="name">
                     <span class="lang-content active" data-lang="en">Learner</span>
                     <span class="lang-content" data-lang="fr">Apprenant</span>
                     <span class="lang-content" data-lang="mq">Zélèv</span>
                 </div>
-                <div class="points">50 XP</div>
+                <div class="points">+50 XP</div>
+                <div class="badge-criteria">
+                    <span class="lang-content active" data-lang="en">Complete 2 Modules</span>
+                    <span class="lang-content" data-lang="fr">Terminez 2 Modules</span>
+                    <span class="lang-content" data-lang="mq">Fini 2 Modil</span>
+                </div>
             </div>
-            <div class="badge">
+            <div class="badge" id="badge-explorer" data-badge-id="explorer">
+                <span class="badge-status-pill locked"><i class="fas fa-tree"></i> Locked</span>
                 <i class="fas fa-tree"></i>
                 <div class="name">
                     <span class="lang-content active" data-lang="en">Explorer</span>
                     <span class="lang-content" data-lang="fr">Explorateur</span>
                     <span class="lang-content" data-lang="mq">Eksploratè</span>
                 </div>
-                <div class="points">100 XP</div>
-            </div>
-            <div class="badge">
-                <i class="fas fa-mountain"></i>
-                <div class="name">
-                    <span class="lang-content active" data-lang="en">Master</span>
-                    <span class="lang-content" data-lang="fr">Maître</span>
-                    <span class="lang-content" data-lang="mq">Mèt</span>
+                <div class="points">+100 XP</div>
+                <div class="badge-criteria">
+                    <span class="lang-content active" data-lang="en">Complete All 3 Modules</span>
+                    <span class="lang-content" data-lang="fr">Terminez les 3 Modules</span>
+                    <span class="lang-content" data-lang="mq">Fini tout 3 Modil</span>
                 </div>
-                <div class="points">250 XP</div>
             </div>
-            <div class="badge">
-                <i class="fas fa-crown"></i>
-                <div class="name">
-                    <span class="lang-content active" data-lang="en">Heritage Keeper</span>
-                    <span class="lang-content" data-lang="fr">Gardien du patrimoine</span>
-                    <span class="lang-content" data-lang="mq">Gadyen èritaj</span>
-                </div>
-                <div class="points">500 XP</div>
-            </div>
-            <div class="badge">
+            <div class="badge" id="badge-quiz-champion" data-badge-id="quiz-champion">
+                <span class="badge-status-pill locked"><i class="fas fa-lock"></i> Locked</span>
                 <i class="fas fa-trophy"></i>
                 <div class="name">
                     <span class="lang-content active" data-lang="en">Quiz Champion</span>
                     <span class="lang-content" data-lang="fr">Champion des quiz</span>
                     <span class="lang-content" data-lang="mq">Chanpyon kiz</span>
                 </div>
-                <div class="points">75 XP</div>
-            </div>
-            <div class="badge">
-                <i class="fas fa-video"></i>
-                <div class="name">
-                    <span class="lang-content active" data-lang="en">Video Star</span>
-                    <span class="lang-content" data-lang="fr">Star vidéo</span>
-                    <span class="lang-content" data-lang="mq">Zetwal videyo</span>
+                <div class="points">+75 XP</div>
+                <div class="badge-criteria">
+                    <span class="lang-content active" data-lang="en">Ace all 3 Module Quizzes</span>
+                    <span class="lang-content" data-lang="fr">Réussir les 3 quiz</span>
+                    <span class="lang-content" data-lang="mq">Réyisi tout 3 kiz</span>
                 </div>
-                <div class="points">50 XP</div>
             </div>
-            <div class="badge">
+            <div class="badge" id="badge-flashcard-master" data-badge-id="flashcard-master">
+                <span class="badge-status-pill locked"><i class="fas fa-lock"></i> Locked</span>
                 <i class="fas fa-book"></i>
                 <div class="name">
                     <span class="lang-content active" data-lang="en">Flashcard Master</span>
                     <span class="lang-content" data-lang="fr">Maître des fiches</span>
                     <span class="lang-content" data-lang="mq">Mèt kart</span>
                 </div>
-                <div class="points">100 XP</div>
+                <div class="points">+100 XP</div>
+                <div class="badge-criteria">
+                    <span class="lang-content active" data-lang="en">Review 5+ Flashcards</span>
+                    <span class="lang-content" data-lang="fr">Révisez 5+ fiches</span>
+                    <span class="lang-content" data-lang="mq">Wè 5+ kart</span>
+                </div>
+            </div>
+            <div class="badge" id="badge-video-star" data-badge-id="video-star">
+                <span class="badge-status-pill locked"><i class="fas fa-lock"></i> Locked</span>
+                <i class="fas fa-video"></i>
+                <div class="name">
+                    <span class="lang-content active" data-lang="en">Video Star</span>
+                    <span class="lang-content" data-lang="fr">Star vidéo</span>
+                    <span class="lang-content" data-lang="mq">Zetwal videyo</span>
+                </div>
+                <div class="points">+50 XP</div>
+                <div class="badge-criteria">
+                    <span class="lang-content active" data-lang="en">Listen to 5+ Audio terms</span>
+                    <span class="lang-content" data-lang="fr">Écoutez 5+ termes créoles</span>
+                    <span class="lang-content" data-lang="mq">Kouté 5+ mo Kréyòl</span>
+                </div>
+            </div>
+            <div class="badge" id="badge-master" data-badge-id="master">
+                <span class="badge-status-pill locked"><i class="fas fa-lock"></i> Locked</span>
+                <i class="fas fa-mountain"></i>
+                <div class="name">
+                    <span class="lang-content active" data-lang="en">Master</span>
+                    <span class="lang-content" data-lang="fr">Maître</span>
+                    <span class="lang-content" data-lang="mq">Mèt</span>
+                </div>
+                <div class="points">+250 XP</div>
+                <div class="badge-criteria">
+                    <span class="lang-content active" data-lang="en">Earn 200+ total XP</span>
+                    <span class="lang-content" data-lang="fr">Atteindre 200+ XP au total</span>
+                    <span class="lang-content" data-lang="mq">Rivé 200+ XP</span>
+                </div>
+            </div>
+            <div class="badge" id="badge-heritage" data-badge-id="heritage">
+                <span class="badge-status-pill locked"><i class="fas fa-lock"></i> Locked</span>
+                <i class="fas fa-crown"></i>
+                <div class="name">
+                    <span class="lang-content active" data-lang="en">Heritage Keeper</span>
+                    <span class="lang-content" data-lang="fr">Gardien du patrimoine</span>
+                    <span class="lang-content" data-lang="mq">Gadyen èritaj</span>
+                </div>
+                <div class="points">+500 XP</div>
+                <div class="badge-criteria">
+                    <span class="lang-content active" data-lang="en">Reach Level 3 Creole Speaker</span>
+                    <span class="lang-content" data-lang="fr">Atteindre le Niveau 3</span>
+                    <span class="lang-content" data-lang="mq">Rivé Nivo 3 Kréyòl</span>
+                </div>
             </div>
         </div>
     </div>
@@ -2830,6 +3056,12 @@
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- Global Toast Notification -->
+    <div id="appToast" class="app-toast" role="status" aria-live="polite">
+        <i class="fas fa-circle-check" style="color: #10b981; font-size: 1.1rem;"></i>
+        <span id="appToastMsg">Notification</span>
     </div>
 
     <!-- AI Tutor Floating Action Button -->
@@ -3067,7 +3299,7 @@
         }
 
         // ==========================================
-        // 2. USER PROGRESS & LOCALSTORAGE
+        // 2. USER PROGRESS, LOCALSTORAGE & GAMIFICATION
         // ==========================================
         const PROGRESS_STORAGE_KEY = 'kreyol_matinik_student_progress_v2';
         
@@ -3075,6 +3307,7 @@
             modules: { module1: false, module2: false, module3: false },
             quizzes: { quiz1: false, quiz2: false, quiz3: false },
             listenedWords: [],
+            reviewedCards: [],
             xp: 0
         };
 
@@ -3087,6 +3320,7 @@
                         modules: { ...userProgress.modules, ...(parsed.modules || {}) },
                         quizzes: { ...userProgress.quizzes, ...(parsed.quizzes || {}) },
                         listenedWords: Array.isArray(parsed.listenedWords) ? parsed.listenedWords : [],
+                        reviewedCards: Array.isArray(parsed.reviewedCards) ? parsed.reviewedCards : [],
                         xp: typeof parsed.xp === 'number' ? parsed.xp : 0
                     };
                 }
@@ -3118,6 +3352,7 @@
             const completedModulesCount = Object.values(userProgress.modules).filter(Boolean).length;
             const completedQuizzesCount = Object.values(userProgress.quizzes).filter(Boolean).length;
             const wordsCount = userProgress.listenedWords.length;
+            const cardsCount = userProgress.reviewedCards ? userProgress.reviewedCards.length : 0;
             
             // Percentage: 3 modules (15% each = 45%), 3 quizzes (15% each = 45%), listened words (up to 10 = 10%)
             const moduleScore = (completedModulesCount / 3) * 45;
@@ -3149,15 +3384,74 @@
             if (xpDisplay) xpDisplay.textContent = `${userProgress.xp} XP`;
             
             const levelDisplay = document.getElementById('user-level-display');
+            let levelName = 'Novice';
+            if (userProgress.xp >= 300) levelName = 'Mèt Kréyòl (Master)';
+            else if (userProgress.xp >= 150) levelName = 'Avanse (Advanced)';
+            else if (userProgress.xp >= 50) levelName = 'Débutant (Intermediate)';
+            
             if (levelDisplay) {
-                let levelName = 'Novice';
-                if (userProgress.xp >= 300) levelName = 'Mèt Kréyòl (Master)';
-                else if (userProgress.xp >= 150) levelName = 'Avanse (Advanced)';
-                else if (userProgress.xp >= 50) levelName = 'Débutant (Intermediate)';
                 levelDisplay.textContent = `• ${levelName}`;
             }
             
+            // ==========================================
+            // GAMIFICATION BADGES UNLOCKING ENGINE
+            // ==========================================
+            // 1. Beginner badge unlocks when Module 1 is completed in localStorage
+            const isBeginnerUnlocked = Boolean(userProgress.modules.module1);
+            updateBadgeUI('beginner', isBeginnerUnlocked);
+            
+            // 2. Learner badge unlocks when 2 modules are completed
+            const isLearnerUnlocked = (completedModulesCount >= 2);
+            updateBadgeUI('learner', isLearnerUnlocked);
+            
+            // 3. Explorer badge unlocks when all 3 modules are completed
+            const isExplorerUnlocked = (completedModulesCount >= 3);
+            updateBadgeUI('explorer', isExplorerUnlocked);
+            
+            // 4. Quiz Champion badge unlocks when all 3 quizzes are completed
+            const isQuizChampUnlocked = (completedQuizzesCount >= 3);
+            updateBadgeUI('quiz-champion', isQuizChampUnlocked);
+            
+            // 5. Flashcard Master badge unlocks when 5+ cards are reviewed
+            const isFlashcardUnlocked = (cardsCount >= 5);
+            updateBadgeUI('flashcard-master', isFlashcardUnlocked);
+            
+            // 6. Video Star badge unlocks when 5+ words listened
+            const isVideoStarUnlocked = (wordsCount >= 5);
+            updateBadgeUI('video-star', isVideoStarUnlocked);
+            
+            // 7. Master badge unlocks when 200+ XP earned
+            const isMasterUnlocked = (userProgress.xp >= 200);
+            updateBadgeUI('master', isMasterUnlocked);
+            
+            // 8. Heritage Keeper badge unlocks at 400+ XP or complete curriculum
+            const isHeritageUnlocked = (userProgress.xp >= 400 || (completedModulesCount === 3 && completedQuizzesCount === 3));
+            updateBadgeUI('heritage', isHeritageUnlocked);
+            
             updateMarkModuleBtnText();
+        }
+
+        function updateBadgeUI(badgeId, isUnlocked) {
+            const badgeEl = document.getElementById(`badge-${badgeId}`);
+            if (!badgeEl) return;
+            
+            const pill = badgeEl.querySelector('.badge-status-pill');
+            
+            if (isUnlocked) {
+                if (!badgeEl.classList.contains('unlocked')) {
+                    badgeEl.classList.add('unlocked');
+                }
+                if (pill) {
+                    pill.className = 'badge-status-pill unlocked';
+                    pill.innerHTML = '<i class="fas fa-check-circle"></i> Unlocked';
+                }
+            } else {
+                badgeEl.classList.remove('unlocked');
+                if (pill) {
+                    pill.className = 'badge-status-pill locked';
+                    pill.innerHTML = '<i class="fas fa-lock"></i> Locked';
+                }
+            }
         }
 
         function updateMarkModuleBtnText() {
@@ -3183,6 +3477,14 @@
             
             if (!currentState) {
                 userProgress.xp += 30;
+                
+                // If Module 1 was completed, trigger Beginner badge celebration!
+                if (currentActiveModule === 'module1') {
+                    showToast("🏆 Badge Unlocked: 'Beginner'! First module completed in Kréyòl Matinik.");
+                } else {
+                    showToast(`🎉 Module ${currentActiveModule.replace('module', '')} completed! +30 XP`);
+                }
+                
                 // Celebration confetti on module completion!
                 if (typeof confetti === 'function') {
                     confetti({
@@ -3199,12 +3501,73 @@
             updateProgressUI();
         }
 
+        // ==========================================
+        // WEB SHARE API: SHARE USER ACHIEVEMENT
+        // ==========================================
+        async function shareAchievement() {
+            const completedModulesCount = Object.values(userProgress.modules).filter(Boolean).length;
+            const completedQuizzesCount = Object.values(userProgress.quizzes).filter(Boolean).length;
+            
+            let levelName = 'Novice';
+            if (userProgress.xp >= 300) levelName = 'Mèt Kréyòl (Master)';
+            else if (userProgress.xp >= 150) levelName = 'Avanse (Advanced)';
+            else if (userProgress.xp >= 50) levelName = 'Débutant (Intermediate)';
+
+            const shareData = {
+                title: 'My Kréyòl Matinik Heritage Course Progress',
+                text: `🌺 I've earned ${userProgress.xp} XP (Level: ${levelName}) studying Martinican Creole! Completed ${completedModulesCount}/3 modules & ${completedQuizzesCount}/3 heritage quizzes on Kréyòl Matinik. Venez apprendre le créole martiniquais avec moi !`,
+                url: window.location.href
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                    showToast('Achievement shared successfully with friends!');
+                } catch (err) {
+                    // User aborted or platform declined - fall back to clipboard
+                    if (err.name !== 'AbortError') {
+                        copyShareFallback(shareData.text);
+                    }
+                }
+            } else {
+                copyShareFallback(shareData.text);
+            }
+        }
+
+        function copyShareFallback(textToCopy) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showToast('📋 Progress copied to clipboard! Share it with friends.');
+                }).catch(() => {
+                    prompt('Copy your learning achievement to share:', textToCopy);
+                });
+            } else {
+                prompt('Copy your learning achievement to share:', textToCopy);
+            }
+        }
+
+        let toastTimer = null;
+        function showToast(message) {
+            const toast = document.getElementById('appToast');
+            const toastMsg = document.getElementById('appToastMsg');
+            if (!toast || !toastMsg) return;
+            
+            toastMsg.textContent = message;
+            toast.classList.add('show');
+            
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3800);
+        }
+
         function resetUserProgress() {
             if (confirm("Are you sure you want to reset your Martinican Creole learning progress?")) {
                 userProgress = {
                     modules: { module1: false, module2: false, module3: false },
                     quizzes: { quiz1: false, quiz2: false, quiz3: false },
                     listenedWords: [],
+                    reviewedCards: [],
                     xp: 0
                 };
                 saveProgress();
@@ -3213,6 +3576,7 @@
                 // Reset all quiz visual states
                 document.querySelectorAll('.quiz-option').forEach(opt => {
                     opt.classList.remove('selected', 'correct', 'incorrect');
+                    opt.setAttribute('aria-checked', 'false');
                     const icon = opt.querySelector('.option-status-icon');
                     if (icon) icon.innerHTML = '';
                 });
@@ -3220,6 +3584,7 @@
                     wrap.style.display = 'none';
                     wrap.innerHTML = '';
                 });
+                showToast('Learning progress has been reset.');
             }
         }
 
@@ -3247,21 +3612,23 @@
             
             if (!optionsContainer || !explanationWrap) return;
             
-            // Clear previous option classes in this quiz
+            // Clear previous option classes & aria-checked states in this quiz
             optionsContainer.querySelectorAll('.quiz-option').forEach(opt => {
                 opt.classList.remove('selected', 'correct', 'incorrect');
+                opt.setAttribute('aria-checked', 'false');
                 const iconEl = opt.querySelector('.option-status-icon');
                 if (iconEl) iconEl.innerHTML = '';
             });
             
             element.classList.add('selected');
+            element.setAttribute('aria-checked', 'true');
             const statusIcon = element.querySelector('.option-status-icon');
             const quizData = quizExplanations[quizId];
             
             if (isCorrect) {
                 element.classList.add('correct');
                 if (statusIcon) {
-                    statusIcon.innerHTML = '<i class="fas fa-check-circle text-green-600" style="color: #10b981; font-size: 1.25rem;"></i>';
+                    statusIcon.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981; font-size: 1.25rem;"></i>';
                 }
                 
                 // Trigger celebratory confetti animation!
@@ -3291,7 +3658,7 @@
             } else {
                 element.classList.add('incorrect');
                 if (statusIcon) {
-                    statusIcon.innerHTML = '<i class="fas fa-times-circle text-red-600" style="color: #ef4444; font-size: 1.25rem;"></i>';
+                    statusIcon.innerHTML = '<i class="fas fa-times-circle" style="color: #ef4444; font-size: 1.25rem;"></i>';
                 }
                 
                 // Highlight the correct answer to guide the learner
@@ -3309,6 +3676,33 @@
                 `;
                 explanationWrap.style.display = 'flex';
             }
+        }
+
+        // Setup Keyboard Navigation for Quiz Options (Arrow keys & Enter)
+        function initQuizKeyboardNav() {
+            document.querySelectorAll('.quiz-options').forEach(container => {
+                container.addEventListener('keydown', (e) => {
+                    const options = Array.from(container.querySelectorAll('.quiz-option'));
+                    if (!options.length) return;
+                    
+                    const currentIndex = options.indexOf(document.activeElement);
+                    
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        const nextIdx = (currentIndex >= 0 && currentIndex < options.length - 1) ? currentIndex + 1 : 0;
+                        options[nextIdx].focus();
+                    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        const prevIdx = (currentIndex > 0) ? currentIndex - 1 : options.length - 1;
+                        options[prevIdx].focus();
+                    } else if (e.key === 'Enter' || e.key === ' ') {
+                        if (document.activeElement && document.activeElement.classList.contains('quiz-option')) {
+                            e.preventDefault();
+                            document.activeElement.click();
+                        }
+                    }
+                });
+            });
         }
         
         // Backwards compatibility for old selector
@@ -3473,6 +3867,15 @@
             
             const frontPronounce = document.getElementById('fcFrontPronounce');
             if (frontPronounce) frontPronounce.textContent = card.pronounce;
+
+            // Hook front listen button dynamically
+            const frontListenBtn = document.querySelector('.flashcard-front .listen-btn');
+            if (frontListenBtn) {
+                frontListenBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    speakCreole(card.word, frontListenBtn);
+                };
+            }
             
             // Back elements
             const backEn = document.getElementById('fcBackEn');
@@ -3490,6 +3893,16 @@
             
             const nextBtn = document.getElementById('fcNextBtn');
             if (nextBtn) nextBtn.disabled = (currentCardIndex === deck.cards.length - 1);
+
+            // Track reviewed cards for Flashcard Master badge
+            if (!userProgress.reviewedCards) userProgress.reviewedCards = [];
+            const cardKey = `${currentDeckKey}-${currentCardIndex}`;
+            if (!userProgress.reviewedCards.includes(cardKey)) {
+                userProgress.reviewedCards.push(cardKey);
+                userProgress.xp += 2;
+                saveProgress();
+                updateProgressUI();
+            }
         }
 
         function nextFlashcard() {
@@ -3680,6 +4093,7 @@
         loadProgress();
         showModule('module1');
         changeLanguage('en');
+        initQuizKeyboardNav();
     </script>
 </body>
 </html>
