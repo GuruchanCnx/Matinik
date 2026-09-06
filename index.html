@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kréyòl Matinik – Martinican Creole Heritage Course</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -578,6 +579,874 @@
                 justify-content: center;
             }
         }
+
+        /* Vocabulary Listen Button & Term Wrap */
+        .creole-term-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .creole-word {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .listen-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, var(--martinique-blue) 0%, #0d47a1 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(25, 118, 210, 0.25);
+            white-space: nowrap;
+        }
+
+        .listen-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(25, 118, 210, 0.4);
+            background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+        }
+
+        .listen-btn.playing {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+            animation: pulseAudio 0.9s infinite alternate;
+        }
+
+        @keyframes pulseAudio {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        /* User Progress Dashboard */
+        .progress-dashboard {
+            background: #ffffff;
+            border: 2px solid rgba(217, 119, 6, 0.25);
+            border-radius: 20px;
+            padding: 1.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .progress-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .progress-title-block h3 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-title-block p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+
+        .progress-xp-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--martinique-red), var(--martinique-blue));
+            color: #ffffff;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.25);
+        }
+
+        .progress-bar-track {
+            width: 100%;
+            height: 16px;
+            background: #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.25rem;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--martinique-blue) 0%, var(--primary-gold) 50%, var(--success-color) 100%);
+            border-radius: 20px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .progress-metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .metric-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.85rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.2s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(217, 119, 6, 0.12);
+            color: var(--primary-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .metric-data .metric-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .metric-data .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .progress-actions-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.85rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .module-toggle-btn {
+            background: var(--success-color);
+            color: #ffffff;
+            border: none;
+            padding: 9px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .module-toggle-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .reset-progress-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid #cbd5e1;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .reset-progress-btn:hover {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #b91c1c;
+        }
+
+        /* Quiz Feedback & Explanations */
+        .quiz-container {
+            background: #ffffff;
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .quiz-header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--primary-gold);
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 5px 14px;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+
+        .quiz-option:hover:not(.answered) {
+            border-color: var(--interactive-blue);
+            background: rgba(59, 130, 246, 0.05);
+            transform: translateX(4px);
+        }
+
+        .option-left-wrap {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .option-letter {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .quiz-option.correct {
+            border-color: #10b981 !important;
+            background: rgba(16, 185, 129, 0.12) !important;
+            color: #065f46 !important;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+        }
+
+        .quiz-option.correct .option-letter {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .quiz-option.incorrect {
+            border-color: #ef4444 !important;
+            background: rgba(239, 68, 68, 0.1) !important;
+            color: #991b1b !important;
+            animation: quizShake 0.4s ease;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.15);
+        }
+
+        .quiz-option.incorrect .option-letter {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        .quiz-option.reveal-correct {
+            border: 2px dashed #10b981 !important;
+            background: rgba(16, 185, 129, 0.08) !important;
+        }
+
+        .quiz-option.reveal-correct .option-letter {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .option-status-icon {
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .quiz-option.correct .option-status-icon {
+            color: #10b981;
+        }
+
+        .quiz-option.incorrect .option-status-icon {
+            color: #ef4444;
+        }
+
+        @keyframes quizShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        .quiz-explanation {
+            margin-top: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            border-radius: 14px;
+            animation: slideDown 0.35s ease;
+        }
+
+        .quiz-explanation.success {
+            background: rgba(16, 185, 129, 0.12);
+            border-left: 5px solid #10b981;
+            color: #065f46;
+        }
+
+        .quiz-explanation.warning {
+            background: rgba(239, 68, 68, 0.08);
+            border-left: 5px solid #ef4444;
+            color: #7f1d1d;
+        }
+
+        .explanation-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-desc {
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .retry-quiz-btn {
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            color: var(--text-primary);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .retry-quiz-btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Gamification Badges Unlocked */
+        .badge.unlocked {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.25);
+            position: relative;
+        }
+
+        .badge.unlocked::after {
+            content: "✓";
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #10b981;
+            color: #ffffff;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+
+        /* Agentic AI Assistant Widget */
+        .ai-tutor-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1002;
+            background: linear-gradient(135deg, var(--martinique-red), var(--martinique-blue));
+            color: #ffffff;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 22px;
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(211, 47, 47, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .ai-tutor-fab:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 12px 28px rgba(25, 118, 210, 0.5);
+        }
+
+        .ai-fab-badge {
+            background: #ffd700;
+            color: #000000;
+            font-size: 0.7rem;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .ai-tutor-drawer {
+            position: fixed;
+            bottom: 84px;
+            right: 24px;
+            width: 390px;
+            max-width: calc(100vw - 32px);
+            height: 560px;
+            max-height: calc(100vh - 120px);
+            background: #ffffff;
+            border: 2px solid rgba(25, 118, 210, 0.25);
+            border-radius: 20px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+            z-index: 1003;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: drawerPop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .ai-tutor-drawer.open {
+            display: flex;
+        }
+
+        @keyframes drawerPop {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .ai-drawer-header {
+            background: linear-gradient(135deg, var(--martinique-red), var(--martinique-blue));
+            color: #ffffff;
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-drawer-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ai-avatar {
+            width: 36px;
+            height: 36px;
+            background: #ffffff;
+            color: var(--martinique-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .ai-title-text h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .ai-title-text span {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ai-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            display: inline-block;
+        }
+
+        .ai-close-btn {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.85;
+            transition: opacity 0.2s;
+        }
+
+        .ai-close-btn:hover {
+            opacity: 1;
+        }
+
+        .ai-chat-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            background: #f8fafc;
+        }
+
+        .ai-bubble {
+            max-width: 85%;
+            padding: 0.85rem 1rem;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .ai-bubble.assistant {
+            align-self: flex-start;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: var(--text-primary);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .ai-bubble.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--martinique-blue), #0d47a1);
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-speak-bubble-btn {
+            margin-top: 6px;
+            background: rgba(25, 118, 210, 0.1);
+            color: var(--martinique-blue);
+            border: none;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ai-speak-bubble-btn:hover {
+            background: rgba(25, 118, 210, 0.2);
+        }
+
+        .ai-suggestions-row {
+            padding: 0.5rem 0.85rem;
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            background: #ffffff;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .suggestion-chip {
+            white-space: nowrap;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 5px 10px;
+            font-size: 0.76rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-chip:hover {
+            background: rgba(217, 119, 6, 0.15);
+            color: var(--primary-gold);
+            border-color: var(--primary-gold);
+        }
+
+        .ai-input-bar {
+            padding: 0.75rem 1rem;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .ai-input-bar input {
+            flex: 1;
+            border: 1px solid #d1d5db;
+            border-radius: 20px;
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .ai-input-bar input:focus {
+            border-color: var(--martinique-blue);
+        }
+
+        .ai-send-btn {
+            background: var(--martinique-blue);
+            color: #ffffff;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ai-send-btn:hover {
+            background: #0d47a1;
+        }
+
+        /* Interactive Flashcard Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .flashcard-modal-box {
+            background: #ffffff;
+            width: 520px;
+            max-width: 100%;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            padding: 2rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: #f1f5f9;
+            border: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+
+        .modal-close-btn:hover {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .flashcard-deck-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--chatbot-purple);
+            margin-bottom: 0.3rem;
+            text-align: center;
+        }
+
+        .card-counter {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .flashcard-3d-scene {
+            width: 100%;
+            height: 240px;
+            perspective: 1000px;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+        }
+
+        .flashcard-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+        }
+
+        .flashcard-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 20px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border: 2px solid rgba(139, 92, 246, 0.25);
+        }
+
+        .flashcard-front {
+            background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+        }
+
+        .flashcard-front .word {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--chatbot-purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .flashcard-front .pronounce {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .flip-hint {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .flashcard-back {
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-back .meaning-en {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #4c1d95;
+            margin-bottom: 0.4rem;
+        }
+
+        .flashcard-back .meaning-fr {
+            font-size: 1.1rem;
+            color: #6d28d9;
+            margin-bottom: 0.75rem;
+        }
+
+        .flashcard-back .example {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.7);
+            padding: 6px 12px;
+            border-radius: 8px;
+        }
+
+        .flashcard-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .card-nav-btn {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: var(--text-primary);
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-nav-btn:hover {
+            background: #f8fafc;
+            border-color: var(--chatbot-purple);
+            color: var(--chatbot-purple);
+        }
+
+        .card-flip-btn {
+            background: var(--chatbot-purple);
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .card-flip-btn:hover {
+            background: #7c3aed;
+        }
     </style>
 </head>
 <body>
@@ -648,24 +1517,113 @@
             </div>
         </div>
         
+        <!-- User Progress Dashboard -->
+        <div id="curriculum" class="progress-dashboard">
+            <div class="progress-header-row">
+                <div class="progress-title-block">
+                    <h3>
+                        <i class="fas fa-graduation-cap text-yellow-500"></i>
+                        <span class="lang-content active" data-lang="en">Student Learning Progress</span>
+                        <span class="lang-content" data-lang="fr">Progression de l'apprenant</span>
+                        <span class="lang-content" data-lang="mq">Pwogrè zélèv la</span>
+                    </h3>
+                    <p>
+                        <span class="lang-content active" data-lang="en">Track your Martinican Creole journey, quizzes, and spoken vocabulary</span>
+                        <span class="lang-content" data-lang="fr">Suivez votre parcours, vos quiz et le vocabulaire créole écouté</span>
+                        <span class="lang-content" data-lang="mq">Swiv vwayaj ou an Kréyòl Matinik, kiz ou ak mo kouté</span>
+                    </p>
+                </div>
+                <div class="progress-xp-chip">
+                    <i class="fas fa-bolt"></i>
+                    <span id="user-xp-display">0 XP</span>
+                    <span id="user-level-display" style="opacity: 0.9; font-weight: 500;">• Novice</span>
+                </div>
+            </div>
+            
+            <div class="progress-bar-track" title="Overall course progress">
+                <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+            </div>
+            
+            <div class="progress-metrics-row">
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="fas fa-book-open"></i></div>
+                    <div class="metric-data">
+                        <div class="metric-value" id="modulesCompletedStat">0 / 3</div>
+                        <div class="metric-label">
+                            <span class="lang-content active" data-lang="en">Modules Finished</span>
+                            <span class="lang-content" data-lang="fr">Modules terminés</span>
+                            <span class="lang-content" data-lang="mq">Modil fini</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="metric-data">
+                        <div class="metric-value" id="quizzesCompletedStat">0 / 3</div>
+                        <div class="metric-label">
+                            <span class="lang-content active" data-lang="en">Quizzes Passed</span>
+                            <span class="lang-content" data-lang="fr">Quiz réussis</span>
+                            <span class="lang-content" data-lang="mq">Kiz genyen</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="fas fa-volume-up"></i></div>
+                    <div class="metric-data">
+                        <div class="metric-value" id="wordsListenedStat">0 Words</div>
+                        <div class="metric-label">
+                            <span class="lang-content active" data-lang="en">Words Listened</span>
+                            <span class="lang-content" data-lang="fr">Mots écoutés</span>
+                            <span class="lang-content" data-lang="mq">Mo kouté</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="fas fa-award"></i></div>
+                    <div class="metric-data">
+                        <div class="metric-value" id="overallPercentageStat">0%</div>
+                        <div class="metric-label">
+                            <span class="lang-content active" data-lang="en">Mastery Level</span>
+                            <span class="lang-content" data-lang="fr">Niveau de maîtrise</span>
+                            <span class="lang-content" data-lang="mq">Nivo metriz</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="progress-actions-row">
+                <button type="button" class="module-toggle-btn" id="markCurrentModuleBtn" onclick="toggleCurrentModuleStatus()">
+                    <i class="fas fa-check-double"></i>
+                    <span id="markModuleBtnText">Mark Module 1 as Completed</span>
+                </button>
+                <button type="button" class="reset-progress-btn" onclick="resetUserProgress()" title="Reset saved progress in localStorage">
+                    <i class="fas fa-rotate-left"></i>
+                    <span class="lang-content active" data-lang="en">Reset Progress</span>
+                    <span class="lang-content" data-lang="fr">Réinitialiser</span>
+                    <span class="lang-content" data-lang="mq">Rikoumanse</span>
+                </button>
+            </div>
+        </div>
+        
         <div class="curriculum-nav">
-            <button class="curriculum-btn active" onclick="showModule('module1')">
+            <button class="curriculum-btn active" id="btn-module1" onclick="showModule('module1')">
                 <span class="lang-content active" data-lang="en">Module 1: Bonjou!</span>
                 <span class="lang-content" data-lang="fr">Module 1 : Bonjou !</span>
                 <span class="lang-content" data-lang="mq">Modil 1 : Bonjou !</span>
             </button>
-            <button class="curriculum-btn" onclick="showModule('module2')">
+            <button class="curriculum-btn" id="btn-module2" onclick="showModule('module2')">
                 <span class="lang-content active" data-lang="en">Module 2: Lakay Nou</span>
                 <span class="lang-content" data-lang="fr">Module 2 : Lakay Nou</span>
                 <span class="lang-content" data-lang="mq">Modil 2 : Lakay Nou</span>
             </button>
-            <button class="curriculum-btn" onclick="showModule('module3')">
+            <button class="curriculum-btn" id="btn-module3" onclick="showModule('module3')">
                 <span class="lang-content active" data-lang="en">Module 3: Kouzin Kréyòl</span>
                 <span class="lang-content" data-lang="fr">Module 3 : Kouzin Kréyòl</span>
                 <span class="lang-content" data-lang="mq">Modil 3 : Kouzin Kréyòl</span>
             </button>
         </div>
         
+        <!-- MODULE 1 CONTENT -->
         <div id="module1-content" class="module-content">
             <div class="lesson-section">
                 <div class="lang-content active" data-lang="en">
@@ -680,138 +1638,784 @@
                 
                 <div class="cultural-note">
                     <div class="lang-content active" data-lang="en">
-                        <h4><i class="fas fa-globe-americas"></i> Cultural Context</h4>
-                        <p>In Martinique, greetings are deeply respectful and often more elaborate than in Western cultures. It's customary to greet everyone individually when entering a room, and to ask about their well-being and family. The expression "M'ap kenbe" (I'm holding myself) reflects the vibrant, energetic spirit of Martinican people - it conveys that you're doing well and full of life!</p>
+                        <h4><i class="fas fa-globe-americas"></i> Cultural Context: Greetings in Martinique</h4>
+                        <p>In Martinique, greetings are deeply respectful and often more elaborate than in Western cultures. It is customary to greet everyone individually when entering a room, asking warmly about well-being and family. The iconic expression <em>"M'ap kenbe"</em> (literally "I'm holding on") reflects the resilient, upbeat Caribbean spirit of Martinican people — it conveys that you are doing great and full of life!</p>
                     </div>
                     <div class="lang-content" data-lang="fr">
-                        <h4><i class="fas fa-globe-americas"></i> Contexte culturel</h4>
-                        <p>En Martinique, les salutations sont profondément respectueuses et souvent plus élaborées qu'en Occident. Il est coutumier de saluer chaque personne individuellement en entrant dans une pièce, et de s'enquérir de leur bien-être et de leur famille. L'expression "M'ap kenbe" (Je me tiens) reflète l'esprit vibrant et énergique des Martiniquais - elle signifie que vous allez bien et que vous êtes plein de vie !</p>
+                        <h4><i class="fas fa-globe-americas"></i> Contexte culturel : Les salutations en Martinique</h4>
+                        <p>En Martinique, les salutations sont chaleureuses et respectueuses. Il est coutumier de saluer chaque personne individuellement en entrant dans une pièce. L'expression emblématique <em>« M'ap kenbe »</em> (littéralement « Je me tiens ») reflète l'énergie vivante et la résilience martiniquaise — elle exprime que vous allez très bien et tenez bon !</p>
                     </div>
                     <div class="lang-content" data-lang="mq">
-                        <h4><i class="fas fa-globe-americas"></i> Kontèks kiltirèl</h4>
-                        <p>An Matinik, saliitasyon sé yon bagay ki respèk epi souvan plis elabore ke nan kilti oksidantal. Li koutimyé pou saliite chak moun inividyèlman lè w'ap rant dan yon pyès, epi pou mande yo kouman yo yé ak fanmi yo. Èkspresyon "M'ap kenbe" (M'ap kenbe mwen) reflete lespri vivan ak enèjik moun Matinik la - li montre ke ou an fòm epi plen lavi !</p>
+                        <h4><i class="fas fa-globe-americas"></i> Kontèks kiltirèl : Saliitasyon Matinik</h4>
+                        <p>An Matinik, saliitasyon sé yon bagay ki plen respèk. Lè w'ap rant dan yon kay, ou ka salyé chak moun. Pawòl <em>« M'ap kenbe »</em> ka montré fòs, chalè ak lavi moun Matinik — li vlé di ou an fòm epi ou doubout !</p>
                     </div>
                 </div>
                 
                 <div class="lang-content active" data-lang="en">
-                    <h3 class="section-title">Lesson 1: Basic Greetings and Responses</h3>
+                    <h3 class="section-title">Essential Vocabulary: Listen & Learn</h3>
                 </div>
                 <div class="lang-content" data-lang="fr">
-                    <h3 class="section-title">Leçon 1 : Salutations de base et réponses</h3>
+                    <h3 class="section-title">Vocabulaire essentiel : Écouter et apprendre</h3>
                 </div>
                 <div class="lang-content" data-lang="mq">
-                    <h3 class="section-title">Leson 1 : Saliitasyon senp ak repons</h3>
+                    <h3 class="section-title">Vokabilè esansyèl : Kouté epi aprann</h3>
                 </div>
                 
                 <table class="vocabulary-table">
                     <thead>
                         <tr>
-                            <th class="lang-content active" data-lang="en">Martinican Creole</th>
-                            <th class="lang-content" data-lang="fr">Créole martiniquais</th>
-                            <th class="lang-content" data-lang="mq">Kréyòl Matinik</th>
-                            <th class="lang-content active" data-lang="en">Pronunciation</th>
-                            <th class="lang-content" data-lang="fr">Prononciation</th>
-                            <th class="lang-content" data-lang="mq">Pwonnonsiyasyon</th>
-                            <th class="lang-content active" data-lang="en">English</th>
-                            <th class="lang-content" data-lang="fr">Français</th>
-                            <th class="lang-content" data-lang="mq">Fransè</th>
+                            <th>
+                                <span class="lang-content active" data-lang="en">Creole Term & Audio</span>
+                                <span class="lang-content" data-lang="fr">Terme créole & Audio</span>
+                                <span class="lang-content" data-lang="mq">Mo Kréyòl & Odyo</span>
+                            </th>
+                            <th>
+                                <span class="lang-content active" data-lang="en">Pronunciation</span>
+                                <span class="lang-content" data-lang="fr">Prononciation</span>
+                                <span class="lang-content" data-lang="mq">Pwonnonsiyasyon</span>
+                            </th>
+                            <th>
+                                <span class="lang-content active" data-lang="en">Meaning</span>
+                                <span class="lang-content" data-lang="fr">Signification</span>
+                                <span class="lang-content" data-lang="mq">Siyifikasyon</span>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Bonjou</td>
-                            <td>Bonjou</td>
-                            <td>Bonjou</td>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Bonjou</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Bonjou', this)" title="Listen to Bonjou" aria-label="Listen to Bonjou">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
                             <td>[bohn-zhoo]</td>
-                            <td>[bohn-zhoo]</td>
-                            <td>[bohn-zhoo]</td>
-                            <td class="lang-content active" data-lang="en">Good morning / Hello</td>
-                            <td class="lang-content" data-lang="fr">Bonjour</td>
-                            <td class="lang-content" data-lang="mq">Bonjou</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Good morning / Hello</span>
+                                <span class="lang-content" data-lang="fr">Bonjour / Salut</span>
+                                <span class="lang-content" data-lang="mq">Bonjou</span>
+                            </td>
                         </tr>
                         <tr>
-                            <td>Bonswa</td>
-                            <td>Bonswa</td>
-                            <td>Bonswa</td>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Bonswa</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Bonswa', this)" title="Listen to Bonswa" aria-label="Listen to Bonswa">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
                             <td>[bohn-swah]</td>
-                            <td>[bohn-swah]</td>
-                            <td>[bohn-swah]</td>
-                            <td class="lang-content active" data-lang="en">Good evening</td>
-                            <td class="lang-content" data-lang="fr">Bonsoir</td>
-                            <td class="lang-content" data-lang="mq">Bonswa</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Good evening / Good afternoon</span>
+                                <span class="lang-content" data-lang="fr">Bonsoir</span>
+                                <span class="lang-content" data-lang="mq">Bonswa</span>
+                            </td>
                         </tr>
                         <tr>
-                            <td>Kouman ou yé?</td>
-                            <td>Kouman ou yé?</td>
-                            <td>Kouman ou yé?</td>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Kouman ou yé?</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Kouman ou yé?', this)" title="Listen to Kouman ou yé?" aria-label="Listen to Kouman ou yé?">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
                             <td>[koo-mahn oo yay]</td>
-                            <td>[koo-mahn oo yay]</td>
-                            <td>[koo-mahn oo yay]</td>
-                            <td class="lang-content active" data-lang="en">How are you?</td>
-                            <td class="lang-content" data-lang="fr">Comment allez-vous?</td>
-                            <td class="lang-content" data-lang="mq">Kouman ou yé?</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">How are you?</span>
+                                <span class="lang-content" data-lang="fr">Comment vas-tu ? / Comment allez-vous ?</span>
+                                <span class="lang-content" data-lang="mq">Kouman ou yé?</span>
+                            </td>
                         </tr>
                         <tr>
-                            <td>M'ap kenbe</td>
-                            <td>M'ap kenbe</td>
-                            <td>M'ap kenbe</td>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">M'ap kenbe</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('M\'ap kenbe', this)" title="Listen to M'ap kenbe" aria-label="Listen to M'ap kenbe">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
                             <td>[mahp kahn-bay]</td>
-                            <td>[mahp kahn-bay]</td>
-                            <td>[mahp kahn-bay]</td>
-                            <td class="lang-content active" data-lang="en">I'm doing well</td>
-                            <td class="lang-content" data-lang="fr">Je vais bien</td>
-                            <td class="lang-content" data-lang="mq">M'ap kenbe</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">I'm doing well / Hanging in there</span>
+                                <span class="lang-content" data-lang="fr">Je vais bien / Je tiens bon</span>
+                                <span class="lang-content" data-lang="mq">M'ap kenbe / Mwen an fòm</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Sa k'ap fèt?</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Sa k\'ap fèt?', this)" title="Listen to Sa k'ap fèt?" aria-label="Listen to Sa k'ap fèt?">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[sah kahp feht]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">What's happening? / What's up?</span>
+                                <span class="lang-content" data-lang="fr">Qu'est-ce qui se passe ? / Quoi de neuf ?</span>
+                                <span class="lang-content" data-lang="mq">Sa k'ap fèt?</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Mèsi anpil</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Mèsi anpil', this)" title="Listen to Mèsi anpil" aria-label="Listen to Mèsi anpil">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[meh-see ahn-peel]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Thank you very much</span>
+                                <span class="lang-content" data-lang="fr">Merci beaucoup</span>
+                                <span class="lang-content" data-lang="mq">Mèsi anpil</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">A plita</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('A plita', this)" title="Listen to A plita" aria-label="Listen to A plita">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[ah plee-tah]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">See you later / Goodbye</span>
+                                <span class="lang-content" data-lang="fr">À plus tard / Au revoir</span>
+                                <span class="lang-content" data-lang="mq">A plita</span>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
                 
                 <div class="assignment-card">
                     <div class="lang-content active" data-lang="en">
-                        <h4><i class="fas fa-microphone"></i> Pronunciation Practice</h4>
-                        <p>Practice saying these greetings out loud. Record yourself and compare with native speaker pronunciation.</p>
+                        <h4><i class="fas fa-microphone"></i> Pronunciation Challenge</h4>
+                        <p>Click the <strong>Listen</strong> button on each word above to hear the native pronunciation. Repeat each phrase 3 times out loud to build your oral muscle memory!</p>
                     </div>
                     <div class="lang-content" data-lang="fr">
-                        <h4><i class="fas fa-microphone"></i> Pratique de prononciation</h4>
-                        <p>Pratiquez ces salutations à voix haute. Enregistrez-vous et comparez avec la prononciation d'un locuteur natif.</p>
+                        <h4><i class="fas fa-microphone"></i> Défi de prononciation</h4>
+                        <p>Cliquez sur le bouton <strong>Listen</strong> à côté de chaque mot pour écouter la prononciation. Répétez chaque phrase 3 fois à voix haute !</p>
                     </div>
                     <div class="lang-content" data-lang="mq">
-                        <h4><i class="fas fa-microphone"></i> Pratik pwonnonsiyasyon</h4>
-                        <p>Pratike saliitasyon sa yo avèk vwa w. Anrejistre w epi konpare avèk pwonnonsiyasyon yon pawòl natif.</p>
+                        <h4><i class="fas fa-microphone"></i> Defi pwonnonsiyasyon</h4>
+                        <p>Pezé bouton <strong>Listen</strong> an bò chak mo pou kouté jan yo ka palé li. Répété chak fraz 3 fwa pou mété li nan bouch ou !</p>
                     </div>
                 </div>
                 
-                <div class="quiz-container">
+                <!-- QUIZ 1 -->
+                <div class="quiz-container" id="quiz-box-quiz1">
+                    <div class="quiz-header-badge">
+                        <i class="fas fa-question-circle"></i>
+                        <span class="lang-content active" data-lang="en">Quiz Module 1</span>
+                        <span class="lang-content" data-lang="fr">Quiz Module 1</span>
+                        <span class="lang-content" data-lang="mq">Kiz Modil 1</span>
+                    </div>
+                    <div class="quiz-question">
+                        <span class="lang-content active" data-lang="en">What does "M'ap kenbe" mean in English?</span>
+                        <span class="lang-content" data-lang="fr">Que signifie « M'ap kenbe » en français ?</span>
+                        <span class="lang-content" data-lang="mq">Ki sa « M'ap kenbe » vlé di ?</span>
+                    </div>
+                    <div class="quiz-options" data-quiz-id="quiz1">
+                        <div class="quiz-option" data-option="A" onclick="handleQuizSelection(this, 'quiz1', false, 'A')">
+                            <div class="option-left-wrap">
+                                <span class="option-letter">A</span>
+                                <div>
+                                    <span class="lang-content active" data-lang="en">I'm burning</span>
+                                    <span class="lang-content" data-lang="fr">Je brûle</span>
+                                    <span class="lang-content" data-lang="mq">Mwen ka brile</span>
+                                </div>
+                            </div>
+                            <div class="option-status-icon"></div>
+                        </div>
+                        <div class="quiz-option" data-option="B" data-correct="true" onclick="handleQuizSelection(this, 'quiz1', true, 'B')">
+                            <div class="option-left-wrap">
+                                <span class="option-letter">B</span>
+                                <div>
+                                    <span class="lang-content active" data-lang="en">I'm doing well / Hanging in there</span>
+                                    <span class="lang-content" data-lang="fr">Je vais bien / Je tiens bon</span>
+                                    <span class="lang-content" data-lang="mq">M'ap kenbe / Mwen an fòm</span>
+                                </div>
+                            </div>
+                            <div class="option-status-icon"></div>
+                        </div>
+                        <div class="quiz-option" data-option="C" onclick="handleQuizSelection(this, 'quiz1', false, 'C')">
+                            <div class="option-left-wrap">
+                                <span class="option-letter">C</span>
+                                <div>
+                                    <span class="lang-content active" data-lang="en">I'm hungry</span>
+                                    <span class="lang-content" data-lang="fr">J'ai faim</span>
+                                    <span class="lang-content" data-lang="mq">Mwen grangou</span>
+                                </div>
+                            </div>
+                            <div class="option-status-icon"></div>
+                        </div>
+                        <div class="quiz-option" data-option="D" onclick="handleQuizSelection(this, 'quiz1', false, 'D')">
+                            <div class="option-left-wrap">
+                                <span class="option-letter">D</span>
+                                <div>
+                                    <span class="lang-content active" data-lang="en">I'm tired</span>
+                                    <span class="lang-content" data-lang="fr">Je suis fatigué</span>
+                                    <span class="lang-content" data-lang="mq">Mwen fatige</span>
+                                </div>
+                            </div>
+                            <div class="option-status-icon"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-explanation-wrap" id="quiz-explanation-quiz1" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MODULE 2 CONTENT -->
+        <div id="module2-content" class="module-content" style="display: none;">
+            <div class="lesson-section">
+                <div class="lang-content active" data-lang="en">
+                    <h2 class="section-title">🏡 Module 2: Lakay Nou (Home & Family in Martinique)</h2>
+                </div>
+                <div class="lang-content" data-lang="fr">
+                    <h2 class="section-title">🏡 Module 2 : Lakay Nou (La maison et la famille en Martinique)</h2>
+                </div>
+                <div class="lang-content" data-lang="mq">
+                    <h2 class="section-title">🏡 Modil 2 : Lakay Nou (Kay ak Fanmi an Matinik)</h2>
+                </div>
+                
+                <div class="cultural-note">
                     <div class="lang-content active" data-lang="en">
-                        <div class="quiz-question">What does "M'ap kenbe" mean in English?</div>
+                        <h4><i class="fas fa-users"></i> Cultural Context: Koudmen & Community Solidarity</h4>
+                        <p>In Martinique, the family circle stretches across generations, godparents, and entire neighborhoods. One of the highest virtues of traditional Martinican life is <strong>Koudmen</strong> (from "coup de main" — giving a hand): a voluntary communal gathering where neighbors unite to help build a home, harvest crops, or support each other without monetary payment. It encapsulates Caribbean togetherness.</p>
                     </div>
                     <div class="lang-content" data-lang="fr">
-                        <div class="quiz-question">Que signifie "M'ap kenbe" en anglais ?</div>
+                        <h4><i class="fas fa-users"></i> Contexte culturel : Le Koudmen et la solidarité</h4>
+                        <p>En Martinique, la famille s'étend aux parrains, marraines et à tout le quartier. Une des plus belles traditions est le <strong>Koudmen</strong> (coup de main) : une entraide collective et solidaire où l'on se réunit pour bâtir une maison ou récolter ensemble dans la joie.</p>
                     </div>
                     <div class="lang-content" data-lang="mq">
-                        <div class="quiz-question">Ki sa "M'ap kenbe" vle di an angle?</div>
+                        <h4><i class="fas fa-users"></i> Kontèks kiltirèl : Koudmen ak Solidarité</h4>
+                        <p>An Matinik, fanmi an gran epi li ka kouvè tout katyé a. Youn nan pi bèl tradisyon nou sé <strong>Koudmen</strong> : tout vwazen ka sanblé pou ba yon kout lanmen pou bati yon kaz oswa rékòlté san péyé lajan, an tchò kontan.</p>
                     </div>
-                    <div class="quiz-options">
-                        <div class="quiz-option" onclick="selectQuizOption(this)">
-                            <span class="lang-content active" data-lang="en">A) I'm burning</span>
-                            <span class="lang-content" data-lang="fr">A) Je brûle</span>
-                            <span class="lang-content" data-lang="mq">A) M'ap boule</span>
+                </div>
+                
+                <table class="vocabulary-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <span class="lang-content active" data-lang="en">Creole Term & Audio</span>
+                                <span class="lang-content" data-lang="fr">Terme créole & Audio</span>
+                                <span class="lang-content" data-lang="mq">Mo Kréyòl & Odyo</span>
+                            </th>
+                            <th>
+                                <span class="lang-content active" data-lang="en">Pronunciation</span>
+                                <span class="lang-content" data-lang="fr">Prononciation</span>
+                                <span class="lang-content" data-lang="mq">Pwonnonsiyasyon</span>
+                            </th>
+                            <th>
+                                <span class="lang-content active" data-lang="en">Meaning</span>
+                                <span class="lang-content" data-lang="fr">Signification</span>
+                                <span class="lang-content" data-lang="mq">Siyifikasyon</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Fanmi</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Fanmi', this)" title="Listen to Fanmi">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[fahn-mee]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Family</span>
+                                <span class="lang-content" data-lang="fr">Famille</span>
+                                <span class="lang-content" data-lang="mq">Fanmi</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Manman</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Manman', this)" title="Listen to Manman">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[mahn-mahn]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Mother</span>
+                                <span class="lang-content" data-lang="fr">Mère / Maman</span>
+                                <span class="lang-content" data-lang="mq">Manman</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Papa</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Papa', this)" title="Listen to Papa">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[pah-pah]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Father</span>
+                                <span class="lang-content" data-lang="fr">Père / Papa</span>
+                                <span class="lang-content" data-lang="mq">Papa</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Timoun</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Timoun', this)" title="Listen to Timoun">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[tee-moon]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Child / Children</span>
+                                <span class="lang-content" data-lang="fr">Enfant / Enfants</span>
+                                <span class="lang-content" data-lang="mq">Timoun</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Granmoun</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Granmoun', this)" title="Listen to Granmoun">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[grahn-moon]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Elder / Older person / Grandparent</span>
+                                <span class="lang-content" data-lang="fr">Personne âgée / Aîné</span>
+                                <span class="lang-content" data-lang="mq">Granmoun</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Kaz</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Kaz', this)" title="Listen to Kaz">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[kahz]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">House / Home</span>
+                                <span class="lang-content" data-lang="fr">Maison</span>
+                                <span class="lang-content" data-lang="mq">Kaz</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Koudmen</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Koudmen', this)" title="Listen to Koudmen">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[kood-mehn]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Community mutual aid / Helping hand</span>
+                                <span class="lang-content" data-lang="fr">Entraide solidaire communautaire</span>
+                                <span class="lang-content" data-lang="mq">Koudmen</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Frè & Sè</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Frè é sè', this)" title="Listen to Frè & Sè">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[freh ay seh]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Brother & Sister</span>
+                                <span class="lang-content" data-lang="fr">Frère et Sœur</span>
+                                <span class="lang-content" data-lang="mq">Frè ak Sè</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="assignment-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h4><i class="fas fa-pencil-alt"></i> Family Description Activity</h4>
+                        <p>Write or practice stating your immediate family members in Creole: <em>"Nan kaz mwen, ni manman mwen, papa mwen ak dé frè."</em></p>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h4><i class="fas fa-pencil-alt"></i> Activité : Présenter sa famille</h4>
+                        <p>Pratiquez la description de votre famille en créole : <em>« Nan kaz mwen, ni manman mwen, papa mwen ak dé frè. »</em></p>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h4><i class="fas fa-pencil-alt"></i> Aktivité : Prezanté fanmi w</h4>
+                        <p>Pratiké palé di fanmi w an Kréyòl : <em>« Nan kaz mwen, ni manman mwen, papa mwen ak dé frè. »</em></p>
+                    </div>
+                </div>
+                
+                <!-- QUIZ 2 -->
+                <div class="quiz-container" id="quiz-box-quiz2">
+                    <div class="quiz-header-badge">
+                        <i class="fas fa-question-circle"></i>
+                        <span class="lang-content active" data-lang="en">Quiz Module 2</span>
+                        <span class="lang-content" data-lang="fr">Quiz Module 2</span>
+                        <span class="lang-content" data-lang="mq">Kiz Modil 2</span>
+                    </div>
+                    <div class="quiz-question">
+                        <span class="lang-content active" data-lang="en">What does the authentic Martinican tradition "Koudmen" mean?</span>
+                        <span class="lang-content" data-lang="fr">Que signifie la tradition martiniquaise du « Koudmen » ?</span>
+                        <span class="lang-content" data-lang="mq">Ki sa tradisyon Matinik « Koudmen » an vlé di ?</span>
+                    </div>
+                    <div class="quiz-options" data-quiz-id="quiz2">
+                        <div class="quiz-option" data-option="A" onclick="handleQuizSelection(this, 'quiz2', false, 'A')">
+                            <div class="option-left-wrap">
+                                <span class="option-letter">A</span>
+                                <div>
+                                    <span class="lang-content active" data-lang="en">A carnival costume</span>
+                                    <span class="lang-content" data-lang="fr">Un costume de carnaval</span>
+                                    <span class="lang-content" data-lang="mq">Yon kostim kannaval</span>
+                                </div>
+                            </div>
+                            <div class="option-status-icon"></div>
                         </div>
-                        <div class="quiz-option" onclick="selectQuizOption(this)">
-                            <span class="lang-content active" data-lang="en">B) I'm doing well</span>
-                            <span class="lang-content" data-lang="fr">B) Je vais bien</span>
-                            <span class="lang-content" data-lang="mq">B) M'ap kenbe</span>
+                        <div class="quiz-option" data-option="B" data-correct="true" onclick="handleQuizSelection(this, 'quiz2', true, 'B')">
+                            <div class="option-left-wrap">
+                                <span class="option-letter">B</span>
+                                <div>
+                                    <span class="lang-content active" data-lang="en">Mutual community solidarity / Helping hand</span>
+                                    <span class="lang-content" data-lang="fr">Entraide solidaire communautaire / Coup de main</span>
+                                    <span class="lang-content" data-lang="mq">Kout lanmen solèdè nan kominouté a</span>
+                                </div>
+                            </div>
+                            <div class="option-status-icon"></div>
                         </div>
-                        <div class="quiz-option" onclick="selectQuizOption(this)">
-                            <span class="lang-content active" data-lang="en">C) I'm hungry</span>
-                            <span class="lang-content" data-lang="fr">C) J'ai faim</span>
-                            <span class="lang-content" data-lang="mq">C) Mwen grangou</span>
+                        <div class="quiz-option" data-option="C" onclick="handleQuizSelection(this, 'quiz2', false, 'C')">
+                            <div class="option-left-wrap">
+                                <span class="option-letter">C</span>
+                                <div>
+                                    <span class="lang-content active" data-lang="en">A spicy fish stew</span>
+                                    <span class="lang-content" data-lang="fr">Un ragoût de poisson épicé</span>
+                                    <span class="lang-content" data-lang="mq">Yon bouyon pwason</span>
+                                </div>
+                            </div>
+                            <div class="option-status-icon"></div>
                         </div>
-                        <div class="quiz-option" onclick="selectQuizOption(this)">
-                            <span class="lang-content active" data-lang="en">D) I'm tired</span>
-                            <span class="lang-content" data-lang="fr">D) Je suis fatigué</span>
-                            <span class="lang-content" data-lang="mq">D) Mwen fatige</span>
+                        <div class="quiz-option" data-option="D" onclick="handleQuizSelection(this, 'quiz2', false, 'D')">
+                            <div class="option-left-wrap">
+                                <span class="option-letter">D</span>
+                                <div>
+                                    <span class="lang-content active" data-lang="en">A bamboo flute melody</span>
+                                    <span class="lang-content" data-lang="fr">Une mélodie de flûte en bambou</span>
+                                    <span class="lang-content" data-lang="mq">Yon mizik flit banbou</span>
+                                </div>
+                            </div>
+                            <div class="option-status-icon"></div>
                         </div>
                     </div>
+                    
+                    <div class="quiz-explanation-wrap" id="quiz-explanation-quiz2" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MODULE 3 CONTENT -->
+        <div id="module3-content" class="module-content" style="display: none;">
+            <div class="lesson-section">
+                <div class="lang-content active" data-lang="en">
+                    <h2 class="section-title">🍛 Module 3: Kouzin Kréyòl (Martinican Cuisine & Flavors)</h2>
+                </div>
+                <div class="lang-content" data-lang="fr">
+                    <h2 class="section-title">🍛 Module 3 : Kouzin Kréyòl (Saveurs et cuisine martiniquaise)</h2>
+                </div>
+                <div class="lang-content" data-lang="mq">
+                    <h2 class="section-title">🍛 Modil 3 : Kouzin Kréyòl (Gou ak manzé Matinik)</h2>
+                </div>
+                
+                <div class="cultural-note">
+                    <div class="lang-content active" data-lang="en">
+                        <h4><i class="fas fa-utensils"></i> Cultural Context: Culinary Heritage of Martinique</h4>
+                        <p>Martinican cuisine is a sumptuous blend of Amerindian roots (cassava, sweet potatoes), African seasonings, French culinary craft, and Indian spices like <em>Colombo</em> curry. Walking into the Grand Marché in Fort-de-France fills your senses with bois d'Inde, allspice, and fresh passion fruit, accompanied by the market vendors' greeting: <em>"Vini doudou, sa k'ap fèt jòdi-a?"</em></p>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h4><i class="fas fa-utensils"></i> Contexte culturel : Le patrimoine culinaire de la Martinique</h4>
+                        <p>La gastronomie martiniquaise allie racines amérindiennes (manioc), épices indiennes (colombo), et produits de la mer comme la morue (<em>lanmori</em>). Au Grand Marché de Fort-de-France, les effluves d'épices côtoient les chaleureux accueils créoles.</p>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h4><i class="fas fa-utensils"></i> Kontèks kiltirèl : Manjé ak gou Matinik</h4>
+                        <p>Kouzin Matinik la chwit toubannman ! Ni manyòk, lanmori, epis kolombo, piman zwazo ak bwa d'enn. Nan Gran Maché Fòdfwans la, tout machann ka kriyé w avèk souri : <em>« Vini doudou ! »</em></p>
+                    </div>
+                </div>
+                
+                <table class="vocabulary-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <span class="lang-content active" data-lang="en">Creole Term & Audio</span>
+                                <span class="lang-content" data-lang="fr">Terme créole & Audio</span>
+                                <span class="lang-content" data-lang="mq">Mo Kréyòl & Odyo</span>
+                            </th>
+                            <th>
+                                <span class="lang-content active" data-lang="en">Pronunciation</span>
+                                <span class="lang-content" data-lang="fr">Prononciation</span>
+                                <span class="lang-content" data-lang="mq">Pwonnonsiyasyon</span>
+                            </th>
+                            <th>
+                                <span class="lang-content active" data-lang="en">Meaning</span>
+                                <span class="lang-content" data-lang="fr">Signification</span>
+                                <span class="lang-content" data-lang="mq">Siyifikasyon</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Manjé</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Manjé', this)" title="Listen to Manjé">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[mahn-zhay]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Food / To eat</span>
+                                <span class="lang-content" data-lang="fr">Nourriture / Manger</span>
+                                <span class="lang-content" data-lang="mq">Manjé</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Lanmori</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Lanmori', this)" title="Listen to Lanmori">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[lahn-moh-ree]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Salted codfish (staple Martinican ingredient)</span>
+                                <span class="lang-content" data-lang="fr">Morue salée</span>
+                                <span class="lang-content" data-lang="mq">Lanmori</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Colombo</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Colombo', this)" title="Listen to Colombo">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[koh-lohm-boh]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Colombo curry (spiced chicken or pork dish)</span>
+                                <span class="lang-content" data-lang="fr">Plat au colombo</span>
+                                <span class="lang-content" data-lang="mq">Kolombo</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Kassav</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Kassav', this)" title="Listen to Kassav">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[kah-sahv]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Cassava pancake / bread</span>
+                                <span class="lang-content" data-lang="fr">Galette de manioc (cassave)</span>
+                                <span class="lang-content" data-lang="mq">Kassav</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Féroce</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Féroce', this)" title="Listen to Féroce">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[fay-rohs]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Féroce d'avocat (spicy avocado, manioc & cod)</span>
+                                <span class="lang-content" data-lang="fr">Féroce d'avocat à la morue</span>
+                                <span class="lang-content" data-lang="mq">Féwos</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Dlo</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Dlo', this)" title="Listen to Dlo">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[dloh]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Water</span>
+                                <span class="lang-content" data-lang="fr">Eau</span>
+                                <span class="lang-content" data-lang="mq">Dlo</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Dous</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Dous', this)" title="Listen to Dous">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[doos]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Sweet / Gentle</span>
+                                <span class="lang-content" data-lang="fr">Doux / Sucré</span>
+                                <span class="lang-content" data-lang="mq">Dous</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="creole-term-wrap">
+                                    <span class="creole-word">Chwit</span>
+                                    <button type="button" class="listen-btn" onclick="speakCreole('Chwit', this)" title="Listen to Chwit">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Listen</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>[shweet]</td>
+                            <td>
+                                <span class="lang-content active" data-lang="en">Delicious / Flavorful</span>
+                                <span class="lang-content" data-lang="fr">Délicieux / Savoureux</span>
+                                <span class="lang-content" data-lang="mq">Chwit</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="assignment-card">
+                    <div class="lang-content active" data-lang="en">
+                        <h4><i class="fas fa-shopping-basket"></i> Market Dialog Practice</h4>
+                        <p>Imagine visiting the Grand Marché in Fort-de-France. How would you compliment the dish? Practice saying: <em>"Manjé-tala chwit anpil, mèsi anpil!"</em></p>
+                    </div>
+                    <div class="lang-content" data-lang="fr">
+                        <h4><i class="fas fa-shopping-basket"></i> Pratique de dialogue au marché</h4>
+                        <p>Complimentez un cuisinier martiniquais : <em>« Manjé-tala chwit anpil, mèsi anpil ! »</em> (Ce plat est vraiment délicieux, merci beaucoup !)</p>
+                    </div>
+                    <div class="lang-content" data-lang="mq">
+                        <h4><i class="fas fa-shopping-basket"></i> Pratik dyalòg nan maché</h4>
+                        <p>Konplimanté manjé a : <em>« Manjé-tala chwit anpil, mèsi anpil ! »</em></p>
+                    </div>
+                </div>
+                
+                <!-- QUIZ 3 -->
+                <div class="quiz-container" id="quiz-box-quiz3">
+                    <div class="quiz-header-badge">
+                        <i class="fas fa-question-circle"></i>
+                        <span class="lang-content active" data-lang="en">Quiz Module 3</span>
+                        <span class="lang-content" data-lang="fr">Quiz Module 3</span>
+                        <span class="lang-content" data-lang="mq">Kiz Modil 3</span>
+                    </div>
+                    <div class="quiz-question">
+                        <span class="lang-content active" data-lang="en">What is the central fish ingredient in "Lanmori", essential to Martinican dishes like Féroce d'avocat?</span>
+                        <span class="lang-content" data-lang="fr">Quel est l'ingrédient principal de « Lanmori », essentiel aux plats comme le Féroce d'avocat ?</span>
+                        <span class="lang-content" data-lang="mq">Ki sa « Lanmori » yé nan manjé Matinik tankou Féwos ?</span>
+                    </div>
+                    <div class="quiz-options" data-quiz-id="quiz3">
+                        <div class="quiz-option" data-option="A" data-correct="true" onclick="handleQuizSelection(this, 'quiz3', true, 'A')">
+                            <div class="option-left-wrap">
+                                <span class="option-letter">A</span>
+                                <div>
+                                    <span class="lang-content active" data-lang="en">Salted codfish</span>
+                                    <span class="lang-content" data-lang="fr">Morue salée</span>
+                                    <span class="lang-content" data-lang="mq">Lanmori (mori salé)</span>
+                                </div>
+                            </div>
+                            <div class="option-status-icon"></div>
+                        </div>
+                        <div class="quiz-option" data-option="B" onclick="handleQuizSelection(this, 'quiz3', false, 'B')">
+                            <div class="option-left-wrap">
+                                <span class="option-letter">B</span>
+                                <div>
+                                    <span class="lang-content active" data-lang="en">Fresh lobster</span>
+                                    <span class="lang-content" data-lang="fr">Homard frais</span>
+                                    <span class="lang-content" data-lang="mq">Woma frè</span>
+                                </div>
+                            </div>
+                            <div class="option-status-icon"></div>
+                        </div>
+                        <div class="quiz-option" data-option="C" onclick="handleQuizSelection(this, 'quiz3', false, 'C')">
+                            <div class="option-left-wrap">
+                                <span class="option-letter">C</span>
+                                <div>
+                                    <span class="lang-content active" data-lang="en">Smoked river prawns</span>
+                                    <span class="lang-content" data-lang="fr">Écrevisses de rivière (ouassous)</span>
+                                    <span class="lang-content" data-lang="mq">Wwasou larivyè</span>
+                                </div>
+                            </div>
+                            <div class="option-status-icon"></div>
+                        </div>
+                        <div class="quiz-option" data-option="D" onclick="handleQuizSelection(this, 'quiz3', false, 'D')">
+                            <div class="option-left-wrap">
+                                <span class="option-letter">D</span>
+                                <div>
+                                    <span class="lang-content active" data-lang="en">Roast beef</span>
+                                    <span class="lang-content" data-lang="fr">Rôti de bœuf</span>
+                                    <span class="lang-content" data-lang="mq">Vyann bœuf woti</span>
+                                </div>
+                            </div>
+                            <div class="option-status-icon"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-explanation-wrap" id="quiz-explanation-quiz3" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -1179,6 +2783,115 @@
         <div class="footer-flag"></div>
     </footer>
 
+    <!-- Interactive Flashcard Modal -->
+    <div id="flashcardModal" class="modal-overlay" onclick="handleModalOverlayClick(event)">
+        <div class="flashcard-modal-box">
+            <button type="button" class="modal-close-btn" onclick="closeFlashcards()" title="Close flashcards" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="flashcard-deck-title" id="flashcardDeckTitle">Greetings (Saliitasyon)</div>
+            <div class="card-counter" id="flashcardCounter">Card 1 of 6</div>
+            
+            <div class="flashcard-3d-scene" onclick="flipFlashcard()" title="Click to flip card">
+                <div class="flashcard-inner" id="flashcardInner">
+                    <div class="flashcard-face flashcard-front">
+                        <div class="word" id="fcFrontWord">Bonjou</div>
+                        <div class="pronounce" id="fcFrontPronounce">[bohn-zhoo]</div>
+                        <button type="button" class="listen-btn" onclick="event.stopPropagation(); speakCreole(document.getElementById('fcFrontWord').textContent, this)" title="Listen to pronunciation">
+                            <i class="fas fa-volume-up"></i>
+                            <span>Listen</span>
+                        </button>
+                        <div class="flip-hint" style="margin-top: 1.25rem;">
+                            <i class="fas fa-rotate"></i>
+                            <span>Click card to reveal meaning & example</span>
+                        </div>
+                    </div>
+                    <div class="flashcard-face flashcard-back">
+                        <div class="meaning-en" id="fcBackEn">Good morning / Hello</div>
+                        <div class="meaning-fr" id="fcBackFr">Bonjour / Salut</div>
+                        <div class="example" id="fcBackEx">"Bonjou tout moun!" — Hello everyone!</div>
+                        <div class="flip-hint" style="margin-top: 1rem;">
+                            <i class="fas fa-rotate"></i>
+                            <span>Click to flip back</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flashcard-controls">
+                <button type="button" class="card-nav-btn" onclick="prevFlashcard()" id="fcPrevBtn" aria-label="Previous card">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button type="button" class="card-flip-btn" onclick="flipFlashcard()">
+                    <i class="fas fa-sync-alt"></i> Flip Card
+                </button>
+                <button type="button" class="card-nav-btn" onclick="nextFlashcard()" id="fcNextBtn" aria-label="Next card">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Tutor Floating Action Button -->
+    <button type="button" id="aiTutorFab" class="ai-tutor-fab" onclick="toggleAiTutor()" aria-label="Open AI Martinican Creole Heritage Tutor">
+        <i class="fas fa-robot"></i>
+        <span>AI Kréyòl Tutor</span>
+        <span class="ai-fab-badge">2026 AI</span>
+    </button>
+    
+    <!-- AI Tutor Chat Drawer -->
+    <div id="aiTutorDrawer" class="ai-tutor-drawer" role="dialog" aria-modal="true" aria-label="Martinican Creole AI Heritage Tutor Chat">
+        <div class="ai-drawer-header">
+            <div class="ai-drawer-header-left">
+                <div class="ai-avatar">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="ai-title-text">
+                    <h4>Man Mayotte • Kréyòl Tutor</h4>
+                    <span><span class="ai-status-dot"></span> Online • Martinican Heritage Expert</span>
+                </div>
+            </div>
+            <button type="button" class="ai-close-btn" onclick="toggleAiTutor(false)" aria-label="Close Tutor">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="ai-chat-body" id="aiChatMessages">
+            <div class="ai-bubble assistant">
+                <div>
+                    <strong>Bonjou éti bévini !</strong> I am your personal <em>Kréyòl Matinik</em> heritage tutor.
+                    <br><br>
+                    You can ask me how to translate phrases into authentic Martinican Creole, explain grammar and GEREC spelling, teach local proverbs, or guide you through Martinican customs and traditions.
+                </div>
+                <button type="button" class="ai-speak-bubble-btn" onclick="speakCreole('Bonjou éti bévini! Kouman mwen pé édé zòt jòdi-a?', this)">
+                    <i class="fas fa-volume-up"></i> Listen
+                </button>
+            </div>
+        </div>
+        
+        <div class="ai-suggestions-row">
+            <button type="button" class="suggestion-chip" onclick="sendQuickPrompt('How do you say Good morning and How are you doing in Martinican Creole?')">
+                🌅 Say "Good morning"
+            </button>
+            <button type="button" class="suggestion-chip" onclick="sendQuickPrompt('What is the cultural meaning of Koudmen in Martinican society?')">
+                🤝 Explain "Koudmen"
+            </button>
+            <button type="button" class="suggestion-chip" onclick="sendQuickPrompt('Teach me a traditional Martinican Creole proverb with its meaning!')">
+                📜 Creole Proverb
+            </button>
+            <button type="button" class="suggestion-chip" onclick="sendQuickPrompt('How do I politely order food in Creole at the Grand Marché in Fort-de-France?')">
+                🍛 Order at Grand Marché
+            </button>
+        </div>
+        
+        <form class="ai-input-bar" id="aiChatForm" onsubmit="handleTutorSubmit(event)">
+            <input type="text" id="aiUserInput" placeholder="Ask in English, French, or Kréyòl..." autocomplete="off" />
+            <button type="submit" class="ai-send-btn" id="aiSendBtn" aria-label="Send query to AI Tutor">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+
     <script>
         // Language data for navigation and UI elements
         const translations = {
@@ -1204,24 +2917,26 @@
         
         // Current language
         let currentLang = 'en';
+        let currentActiveModule = 'module1';
         
         // Language dropdown functionality
         const languageBtn = document.getElementById('languageBtn');
         const languageDropdown = document.getElementById('languageDropdown');
         const languageOptions = document.querySelectorAll('.language-option');
         
-        languageBtn.addEventListener('click', () => {
-            languageDropdown.classList.toggle('show');
-        });
+        if (languageBtn && languageDropdown) {
+            languageBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                languageDropdown.classList.toggle('show');
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!languageBtn.contains(e.target) && !languageDropdown.contains(e.target)) {
+                    languageDropdown.classList.remove('show');
+                }
+            });
+        }
         
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!languageBtn.contains(e.target) && !languageDropdown.contains(e.target)) {
-                languageDropdown.classList.remove('show');
-            }
-        });
-        
-        // Language selection
         languageOptions.forEach(option => {
             option.addEventListener('click', () => {
                 const selectedLang = option.getAttribute('data-lang');
@@ -1232,7 +2947,6 @@
         function changeLanguage(lang) {
             currentLang = lang;
             
-            // Update button text
             const languageNames = {
                 'mq': 'Kréyòl',
                 'fr': 'Français',
@@ -1244,14 +2958,15 @@
                 'en': 'flag-us'
             };
             
-            languageBtn.innerHTML = `<span class="flag-icon ${flagClasses[lang]}"></span> ${languageNames[lang]}`;
+            if (languageBtn) {
+                languageBtn.innerHTML = `<span class="flag-icon ${flagClasses[lang]}"></span> ${languageNames[lang]}`;
+            }
             
-            // Update active class
             languageOptions.forEach(opt => opt.classList.remove('active'));
-            document.querySelector(`.language-option[data-lang="${lang}"]`).classList.add('active');
+            const activeOption = document.querySelector(`.language-option[data-lang="${lang}"]`);
+            if (activeOption) activeOption.classList.add('active');
             
-            // Close dropdown
-            languageDropdown.classList.remove('show');
+            if (languageDropdown) languageDropdown.classList.remove('show');
             
             // Update all language content
             document.querySelectorAll('.lang-content').forEach(content => {
@@ -1265,49 +2980,689 @@
             document.querySelectorAll('[data-key]').forEach(element => {
                 const key = element.getAttribute('data-key');
                 if (translations[lang] && translations[lang][key]) {
-                    // For elements with text content (not containing other elements)
                     if (element.children.length === 0) {
                         element.textContent = translations[lang][key];
                     }
                 }
             });
+            
+            updateProgressUI();
         }
         
         // Module navigation
         function showModule(moduleId) {
+            currentActiveModule = moduleId;
+            
             // Hide all modules
             document.querySelectorAll('.module-content').forEach(module => {
                 module.style.display = 'none';
             });
             
             // Show selected module
-            document.getElementById(`${moduleId}-content`).style.display = 'block';
+            const targetModule = document.getElementById(`${moduleId}-content`);
+            if (targetModule) {
+                targetModule.style.display = 'block';
+            }
             
             // Update active button
             document.querySelectorAll('.curriculum-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
-        }
-        
-        // Quiz functionality
-        let selectedOption = null;
-        
-        function selectQuizOption(element) {
-            if (selectedOption) {
-                selectedOption.classList.remove('selected');
+            const activeBtn = document.getElementById(`btn-${moduleId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
             }
+            
+            updateMarkModuleBtnText();
+        }
+
+        // ==========================================
+        // 1. WEB SPEECH API (Creole pronunciation)
+        // ==========================================
+        function speakCreole(text, btnElement) {
+            if (!('speechSynthesis' in window)) {
+                alert('Web Speech API is not supported in this browser.');
+                return;
+            }
+            
+            try {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                // Select an appropriate voice (French voice handles Caribbean creole phonology best)
+                const voices = window.speechSynthesis.getVoices();
+                const preferredVoice = voices.find(v => v.lang && (v.lang === 'fr-FR' || v.lang.startsWith('fr'))) || voices[0];
+                if (preferredVoice) {
+                    utterance.voice = preferredVoice;
+                }
+                utterance.lang = 'fr-FR';
+                utterance.rate = 0.88; // Slightly measured tempo for clear pronunciation
+                utterance.pitch = 1.05;
+                
+                if (btnElement) {
+                    btnElement.classList.add('playing');
+                    utterance.onend = () => {
+                        btnElement.classList.remove('playing');
+                    };
+                    utterance.onerror = () => {
+                        btnElement.classList.remove('playing');
+                    };
+                }
+                
+                window.speechSynthesis.speak(utterance);
+                
+                // Register word in progress
+                registerWordListened(text);
+            } catch (err) {
+                console.warn('Speech synthesis error:', err);
+                if (btnElement) btnElement.classList.remove('playing');
+            }
+        }
+        
+        // Pre-load voices on page load
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
+        }
+
+        // ==========================================
+        // 2. USER PROGRESS & LOCALSTORAGE
+        // ==========================================
+        const PROGRESS_STORAGE_KEY = 'kreyol_matinik_student_progress_v2';
+        
+        let userProgress = {
+            modules: { module1: false, module2: false, module3: false },
+            quizzes: { quiz1: false, quiz2: false, quiz3: false },
+            listenedWords: [],
+            xp: 0
+        };
+
+        function loadProgress() {
+            try {
+                const saved = localStorage.getItem(PROGRESS_STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    userProgress = {
+                        modules: { ...userProgress.modules, ...(parsed.modules || {}) },
+                        quizzes: { ...userProgress.quizzes, ...(parsed.quizzes || {}) },
+                        listenedWords: Array.isArray(parsed.listenedWords) ? parsed.listenedWords : [],
+                        xp: typeof parsed.xp === 'number' ? parsed.xp : 0
+                    };
+                }
+            } catch (e) {
+                console.warn('Could not parse saved progress from localStorage:', e);
+            }
+            updateProgressUI();
+        }
+
+        function saveProgress() {
+            try {
+                localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(userProgress));
+            } catch (e) {
+                console.warn('Could not save progress to localStorage:', e);
+            }
+        }
+
+        function registerWordListened(word) {
+            const cleanWord = word.trim().toLowerCase();
+            if (!userProgress.listenedWords.includes(cleanWord)) {
+                userProgress.listenedWords.push(cleanWord);
+                userProgress.xp += 10;
+                saveProgress();
+                updateProgressUI();
+            }
+        }
+
+        function updateProgressUI() {
+            const completedModulesCount = Object.values(userProgress.modules).filter(Boolean).length;
+            const completedQuizzesCount = Object.values(userProgress.quizzes).filter(Boolean).length;
+            const wordsCount = userProgress.listenedWords.length;
+            
+            // Percentage: 3 modules (15% each = 45%), 3 quizzes (15% each = 45%), listened words (up to 10 = 10%)
+            const moduleScore = (completedModulesCount / 3) * 45;
+            const quizScore = (completedQuizzesCount / 3) * 45;
+            const wordScore = Math.min(wordsCount, 10);
+            const totalPercent = Math.min(100, Math.round(moduleScore + quizScore + wordScore));
+            
+            // Progress Bar
+            const barFill = document.getElementById('progressBarFill');
+            if (barFill) {
+                barFill.style.width = `${totalPercent}%`;
+            }
+            
+            // Stat values
+            const modulesStat = document.getElementById('modulesCompletedStat');
+            if (modulesStat) modulesStat.textContent = `${completedModulesCount} / 3`;
+            
+            const quizzesStat = document.getElementById('quizzesCompletedStat');
+            if (quizzesStat) quizzesStat.textContent = `${completedQuizzesCount} / 3`;
+            
+            const wordsStat = document.getElementById('wordsListenedStat');
+            if (wordsStat) wordsStat.textContent = `${wordsCount} Word${wordsCount === 1 ? '' : 's'}`;
+            
+            const overallStat = document.getElementById('overallPercentageStat');
+            if (overallStat) overallStat.textContent = `${totalPercent}%`;
+            
+            // XP & Level calculation
+            const xpDisplay = document.getElementById('user-xp-display');
+            if (xpDisplay) xpDisplay.textContent = `${userProgress.xp} XP`;
+            
+            const levelDisplay = document.getElementById('user-level-display');
+            if (levelDisplay) {
+                let levelName = 'Novice';
+                if (userProgress.xp >= 300) levelName = 'Mèt Kréyòl (Master)';
+                else if (userProgress.xp >= 150) levelName = 'Avanse (Advanced)';
+                else if (userProgress.xp >= 50) levelName = 'Débutant (Intermediate)';
+                levelDisplay.textContent = `• ${levelName}`;
+            }
+            
+            updateMarkModuleBtnText();
+        }
+
+        function updateMarkModuleBtnText() {
+            const btn = document.getElementById('markCurrentModuleBtn');
+            const textEl = document.getElementById('markModuleBtnText');
+            if (!btn || !textEl) return;
+            
+            const isCompleted = !!userProgress.modules[currentActiveModule];
+            const modNum = currentActiveModule.replace('module', '');
+            
+            if (isCompleted) {
+                btn.classList.add('completed');
+                textEl.textContent = `Module ${modNum} Completed ✓`;
+            } else {
+                btn.classList.remove('completed');
+                textEl.textContent = `Mark Module ${modNum} as Completed`;
+            }
+        }
+
+        function toggleCurrentModuleStatus() {
+            const currentState = !!userProgress.modules[currentActiveModule];
+            userProgress.modules[currentActiveModule] = !currentState;
+            
+            if (!currentState) {
+                userProgress.xp += 30;
+                // Celebration confetti on module completion!
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 100,
+                        spread: 80,
+                        origin: { y: 0.6 }
+                    });
+                }
+            } else {
+                userProgress.xp = Math.max(0, userProgress.xp - 30);
+            }
+            
+            saveProgress();
+            updateProgressUI();
+        }
+
+        function resetUserProgress() {
+            if (confirm("Are you sure you want to reset your Martinican Creole learning progress?")) {
+                userProgress = {
+                    modules: { module1: false, module2: false, module3: false },
+                    quizzes: { quiz1: false, quiz2: false, quiz3: false },
+                    listenedWords: [],
+                    xp: 0
+                };
+                saveProgress();
+                updateProgressUI();
+                
+                // Reset all quiz visual states
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('selected', 'correct', 'incorrect');
+                    const icon = opt.querySelector('.option-status-icon');
+                    if (icon) icon.innerHTML = '';
+                });
+                document.querySelectorAll('.quiz-explanation-wrap').forEach(wrap => {
+                    wrap.style.display = 'none';
+                    wrap.innerHTML = '';
+                });
+            }
+        }
+
+        // ==========================================
+        // 3. ENHANCED QUIZ WITH FEEDBACK & CONFETTI
+        // ==========================================
+        const quizExplanations = {
+            quiz1: {
+                correct: "<strong>Bravo !</strong> In Martinican Creole, <em>« M'ap kenbe »</em> (literally 'I am holding on') is the classic respectful response meaning <strong>'I am doing well / hanging in there'</strong>, reflecting strong resilience and warmth.",
+                incorrect: "<strong>Pa sa ! (Not quite)</strong> In Martinican Creole, <em>« M'ap kenbe »</em> means <strong>'I am doing well / hanging in there'</strong>. ('I am hungry' is <em>'Mwen grangou'</em> and 'I am tired' is <em>'Mwen fatige'</em>)."
+            },
+            quiz2: {
+                correct: "<strong>Sé sa menm ! (Exactly right!)</strong> <em>« Koudmen »</em> (from coup de main) is the revered Martinican tradition of <strong>mutual community solidarity</strong>, where friends and neighbors unite to help build homes and harvest crops collaboratively.",
+                incorrect: "<strong>Eseye ankò !</strong> <em>« Koudmen »</em> represents Martinican <strong>community mutual aid and collective solidarity</strong>, where neighbors unite to support one another."
+            },
+            quiz3: {
+                correct: "<strong>Anbéli ! (Wonderful!)</strong> <em>« Lanmori »</em> (<strong>salted codfish</strong>) is an indispensable staple of Martinican gastronomy, featured prominently in <em>Féwos d'avocat</em>, <em>Ti-nain lanmori</em>, and <em>Chiktay</em>.",
+                incorrect: "<strong>Pa sa !</strong> The staple fish ingredient is <strong>Lanmori (salted codfish)</strong>, deeply rooted in Martinique's culinary history."
+            }
+        };
+
+        function handleQuizSelection(element, quizId, isCorrect, optionLetter) {
+            const optionsContainer = element.closest('.quiz-options');
+            const explanationWrap = document.getElementById(`quiz-explanation-${quizId}`);
+            
+            if (!optionsContainer || !explanationWrap) return;
+            
+            // Clear previous option classes in this quiz
+            optionsContainer.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+                const iconEl = opt.querySelector('.option-status-icon');
+                if (iconEl) iconEl.innerHTML = '';
+            });
+            
             element.classList.add('selected');
-            selectedOption = element;
+            const statusIcon = element.querySelector('.option-status-icon');
+            const quizData = quizExplanations[quizId];
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                if (statusIcon) {
+                    statusIcon.innerHTML = '<i class="fas fa-check-circle text-green-600" style="color: #10b981; font-size: 1.25rem;"></i>';
+                }
+                
+                // Trigger celebratory confetti animation!
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 85,
+                        spread: 75,
+                        origin: { y: 0.7 },
+                        colors: ['#d32f2f', '#1976d2', '#ffd700', '#10b981', '#ffffff']
+                    });
+                }
+                
+                explanationWrap.className = 'quiz-explanation-wrap success';
+                explanationWrap.innerHTML = `
+                    <div class="explanation-icon"><i class="fas fa-check"></i></div>
+                    <div class="explanation-text">${quizData ? quizData.correct : 'Correct! Well done!'}</div>
+                `;
+                explanationWrap.style.display = 'flex';
+                
+                // Award progress & XP
+                if (!userProgress.quizzes[quizId]) {
+                    userProgress.quizzes[quizId] = true;
+                    userProgress.xp += 25;
+                    saveProgress();
+                    updateProgressUI();
+                }
+            } else {
+                element.classList.add('incorrect');
+                if (statusIcon) {
+                    statusIcon.innerHTML = '<i class="fas fa-times-circle text-red-600" style="color: #ef4444; font-size: 1.25rem;"></i>';
+                }
+                
+                // Highlight the correct answer to guide the learner
+                const correctOption = optionsContainer.querySelector('[data-correct="true"]');
+                if (correctOption) {
+                    correctOption.classList.add('correct');
+                    const cIcon = correctOption.querySelector('.option-status-icon');
+                    if (cIcon) cIcon.innerHTML = '<i class="fas fa-check" style="color: #10b981;"></i>';
+                }
+                
+                explanationWrap.className = 'quiz-explanation-wrap error';
+                explanationWrap.innerHTML = `
+                    <div class="explanation-icon"><i class="fas fa-times"></i></div>
+                    <div class="explanation-text">${quizData ? quizData.incorrect : 'Incorrect. Try reviewing the lesson vocabulary!'}</div>
+                `;
+                explanationWrap.style.display = 'flex';
+            }
         }
         
-        // Flashcards functionality
-        function openFlashcards(deck) {
-            alert(`Opening ${deck} flashcards deck...`);
-            // In a real implementation, this would open the flashcard interface
+        // Backwards compatibility for old selector
+        function selectQuizOption(element) {
+            element.classList.toggle('selected');
         }
-        
-        // Smooth scrolling for navigation links
+
+        // ==========================================
+        // 4. INTERACTIVE 3D FLASHCARDS MODAL
+        // ==========================================
+        const flashcardDecks = {
+            greetings: {
+                title: "Greetings & Polite Expressions (Saliitasyon)",
+                cards: [
+                    { word: "Bonjou", pronounce: "[bohn-zhoo]", en: "Good morning / Hello", fr: "Bonjour", ex: "Bonjou manman, kouman ou yé?" },
+                    { word: "Bonswa", pronounce: "[bohn-swah]", en: "Good evening / Afternoon", fr: "Bonsoir", ex: "Bonswa tout moun!" },
+                    { word: "Kouman ou yé?", pronounce: "[koo-mahn oo yay]", en: "How are you doing?", fr: "Comment vas-tu ?", ex: "Kouman ou yé jòdi-a?" },
+                    { word: "M'ap kenbe", pronounce: "[mahp kahn-bay]", en: "I am doing well / Hanging in there", fr: "Je vais bien / Je tiens bon", ex: "M'ap kenbe rèd, mèsi anpil!" },
+                    { word: "Sa k'ap fèt?", pronounce: "[sah kahp feht]", en: "What's up? / What's going on?", fr: "Quoi de neuf ?", ex: "Sa k'ap fèt frè mwen?" },
+                    { word: "A plita", pronounce: "[ah plee-tah]", en: "See you later / Goodbye", fr: "À plus tard", ex: "A plita doudou, pran swen kò'w!" }
+                ]
+            },
+            family: {
+                title: "Family & Loved Ones (Fanmi)",
+                cards: [
+                    { word: "Fanmi", pronounce: "[fahn-mee]", en: "Family", fr: "Famille", ex: "Fanmi nou an gran anpil." },
+                    { word: "Manman", pronounce: "[mahn-mahn]", en: "Mother", fr: "Mère / Maman", ex: "Manman mwen sé léspwa mwen." },
+                    { word: "Papa", pronounce: "[pah-pah]", en: "Father", fr: "Père / Papa", ex: "Papa mwen ka travay an jaden." },
+                    { word: "Timoun", pronounce: "[tee-moon]", en: "Child / Children", fr: "Enfant / Enfants", ex: "Timoun yo ka jwé an lakou-a." },
+                    { word: "Granmoun", pronounce: "[grahn-moon]", en: "Elder / Grandparent", fr: "Personne âgée / Aîné", ex: "Nou dwèt respekté granmoun." },
+                    { word: "Koudmen", pronounce: "[kood-mehn]", en: "Mutual solidarity / Helping hand", fr: "Entraide solidaire", ex: "Sé koudmen ki fè nou fò." }
+                ]
+            },
+            home: {
+                title: "House & Home (Kaz)",
+                cards: [
+                    { word: "Kaz", pronounce: "[kahz]", en: "House / Home", fr: "Maison", ex: "Kaz-la bèl toubannman." },
+                    { word: "Jaden", pronounce: "[zhah-dehn]", en: "Garden / Plot", fr: "Jardin", ex: "Ni bèl flè nan jaden an." },
+                    { word: "Kouzin", pronounce: "[koo-zeen]", en: "Kitchen", fr: "Cuisine", ex: "Manman mwen nan kouzin-la." },
+                    { word: "Chanm", pronounce: "[shahn-m]", en: "Room / Bedroom", fr: "Chambre", ex: "Chanm mwen an klè anpil." }
+                ]
+            },
+            food: {
+                title: "Martinican Cuisine & Flavors (Manjé Kréyòl)",
+                cards: [
+                    { word: "Manjé", pronounce: "[mahn-zhay]", en: "Food / To eat", fr: "Manger / Nourriture", ex: "Manjé-tala chwit anpil." },
+                    { word: "Lanmori", pronounce: "[lahn-moh-ree]", en: "Salted codfish", fr: "Morue salée", ex: "Ti-nain lanmori sé délis Matinik." },
+                    { word: "Colombo", pronounce: "[koh-lohm-boh]", en: "Colombo curry dish", fr: "Plat au colombo", ex: "Nou fè colombo pou fèt-la." },
+                    { word: "Kassav", pronounce: "[kah-sahv]", en: "Cassava bread", fr: "Galette de manioc", ex: "Kassav dous an bouch mwen." },
+                    { word: "Chwit", pronounce: "[shweet]", en: "Delicious / Flavorful", fr: "Délicieux", ex: "Soup-la chwit toubannman!" }
+                ]
+            },
+            market: {
+                title: "Market & Shopping (Maché)",
+                cards: [
+                    { word: "Maché", pronounce: "[mah-shay]", en: "Market", fr: "Marché", ex: "Annou alé nan Gran Maché Fòdfwans." },
+                    { word: "Lajan", pronounce: "[lah-zhahn]", en: "Money", fr: "Argent", ex: "Konmen lajan sa kouté?" },
+                    { word: "Achté", pronounce: "[ahsh-tay]", en: "To buy", fr: "Acheter", ex: "Mwen vlé achté bannann jòdi-a." },
+                    { word: "Konmen?", pronounce: "[kohn-mehn]", en: "How much?", fr: "Combien ?", ex: "Konmen pou dé mango?" }
+                ]
+            },
+            daily: {
+                title: "Daily Routines (Rotin chak jou)",
+                cards: [
+                    { word: "Dòmi", pronounce: "[doh-mee]", en: "To sleep", fr: "Dormir", ex: "Mwen kay dòmi bonnè." },
+                    { word: "Lévé", pronounce: "[lay-vay]", en: "To wake up / Get up", fr: "Se lever", ex: "Mwen lévé a sis è di maten." },
+                    { word: "Travay", pronounce: "[trah-veye]", en: "To work / Work", fr: "Travailler", ex: "Nou ka travay an kouraj." },
+                    { word: "Bényen", pronounce: "[behn-yehn]", en: "To bathe / Swim", fr: "Se baigner", ex: "Annou alé bényen nan lanmè!" }
+                ]
+            },
+            music: {
+                title: "Music & Culture (Mizik & Kilti)",
+                cards: [
+                    { word: "Bèlè", pronounce: "[beh-leh]", en: "Traditional drum & dance heritage", fr: "Musique et danse traditionnelle bèlè", ex: "Tanbou bèlè a ka bat fò." },
+                    { word: "Tanbou", pronounce: "[tahn-boo]", en: "Drum", fr: "Tambour", ex: "Mizisyen-an ka karésé tanbou-a." },
+                    { word: "Chanté", pronounce: "[shahn-tay]", en: "To sing", fr: "Chanter", ex: "Tout moun ka chanté an koral." },
+                    { word: "Danswè", pronounce: "[dahn-sweh]", en: "Dancer", fr: "Danseur / Danseuse", ex: "Danswè bèlè a ni anpil lagrémann." }
+                ]
+            },
+            history: {
+                title: "Martinique History & Heritage (Istwa)",
+                cards: [
+                    { word: "Lalimè", pronounce: "[lah-lee-meh]", en: "Emancipation / Freedom", fr: "Liberté / Émancipation", ex: "22 Mé sé fèt lémansipasyon Matinik." },
+                    { word: "Marron", pronounce: "[mah-rohn]", en: "Runaway resisting enslaved person", fr: "Esclave marron / Résistant", ex: "Mawon yo té doubout pou libèté." },
+                    { word: "Zansèt", pronounce: "[zahn-seht]", en: "Ancestors", fr: "Ancêtres", ex: "Nou ka onoré memwa zansèt nou." }
+                ]
+            },
+            verbs: {
+                title: "Essential Creole Verbs (Vèb)",
+                cards: [
+                    { word: "Palé", pronounce: "[pah-lay]", en: "To speak / Talk", fr: "Parler", ex: "Mwen ka palé Kréyòl Matinik." },
+                    { word: "Kouté", pronounce: "[koo-tay]", en: "To listen", fr: "Écouter", ex: "Kouté granmoun pou ou pran leson." },
+                    { word: "Vini", pronounce: "[vee-nee]", en: "To come", fr: "Venir", ex: "Vini wè mwen lakay mwen!" },
+                    { word: "Konnèt", pronounce: "[koh-neht]", en: "To know", fr: "Connaître / Savoir", ex: "Ou konnèt lang matèrnèl ou?" }
+                ]
+            }
+        };
+
+        let currentDeckKey = 'greetings';
+        let currentCardIndex = 0;
+        let isCardFlipped = false;
+
+        function openFlashcards(deckKey) {
+            const key = deckKey && flashcardDecks[deckKey] ? deckKey : 'greetings';
+            currentDeckKey = key;
+            currentCardIndex = 0;
+            isCardFlipped = false;
+            
+            const modal = document.getElementById('flashcardModal');
+            if (modal) {
+                modal.classList.add('open');
+                renderCurrentFlashcard();
+            }
+        }
+
+        function closeFlashcards() {
+            const modal = document.getElementById('flashcardModal');
+            if (modal) {
+                modal.classList.remove('open');
+            }
+            isCardFlipped = false;
+            const inner = document.getElementById('flashcardInner');
+            if (inner) inner.classList.remove('flipped');
+        }
+
+        function handleModalOverlayClick(event) {
+            if (event.target.id === 'flashcardModal') {
+                closeFlashcards();
+            }
+        }
+
+        function flipFlashcard() {
+            const inner = document.getElementById('flashcardInner');
+            if (!inner) return;
+            isCardFlipped = !isCardFlipped;
+            if (isCardFlipped) {
+                inner.classList.add('flipped');
+            } else {
+                inner.classList.remove('flipped');
+            }
+        }
+
+        function renderCurrentFlashcard() {
+            const deck = flashcardDecks[currentDeckKey] || flashcardDecks.greetings;
+            const card = deck.cards[currentCardIndex];
+            
+            // Reset flip state
+            isCardFlipped = false;
+            const inner = document.getElementById('flashcardInner');
+            if (inner) inner.classList.remove('flipped');
+            
+            // Update titles and counter
+            const titleEl = document.getElementById('flashcardDeckTitle');
+            if (titleEl) titleEl.textContent = deck.title;
+            
+            const counterEl = document.getElementById('flashcardCounter');
+            if (counterEl) counterEl.textContent = `Card ${currentCardIndex + 1} of ${deck.cards.length}`;
+            
+            // Front elements
+            const frontWord = document.getElementById('fcFrontWord');
+            if (frontWord) frontWord.textContent = card.word;
+            
+            const frontPronounce = document.getElementById('fcFrontPronounce');
+            if (frontPronounce) frontPronounce.textContent = card.pronounce;
+            
+            // Back elements
+            const backEn = document.getElementById('fcBackEn');
+            if (backEn) backEn.textContent = card.en;
+            
+            const backFr = document.getElementById('fcBackFr');
+            if (backFr) backFr.textContent = card.fr;
+            
+            const backEx = document.getElementById('fcBackEx');
+            if (backEx) backEx.textContent = card.ex;
+            
+            // Update navigation button states
+            const prevBtn = document.getElementById('fcPrevBtn');
+            if (prevBtn) prevBtn.disabled = (currentCardIndex === 0);
+            
+            const nextBtn = document.getElementById('fcNextBtn');
+            if (nextBtn) nextBtn.disabled = (currentCardIndex === deck.cards.length - 1);
+        }
+
+        function nextFlashcard() {
+            const deck = flashcardDecks[currentDeckKey] || flashcardDecks.greetings;
+            if (currentCardIndex < deck.cards.length - 1) {
+                currentCardIndex++;
+                renderCurrentFlashcard();
+            }
+        }
+
+        function prevFlashcard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                renderCurrentFlashcard();
+            }
+        }
+
+        // Keyboard navigation for flashcards
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('flashcardModal');
+            if (!modal || !modal.classList.contains('open')) return;
+            
+            if (e.key === 'ArrowRight') {
+                nextFlashcard();
+            } else if (e.key === 'ArrowLeft') {
+                prevFlashcard();
+            } else if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                flipFlashcard();
+            } else if (e.key === 'Escape') {
+                closeFlashcards();
+            }
+        });
+
+        // ==========================================
+        // 5. AI CREOLE HERITAGE TUTOR CHAT
+        // ==========================================
+        let tutorConversationHistory = [];
+        let isTutorLoading = false;
+
+        function toggleAiTutor(forceState) {
+            const drawer = document.getElementById('aiTutorDrawer');
+            if (!drawer) return;
+            
+            const shouldOpen = typeof forceState === 'boolean' ? forceState : !drawer.classList.contains('open');
+            if (shouldOpen) {
+                drawer.classList.add('open');
+                const input = document.getElementById('aiUserInput');
+                if (input) setTimeout(() => input.focus(), 150);
+            } else {
+                drawer.classList.remove('open');
+            }
+        }
+
+        function sendQuickPrompt(promptText) {
+            const input = document.getElementById('aiUserInput');
+            if (input) {
+                input.value = promptText;
+                submitTutorMessage(promptText);
+            }
+        }
+
+        function handleTutorSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('aiUserInput');
+            if (!input) return;
+            const message = input.value.trim();
+            if (!message || isTutorLoading) return;
+            submitTutorMessage(message);
+        }
+
+        async function submitTutorMessage(userText) {
+            const messagesContainer = document.getElementById('aiChatMessages');
+            const input = document.getElementById('aiUserInput');
+            const sendBtn = document.getElementById('aiSendBtn');
+            
+            if (input) input.value = '';
+            
+            // Append User Bubble
+            const userBubble = document.createElement('div');
+            userBubble.className = 'ai-bubble user';
+            userBubble.textContent = userText;
+            messagesContainer.appendChild(userBubble);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Append Loading Bubble
+            const loadingBubble = document.createElement('div');
+            loadingBubble.className = 'ai-bubble assistant';
+            loadingBubble.id = 'aiTutorLoadingBubble';
+            loadingBubble.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <em>Man Mayotte is thinking in Kréyòl...</em>';
+            messagesContainer.appendChild(loadingBubble);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            isTutorLoading = true;
+            if (sendBtn) sendBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/tutor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: userText,
+                        conversationHistory: tutorConversationHistory
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Remove loading bubble
+                if (loadingBubble.parentNode) {
+                    loadingBubble.parentNode.removeChild(loadingBubble);
+                }
+                
+                const assistantBubble = document.createElement('div');
+                assistantBubble.className = 'ai-bubble assistant';
+                
+                const replyText = data.reply || "Mwen désolé, I could not complete your request at this moment. Please try again.";
+                
+                // Format markdown bold and line breaks safely
+                const formattedHtml = replyText
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n/g, '<br>');
+                
+                assistantBubble.innerHTML = `<div>${formattedHtml}</div>`;
+                
+                // Try to extract any Creole quote for audio pronunciation
+                const quoteMatch = replyText.match(/«([^»]+)»/) || replyText.match(/"([^"]+)"/);
+                const creoleToSpeak = quoteMatch ? quoteMatch[1] : (replyText.length < 120 ? replyText : null);
+                if (creoleToSpeak && creoleToSpeak.length > 2) {
+                    const audioBtn = document.createElement('button');
+                    audioBtn.className = 'ai-speak-bubble-btn';
+                    audioBtn.innerHTML = '<i class="fas fa-volume-up"></i> Listen to Creole';
+                    audioBtn.onclick = () => speakCreole(creoleToSpeak, audioBtn);
+                    assistantBubble.appendChild(audioBtn);
+                }
+                
+                messagesContainer.appendChild(assistantBubble);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                // Update history
+                tutorConversationHistory.push({ role: 'user', content: userText });
+                tutorConversationHistory.push({ role: 'assistant', content: replyText });
+                if (tutorConversationHistory.length > 10) {
+                    tutorConversationHistory = tutorConversationHistory.slice(-10);
+                }
+                
+                // Award XP for engaging with the tutor
+                userProgress.xp += 5;
+                saveProgress();
+                updateProgressUI();
+            } catch (err) {
+                console.error('Error contacting AI Tutor:', err);
+                if (loadingBubble.parentNode) {
+                    loadingBubble.parentNode.removeChild(loadingBubble);
+                }
+                const errBubble = document.createElement('div');
+                errBubble.className = 'ai-bubble assistant';
+                errBubble.innerHTML = '<strong>Pardon !</strong> Unable to reach the AI tutor server right now. Please check your internet connection and try again.';
+                messagesContainer.appendChild(errBubble);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } finally {
+                isTutorLoading = false;
+                if (sendBtn) sendBtn.disabled = false;
+            }
+        }
+
+        // ==========================================
+        // 6. INITIALIZATION & NAVIGATION
+        // ==========================================
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -1316,10 +3671,14 @@
                 if (targetElement) {
                     targetElement.scrollIntoView({ behavior: 'smooth' });
                 }
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
             });
         });
-        
-        // Initialize with English
+
+        // Initialize state
+        loadProgress();
+        showModule('module1');
         changeLanguage('en');
     </script>
 </body>
