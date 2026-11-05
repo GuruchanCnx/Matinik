@@ -1596,6 +1596,893 @@
         .card-flip-btn:hover {
             background: #7c3aed;
         }
+
+        /* ========================================================
+           DARK MODE STYLES & THEME TOGGLE
+        ======================================================== */
+        body.dark-mode {
+            background: linear-gradient(135deg, #0b0f17 0%, #111827 100%) !important;
+            color: #f9fafb !important;
+            --glass-bg: rgba(17, 24, 39, 0.94);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+        }
+
+        body.dark-mode .page-content,
+        body.dark-mode .progress-dashboard,
+        body.dark-mode .metric-card,
+        body.dark-mode .flashcard,
+        body.dark-mode .badge,
+        body.dark-mode .flashcard-modal-box,
+        body.dark-mode .card-nav-btn,
+        body.dark-mode .wotd-container,
+        body.dark-mode .map-cultural-card,
+        body.dark-mode .audio-quiz-container,
+        body.dark-mode .curriculum-search-bar {
+            background: #1f2937;
+            color: #f9fafb;
+            border-color: #374151;
+        }
+
+        body.dark-mode .vocabulary-table th {
+            background: #111827;
+            color: #ffd700;
+            border-color: #374151;
+        }
+
+        body.dark-mode .vocabulary-table td {
+            border-color: #374151;
+            color: #f3f4f6;
+        }
+
+        body.dark-mode .vocabulary-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        body.dark-mode .quiz-option {
+            background: #111827;
+            border-color: #374151;
+            color: #f9fafb;
+        }
+
+        body.dark-mode .quiz-option .option-letter {
+            background: #374151;
+            color: #f9fafb;
+        }
+
+        body.dark-mode .creole-word {
+            color: #f9fafb;
+        }
+
+        body.dark-mode .curriculum-btn {
+            background: #111827;
+            color: #e5e7eb;
+            border-color: #374151;
+        }
+
+        body.dark-mode .curriculum-btn.active {
+            background: var(--primary-gold);
+            color: #ffffff;
+        }
+
+        body.dark-mode .cultural-note {
+            background: rgba(16, 185, 129, 0.12);
+            color: #d1fae5;
+        }
+
+        body.dark-mode .assignment-card {
+            background: rgba(59, 130, 246, 0.12);
+            color: #dbeafe;
+        }
+
+        body.dark-mode .quiz-container {
+            background: rgba(245, 158, 11, 0.12);
+        }
+
+        body.dark-mode .language-dropdown {
+            background: #1f2937;
+            border-color: #374151;
+        }
+
+        body.dark-mode .language-option {
+            color: #f9fafb;
+        }
+
+        body.dark-mode .language-option:hover {
+            background: #374151;
+            color: var(--primary-gold);
+        }
+
+        body.dark-mode .badge.locked {
+            background: #111827;
+            border-color: #374151;
+        }
+
+        body.dark-mode .badge.unlocked {
+            background: linear-gradient(135deg, #1f2937 0%, #2e2612 100%) !important;
+        }
+
+        body.dark-mode .badge-status-tag.locked,
+        body.dark-mode .badge-status-pill.locked {
+            background: #374151;
+            color: #94a3b8;
+            border-color: #4b5563;
+        }
+
+        body.dark-mode .flashcard-front {
+            background: linear-gradient(135deg, #1f2937 0%, #1e1b4b 100%);
+        }
+
+        body.dark-mode .flashcard-back {
+            background: linear-gradient(135deg, #1f2937 0%, #2e1065 100%);
+        }
+
+        body.dark-mode .flashcard-back .meaning-en {
+            color: #c4b5fd;
+        }
+
+        body.dark-mode .flashcard-back .example {
+            background: rgba(17, 24, 39, 0.8);
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .ai-tutor-drawer {
+            background: #111827;
+            border-color: #374151;
+        }
+
+        body.dark-mode .ai-chat-body {
+            background: #0f172a;
+        }
+
+        body.dark-mode .ai-bubble.assistant {
+            background: #1f2937;
+            color: #f9fafb;
+            border-color: #374151;
+        }
+
+        body.dark-mode .suggestion-chip {
+            background: #1f2937;
+            border-color: #374151;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .ai-input-bar input {
+            background: #1f2937;
+            color: #f9fafb;
+            border-color: #374151;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle-btn {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 0.55rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.92rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        body.dark-mode .theme-toggle-btn {
+            background: #374151;
+            border-color: #4b5563;
+            color: #fbbf24;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ========================================================
+           WORD OF THE DAY COMPONENT
+        ======================================================== */
+        .wotd-container {
+            background: linear-gradient(135deg, #fffbeb 0%, #ffffff 50%, #fef3c7 100%);
+            border: 2px solid rgba(245, 158, 11, 0.35);
+            border-radius: 24px;
+            padding: 1.85rem 2.2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 26px rgba(245, 158, 11, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.dark-mode .wotd-container {
+            background: linear-gradient(135deg, #1e1b4b 0%, #1f2937 60%, #312e81 100%);
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 8px 26px rgba(0, 0, 0, 0.35);
+        }
+
+        .wotd-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .wotd-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            font-size: 0.88rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--primary-gold);
+        }
+
+        .wotd-date-tag {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .wotd-body-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .wotd-body-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .wotd-term-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .wotd-word {
+            font-size: 2.3rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .wotd-pronounce {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .wotd-meanings {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin: 0.6rem 0;
+            font-size: 1.1rem;
+        }
+
+        .wotd-meaning-item strong {
+            color: var(--primary-gold);
+        }
+
+        .wotd-example-box {
+            background: rgba(245, 158, 11, 0.08);
+            border-left: 4px solid var(--primary-orange);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            margin-top: 0.75rem;
+            line-height: 1.55;
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .wotd-example-box {
+            background: rgba(245, 158, 11, 0.15);
+        }
+
+        .wotd-actions-col {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            min-width: 170px;
+        }
+
+        .wotd-action-btn {
+            padding: 0.6rem 1rem;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .wotd-btn-shuffle {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .wotd-btn-shuffle {
+            background: #374151;
+            border-color: #4b5563;
+            color: #f9fafb;
+        }
+
+        .wotd-btn-shuffle:hover {
+            background: #f3f4f6;
+            border-color: var(--primary-gold);
+        }
+
+        .wotd-btn-practice {
+            background: linear-gradient(135deg, var(--martinique-red), var(--martinique-blue));
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.25);
+        }
+
+        .wotd-btn-practice:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(211, 47, 47, 0.35);
+        }
+
+        /* ========================================================
+           INTERACTIVE MARTINIQUE SVG MAP
+        ======================================================== */
+        .martinique-map-section {
+            background: linear-gradient(135deg, rgba(25, 118, 210, 0.04) 0%, rgba(255, 255, 255, 0.95) 100%);
+            border: 2px solid rgba(25, 118, 210, 0.22);
+            border-radius: 28px;
+            padding: 2.2rem;
+            margin: 2.5rem 0;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark-mode .martinique-map-section {
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(30, 58, 138, 0.25) 100%);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .map-section-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .map-section-header h2 {
+            font-size: 2.1rem;
+            color: var(--martinique-blue);
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .map-section-header p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 780px;
+            margin: 0 auto;
+        }
+
+        .map-container-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .map-container-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .map-svg-card {
+            background: radial-gradient(circle, #e0f2fe 0%, #bae6fd 60%, #7dd3fc 100%);
+            border-radius: 20px;
+            padding: 1.25rem;
+            border: 2px solid #bae6fd;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.06);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        body.dark-mode .map-svg-card {
+            background: radial-gradient(circle, #0f172a 0%, #032b4b 60%, #021a30 100%);
+            border-color: #1e3a5f;
+        }
+
+        .martinique-map-svg {
+            width: 100%;
+            height: auto;
+            max-height: 520px;
+            filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.18));
+        }
+
+        .commune-pin {
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .commune-pin:hover circle.pin-dot {
+            transform: scale(1.35);
+            filter: drop-shadow(0 0 8px #f59e0b);
+        }
+
+        .commune-pin.active circle.pin-dot {
+            fill: #ffd700 !important;
+            stroke: #d97706 !important;
+            stroke-width: 3.5 !important;
+            filter: drop-shadow(0 0 10px #ffd700);
+        }
+
+        .commune-pin text {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 700;
+            font-size: 11px;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .map-cultural-card {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 1.85rem;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .map-cultural-card {
+            background: #1e293b;
+            border-color: #374151;
+        }
+
+        .commune-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.85rem;
+            border-bottom: 2px solid rgba(25, 118, 210, 0.15);
+        }
+
+        .commune-name-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .commune-creole-label {
+            font-size: 1.05rem;
+            color: var(--martinique-blue);
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        .commune-badge-chip {
+            background: rgba(25, 118, 210, 0.12);
+            color: var(--martinique-blue);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .commune-fact-text {
+            font-size: 0.98rem;
+            line-height: 1.65;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+        }
+
+        .commune-tradition-box {
+            background: #f8fafc;
+            border-left: 4px solid var(--martinique-blue);
+            padding: 0.85rem 1.15rem;
+            border-radius: 8px;
+            margin-bottom: 1.2rem;
+            font-size: 0.94rem;
+        }
+
+        body.dark-mode .commune-tradition-box {
+            background: #111827;
+        }
+
+        .commune-proverb-box {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px dashed var(--primary-orange);
+            padding: 0.85rem 1.15rem;
+            border-radius: 12px;
+            margin-bottom: 1.4rem;
+            font-size: 0.94rem;
+        }
+
+        .commune-selector-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-top: 1rem;
+        }
+
+        .commune-chip {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: var(--text-primary);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        body.dark-mode .commune-chip {
+            background: #334155;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        .commune-chip:hover, .commune-chip.active {
+            background: var(--martinique-blue);
+            color: #ffffff;
+            border-color: var(--martinique-blue);
+        }
+
+        /* ========================================================
+           CURRICULUM SEARCH BAR
+        ======================================================== */
+        .curriculum-search-container {
+            margin: 1.5rem 0 2rem 0;
+            width: 100%;
+        }
+
+        .curriculum-search-bar {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 0.7rem 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
+        }
+
+        .curriculum-search-bar:focus-within {
+            border-color: var(--martinique-blue);
+            box-shadow: 0 4px 14px rgba(25, 118, 210, 0.15);
+        }
+
+        .curriculum-search-bar .search-icon {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-right: 12px;
+        }
+
+        .curriculum-search-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .clear-search-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clear-search-btn:hover {
+            color: #ef4444;
+        }
+
+        .search-results-feedback {
+            margin-top: 0.6rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            padding-left: 0.5rem;
+        }
+
+        .search-highlight {
+            background: #fef08a;
+            color: #854d0e;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: 700;
+        }
+
+        body.dark-mode .search-highlight {
+            background: #ca8a04;
+            color: #ffffff;
+        }
+
+        /* ========================================================
+           PRINT BUTTON & CLEAN OFFLINE EXPORT
+        ======================================================== */
+        .module-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .print-module-btn {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 7px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .print-module-btn:hover {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            transform: translateY(-1px);
+        }
+
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #111827 !important;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            }
+            .navbar, footer, .ai-tutor-fab, .ai-tutor-drawer, .app-toast,
+            .language-selector, .curriculum-nav, .progress-dashboard,
+            .print-module-btn, .listen-btn, .flashcards-section, .gamification-section,
+            .authority-badge, .quiz-controls, .retry-quiz-btn, #flashcardModal,
+            .curriculum-search-container, .wotd-container, .martinique-map-section,
+            .quiz-mode-selector, #audioQuizSection, .theme-toggle-btn, .progress-actions-row {
+                display: none !important;
+            }
+            .page-content, .container {
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                background: transparent !important;
+            }
+            .module-content {
+                display: none !important;
+            }
+            body.printing-module1 #module1-content,
+            body.printing-module2 #module2-content,
+            body.printing-module3 #module3-content,
+            .module-content.active-print {
+                display: block !important;
+            }
+            .vocabulary-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                page-break-inside: avoid;
+                margin: 1.5rem 0 !important;
+            }
+            .vocabulary-table th, .vocabulary-table td {
+                border: 1px solid #334155 !important;
+                color: #0f172a !important;
+                padding: 8px 12px !important;
+            }
+            .vocabulary-table th {
+                background: #f1f5f9 !important;
+            }
+            .cultural-note, .assignment-card {
+                border: 1px solid #94a3b8 !important;
+                background: #f8fafc !important;
+                color: #0f172a !important;
+                page-break-inside: avoid;
+            }
+            .section-title {
+                color: #0f172a !important;
+            }
+        }
+
+        /* ========================================================
+           AUDIO-ONLY QUIZ MODE
+        ======================================================== */
+        .quiz-mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 2rem 0 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .quiz-mode-btn {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            padding: 0.7rem 1.4rem;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        body.dark-mode .quiz-mode-btn {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f8fafc;
+        }
+
+        .quiz-mode-btn.active {
+            background: linear-gradient(135deg, var(--martinique-red), var(--martinique-blue));
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 4px 14px rgba(25, 118, 210, 0.3);
+        }
+
+        .audio-quiz-container {
+            background: linear-gradient(135deg, rgba(25, 118, 210, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+            border: 2px solid rgba(25, 118, 210, 0.25);
+            border-radius: 24px;
+            padding: 2.2rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
+
+        body.dark-mode .audio-quiz-container {
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(30, 58, 138, 0.25) 100%);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .audio-play-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2.2rem;
+            background: radial-gradient(circle, rgba(25, 118, 210, 0.1) 0%, transparent 70%);
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .audio-big-play-btn {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--martinique-red), var(--martinique-blue));
+            color: #ffffff;
+            border: none;
+            font-size: 2.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(25, 118, 210, 0.35);
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .audio-big-play-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 12px 30px rgba(25, 118, 210, 0.5);
+        }
+
+        .audio-big-play-btn.playing {
+            animation: pulseSpeaker 1s infinite alternate;
+        }
+
+        @keyframes pulseSpeaker {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(25, 118, 210, 0.4); }
+            100% { transform: scale(1.15); box-shadow: 0 0 35px rgba(211, 47, 47, 0.6); }
+        }
+
+        .audio-speed-chips {
+            display: inline-flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .speed-chip-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .speed-chip-btn {
+            background: #334155;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        .speed-chip-btn.active {
+            background: var(--martinique-blue);
+            color: #ffffff;
+            border-color: var(--martinique-blue);
+        }
+
+        .audio-quiz-score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        body.dark-mode .audio-quiz-score-row {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .audio-score-badge {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .next-audio-q-btn {
+            background: linear-gradient(135deg, var(--martinique-red), var(--martinique-blue));
+            color: #ffffff;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(25, 118, 210, 0.25);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 1.5rem;
+        }
+
+        .next-audio-q-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(25, 118, 210, 0.35);
+        }
     </style>
 </head>
 <body>
@@ -1626,6 +2513,10 @@
                 <span class="lang-content" data-lang="fr">Badges</span>
                 <span class="lang-content" data-lang="mq">Meday</span>
             </a>
+            <button type="button" class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode" aria-label="Toggle dark mode">
+                <i class="fas fa-moon" id="themeToggleIcon"></i>
+                <span class="theme-label" id="themeToggleLabel">Dark</span>
+            </button>
             <div class="language-selector">
                 <button class="language-btn" id="languageBtn">
                     <span class="flag-icon flag-mq"></span>
@@ -1666,8 +2557,61 @@
             </div>
         </div>
         
+        <!-- Word of the Day Component -->
+        <div class="wotd-container" id="wordOfTheDayCard">
+            <div class="wotd-header-row">
+                <div class="wotd-kicker">
+                    <i class="fas fa-sun text-amber-500"></i>
+                    <span class="lang-content active" data-lang="en">Pawòl Jòdi-a • Word of the Day</span>
+                    <span class="lang-content" data-lang="fr">Mot du Jour • Pawòl Jòdi-a</span>
+                    <span class="lang-content" data-lang="mq">Pawòl Jòdi-a • Mo pou jòdi-a</span>
+                </div>
+                <div class="wotd-date-tag" id="wotdDateTag">Today's Daily Vocabulary</div>
+            </div>
+            
+            <div class="wotd-body-grid">
+                <div class="wotd-content-left">
+                    <div class="wotd-term-row">
+                        <span class="wotd-word" id="wotdWord">M'ap kenbe</span>
+                        <span class="wotd-pronounce" id="wotdPronounce">[mahp kahn-bay]</span>
+                        <button type="button" class="listen-btn" id="wotdListenBtn" onclick="speakCurrentWotd(this)" title="Listen to pronunciation" aria-label="Listen to Word of the Day">
+                            <i class="fas fa-volume-up"></i>
+                            <span>Listen</span>
+                        </button>
+                    </div>
+                    <div class="wotd-meanings">
+                        <div class="wotd-meaning-item">
+                            <strong>EN:</strong> <span id="wotdMeaningEn">I am doing well / Hanging in there!</span>
+                        </div>
+                        <div class="wotd-meaning-item">
+                            <strong>FR:</strong> <span id="wotdMeaningFr">Je tiens bon / Je vais très bien !</span>
+                        </div>
+                    </div>
+                    <div class="wotd-example-box" id="wotdExampleBox">
+                        <i class="fas fa-quote-left text-amber-500 mr-2"></i>
+                        <span id="wotdExampleText">"Kouman ou yé maten-an? — M'ap kenbe doudou!" (How are you this morning? — I'm hanging in there, darling!)</span>
+                    </div>
+                </div>
+                
+                <div class="wotd-actions-col">
+                    <button type="button" class="wotd-action-btn wotd-btn-practice" id="wotdPracticeBtn" onclick="practiceWotd()">
+                        <i class="fas fa-sparkles"></i>
+                        <span>Practice & +5 XP</span>
+                    </button>
+                    <button type="button" class="wotd-action-btn wotd-btn-shuffle" onclick="shuffleWotd()">
+                        <i class="fas fa-shuffle"></i>
+                        <span>New Random Word</span>
+                    </button>
+                    <button type="button" class="wotd-action-btn wotd-btn-shuffle" onclick="askTutorAboutWotd()">
+                        <i class="fas fa-robot text-purple-600"></i>
+                        <span>Ask AI Tutor</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- User Progress Dashboard -->
-        <div id="curriculum" class="progress-dashboard">
+        <div class="progress-dashboard" id="progressDashboard">
             <div class="progress-header-row">
                 <div class="progress-title-block">
                     <h3>
@@ -1728,6 +2672,19 @@
                     </div>
                 </div>
                 <div class="metric-card">
+                    <div class="metric-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="metric-data">
+                        <div class="metric-value" id="dailyStreakStat">1 Day</div>
+                        <div class="metric-label">
+                            <span class="lang-content active" data-lang="en">Daily Streak</span>
+                            <span class="lang-content" data-lang="fr">Série quotidienne</span>
+                            <span class="lang-content" data-lang="mq">Kous chak jou</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-card">
                     <div class="metric-icon"><i class="fas fa-award"></i></div>
                     <div class="metric-data">
                         <div class="metric-value" id="overallPercentageStat">0%</div>
@@ -1761,8 +2718,294 @@
                 </div>
             </div>
         </div>
+
+        <!-- Interactive Martinique Cultural Map -->
+        <div class="martinique-map-section" id="martiniqueMapSection">
+            <div class="map-section-header">
+                <h2>
+                    <i class="fas fa-map-location-dot"></i>
+                    <span class="lang-content active" data-lang="en">Interactive Cultural Map of Martinique (Madinina)</span>
+                    <span class="lang-content" data-lang="fr">Carte culturelle interactive de la Martinique (Madinina)</span>
+                    <span class="lang-content" data-lang="mq">Kat kiltirèl entèraktif Matinik (Madinina)</span>
+                </h2>
+                <p>
+                    <span class="lang-content active" data-lang="en">Explore Martinique's iconic communes and natural landmarks. Click any point on the island to discover local history, folklore, and authentic Creole traditions.</span>
+                    <span class="lang-content" data-lang="fr">Explorez les communes emblématiques et sites naturels de l'île. Cliquez sur la carte pour révéler les traditions et expressions créoles locales.</span>
+                    <span class="lang-content" data-lang="mq">Dekouvè komin ak zòn natirèl Matinik. Klike anlè kat la pou konn istwa, koutim ak pawòl Kréyòl chak koté.</span>
+                </p>
+            </div>
+
+            <div class="map-container-grid">
+                <!-- SVG Map Card -->
+                <div class="map-svg-card">
+                    <svg class="martinique-map-svg" viewBox="0 0 600 660" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of Martinique showing cultural communes">
+                        <defs>
+                            <linearGradient id="islandLandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#15803d" />
+                                <stop offset="45%" stop-color="#16a34a" />
+                                <stop offset="85%" stop-color="#22c55e" />
+                                <stop offset="100%" stop-color="#84cc16" />
+                            </linearGradient>
+                            <filter id="mapShadow" x="-10%" y="-10%" width="130%" height="130%">
+                                <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0284c7" flood-opacity="0.35" />
+                            </filter>
+                            <radialGradient id="volcanoGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#dc2626" />
+                                <stop offset="50%" stop-color="#b91c1c" />
+                                <stop offset="100%" stop-color="#7f1d1d" />
+                            </radialGradient>
+                        </defs>
+
+                        <!-- Ocean Decorative Ripples & Labels -->
+                        <path d="M 40 180 Q 90 170 140 185" stroke="rgba(255,255,255,0.45)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 30 460 Q 80 450 130 465" stroke="rgba(255,255,255,0.45)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 450 110 Q 500 100 550 115" stroke="rgba(255,255,255,0.45)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <text x="35" y="320" fill="rgba(255,255,255,0.7)" font-size="12" font-style="italic" font-weight="700">CARIBBEAN SEA</text>
+                        <text x="440" y="80" fill="rgba(255,255,255,0.7)" font-size="12" font-style="italic" font-weight="700">ATLANTIC OCEAN</text>
+
+                        <!-- Martinique Island Coastline Outline -->
+                        <path id="islandLandPath" filter="url(#mapShadow)" fill="url(#islandLandGrad)" stroke="#14532d" stroke-width="2.5"
+                              d="M 270 45 
+                                 C 295 50, 320 85, 345 115 
+                                 C 365 138, 385 160, 420 180 
+                                 C 455 195, 510 205, 545 220 
+                                 C 555 228, 545 242, 515 248 
+                                 C 475 252, 435 250, 415 275 
+                                 C 400 300, 430 330, 435 365 
+                                 C 440 395, 420 425, 430 465 
+                                 C 440 505, 465 540, 440 575 
+                                 C 420 595, 385 580, 355 550 
+                                 C 330 528, 275 530, 240 522 
+                                 C 200 515, 185 480, 215 465 
+                                 C 240 450, 260 440, 252 415 
+                                 C 240 390, 215 385, 195 375 
+                                 C 165 360, 155 335, 185 320 
+                                 C 215 305, 235 300, 225 280 
+                                 C 215 260, 175 240, 165 200 
+                                 C 155 160, 180 115, 215 85 
+                                 Z" />
+
+                        <!-- Mount Pelée Volcano Peak -->
+                        <polygon points="235,105 250,135 220,135" fill="url(#volcanoGrad)" stroke="#991b1b" stroke-width="1.5" />
+                        <text x="235" y="100" text-anchor="middle" fill="#dc2626" font-size="10" font-weight="800">🌋 Mt. Pelée</text>
+
+                        <!-- Presqu'île de la Caravelle Indicator -->
+                        <text x="510" y="210" text-anchor="middle" fill="#14532d" font-size="9" font-weight="700">Caravelle</text>
+
+                        <!-- Rocher du Diamant Islet (South) -->
+                        <polygon points="195,540 205,525 215,540 205,548" fill="#475569" stroke="#1e293b" stroke-width="1.5" />
+                        <text x="205" y="560" text-anchor="middle" fill="#0369a1" font-size="9" font-weight="800">💎 Rocher du Diamant</text>
+
+                        <!-- Îlets du François (East) -->
+                        <circle cx="450" cy="350" r="4.5" fill="#fef08a" stroke="#ca8a04" stroke-width="1" />
+                        <circle cx="462" cy="360" r="3.5" fill="#fef08a" stroke="#ca8a04" stroke-width="1" />
+                        <text x="495" y="355" fill="#0369a1" font-size="9" font-weight="700">Fonds Blancs</text>
+
+                        <!-- Interactive Clickable Commune Pins (12 Iconic Heritage Sites) -->
+                        <!-- 1. Grand'Rivière -->
+                        <g class="commune-pin" id="pin-grand-riviere" onclick="selectCommune('grand-riviere')" role="button" tabindex="0">
+                            <circle class="pin-dot" cx="270" cy="65" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+                            <text x="270" y="52" text-anchor="middle" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">Grand'Rivière</text>
+                        </g>
+
+                        <!-- 2. Saint-Pierre -->
+                        <g class="commune-pin" id="pin-saint-pierre" onclick="selectCommune('saint-pierre')" role="button" tabindex="0">
+                            <circle class="pin-dot" cx="175" cy="170" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+                            <text x="135" y="174" text-anchor="end" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">Saint-Pierre</text>
+                        </g>
+
+                        <!-- 3. Le Morne-Rouge -->
+                        <g class="commune-pin" id="pin-morne-rouge" onclick="selectCommune('morne-rouge')" role="button" tabindex="0">
+                            <circle class="pin-dot" cx="250" cy="165" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+                            <text x="262" y="169" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">Morne-Rouge</text>
+                        </g>
+
+                        <!-- 4. Le Carbet -->
+                        <g class="commune-pin" id="pin-le-carbet" onclick="selectCommune('le-carbet')" role="button" tabindex="0">
+                            <circle class="pin-dot" cx="185" cy="215" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+                            <text x="145" y="219" text-anchor="end" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">Le Carbet</text>
+                        </g>
+
+                        <!-- 5. Sainte-Marie -->
+                        <g class="commune-pin" id="pin-sainte-marie" onclick="selectCommune('sainte-marie')" role="button" tabindex="0">
+                            <circle class="pin-dot" cx="355" cy="160" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+                            <text x="367" y="164" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">Sainte-Marie</text>
+                        </g>
+
+                        <!-- 6. La Trinité & Tartane -->
+                        <g class="commune-pin" id="pin-trinite" onclick="selectCommune('trinite')" role="button" tabindex="0">
+                            <circle class="pin-dot" cx="445" cy="215" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+                            <text x="457" y="219" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">La Trinité</text>
+                        </g>
+
+                        <!-- 7. Fort-de-France (Capital) -->
+                        <g class="commune-pin active" id="pin-fort-de-france" onclick="selectCommune('fort-de-france')" role="button" tabindex="0">
+                            <circle class="pin-dot" cx="235" cy="325" r="9" fill="#ffd700" stroke="#d97706" stroke-width="3" />
+                            <text x="195" y="329" text-anchor="end" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">Fort-de-France ★</text>
+                        </g>
+
+                        <!-- 8. Le François -->
+                        <g class="commune-pin" id="pin-le-francois" onclick="selectCommune('le-francois')" role="button" tabindex="0">
+                            <circle class="pin-dot" cx="415" cy="355" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+                            <text x="427" y="359" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">Le François</text>
+                        </g>
+
+                        <!-- 9. Les Trois-Îlets -->
+                        <g class="commune-pin" id="pin-trois-ilets" onclick="selectCommune('trois-ilets')" role="button" tabindex="0">
+                            <circle class="pin-dot" cx="245" cy="390" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+                            <text x="210" y="405" text-anchor="end" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">Trois-Îlets</text>
+                        </g>
+
+                        <!-- 10. Le Diamant -->
+                        <g class="commune-pin" id="pin-le-diamant" onclick="selectCommune('le-diamant')" role="button" tabindex="0">
+                            <circle class="pin-dot" cx="245" cy="490" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+                            <text x="210" y="500" text-anchor="end" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">Le Diamant</text>
+                        </g>
+
+                        <!-- 11. Le Marin -->
+                        <g class="commune-pin" id="pin-le-marin" onclick="selectCommune('le-marin')" role="button" tabindex="0">
+                            <circle class="pin-dot" cx="375" cy="495" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+                            <text x="387" y="499" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">Le Marin</text>
+                        </g>
+
+                        <!-- 12. Sainte-Anne -->
+                        <g class="commune-pin" id="pin-sainte-anne" onclick="selectCommune('sainte-anne')" role="button" tabindex="0">
+                            <circle class="pin-dot" cx="425" cy="555" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+                            <text x="437" y="559" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">Sainte-Anne</text>
+                        </g>
+                    </svg>
+
+                    <!-- Quick Commune Selector Chips -->
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-top: 10px;">
+                        Quick Select Commune:
+                    </div>
+                    <div class="commune-selector-chips" id="communeChipsContainer">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- Cultural Factsheet Card -->
+                <div class="map-cultural-card" id="mapCulturalCard">
+                    <div class="commune-header-row">
+                        <div>
+                            <div class="commune-name-title" id="communeTitle">Fort-de-France</div>
+                            <div class="commune-creole-label" id="communeCreoleName">Fòdfrans • Capital of Martinique</div>
+                        </div>
+                        <span class="commune-badge-chip" id="communeRegionBadge">Centre / Baie</span>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <button type="button" class="listen-btn" id="communeListenBtn" onclick="speakCommuneAudio()" title="Listen to commune Creole name and greeting">
+                            <i class="fas fa-volume-up"></i>
+                            <span id="communeListenLabel">Listen: "Fòdfrans"</span>
+                        </button>
+                    </div>
+
+                    <div class="commune-fact-text" id="communeFactText">
+                        Fort-de-France is the beating cultural heart of Martinique. Home to the historic Grand Marché couvert filled with tropical spices, the iron architecture of the Bibliothèque Schœlcher, and the intellectual legacy of poet-statesman Aimé Césaire.
+                    </div>
+
+                    <div class="commune-tradition-box">
+                        <strong><i class="fas fa-landmark text-blue-500 mr-2"></i> Local Heritage & Tradition:</strong>
+                        <div id="communeTraditionText" style="margin-top: 4px; color: var(--text-secondary);">
+                            The colorful Grand Marché where merchants greet you with "Bonjou doudou" and offer cinnamon bark, Bois Bandé, vanilla pods, and fresh ti-nains (green bananas).
+                        </div>
+                    </div>
+
+                    <div class="commune-proverb-box">
+                        <strong><i class="fas fa-quote-left text-amber-500 mr-2"></i> Local Saying / Proverb:</strong>
+                        <div id="communeProverbText" style="margin-top: 4px; font-style: italic; color: var(--text-primary);">
+                            "An Fòdfrans tout moun ka kouri, mé tout moun ka di bonjou!" (In Fort-de-France everybody runs, but everyone still says hello!)
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" class="wotd-btn wotd-btn-shuffle" onclick="askTutorAboutCurrentCommune()" style="flex: 1;">
+                            <i class="fas fa-robot text-purple-600"></i>
+                            <span>Ask AI Tutor About This Commune</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Curriculum Anchor & Search Bar -->
+        <div id="curriculum" style="scroll-margin-top: 80px;"></div>
         
-        <div class="curriculum-nav">
+        <div class="curriculum-search-container">
+            <div class="curriculum-search-bar">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="curriculumSearchInput" class="curriculum-search-input" placeholder="Search vocabulary terms, phrases, or meanings (e.g. Bonjou, thank you, colombo, family)..." oninput="handleCurriculumSearch(this.value)" autocomplete="off">
+                <button type="button" id="clearSearchBtn" class="clear-search-btn" onclick="clearCurriculumSearch()" style="display: none;" aria-label="Clear search">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="searchResultsCount" class="search-results-feedback" style="display: none;"></div>
+        </div>
+        
+        <div class="quiz-mode-selector">
+            <button type="button" class="quiz-mode-btn active" id="btnModeStandard" onclick="switchQuizMode('standard')">
+                <i class="fas fa-book-open"></i>
+                <span class="lang-content active" data-lang="en">Standard Curriculum Modules</span>
+                <span class="lang-content" data-lang="fr">Modules du cours</span>
+                <span class="lang-content" data-lang="mq">Modil kou a</span>
+            </button>
+            <button type="button" class="quiz-mode-btn" id="btnModeAudio" onclick="switchQuizMode('audio')">
+                <i class="fas fa-headphones text-blue-500"></i>
+                <span class="lang-content active" data-lang="en">🎧 Audio-Only Listening Quiz</span>
+                <span class="lang-content" data-lang="fr">🎧 Quiz audio d'écoute</span>
+                <span class="lang-content" data-lang="mq">🎧 Kiz odyo kouté</span>
+            </button>
+        </div>
+
+        <!-- AUDIO-ONLY LISTENING QUIZ SECTION -->
+        <div id="audioQuizSection" class="audio-quiz-container" style="display: none;">
+            <div class="audio-quiz-score-row">
+                <div class="audio-score-badge">
+                    <i class="fas fa-headphones text-blue-600"></i>
+                    <span>Audio Listening Challenge • Question <span id="audioQNum">1</span> of <span id="audioQTotal">8</span></span>
+                </div>
+                <div class="audio-score-badge">
+                    <i class="fas fa-star text-amber-500"></i>
+                    <span>Score: <span id="audioScoreDisplay">0</span> correct (+<span id="audioXpDisplay">0</span> XP)</span>
+                </div>
+            </div>
+
+            <div class="audio-play-hero">
+                <button type="button" class="audio-big-play-btn" id="audioBigPlayBtn" onclick="playCurrentAudioQuizTerm()" title="Click to listen to spoken Creole" aria-label="Play spoken Creole word">
+                    <i class="fas fa-volume-high"></i>
+                </button>
+                <div style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
+                    Listen carefully to the spoken Martinican Creole term
+                </div>
+                <div style="font-size: 0.92rem; color: var(--text-secondary);">
+                    Press the speaker button to hear or replay the authentic pronunciation
+                </div>
+                <div class="audio-speed-chips">
+                    <button type="button" class="speed-chip-btn active" id="speedNormalBtn" onclick="setAudioQuizSpeed(1.0)">Normal Speed (1.0x)</button>
+                    <button type="button" class="speed-chip-btn" id="speedSlowBtn" onclick="setAudioQuizSpeed(0.8)">Slower Pace (0.8x)</button>
+                </div>
+            </div>
+
+            <div class="quiz-question" style="text-align: center; margin-bottom: 1.5rem;">
+                Which is the correct translation of the spoken Creole phrase?
+            </div>
+
+            <div class="quiz-options" id="audioQuizOptions">
+                <!-- Dynamically rendered via renderAudioQuizQuestion() -->
+            </div>
+
+            <div id="audioQuizExplanation" class="quiz-explanation" role="status" aria-live="polite" style="display: none;"></div>
+
+            <div style="text-align: center;">
+                <button type="button" class="next-audio-q-btn" id="nextAudioQBtn" onclick="nextAudioQuestion()" style="display: none;">
+                    <span>Next Audio Question</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="curriculum-nav" id="curriculumNavTabs">
             <button class="curriculum-btn active" id="btn-module1" onclick="showModule('module1')">
                 <span class="lang-content active" data-lang="en">Module 1: Bonjou!</span>
                 <span class="lang-content" data-lang="fr">Module 1 : Bonjou !</span>
@@ -1783,14 +3026,24 @@
         <!-- MODULE 1 CONTENT -->
         <div id="module1-content" class="module-content">
             <div class="lesson-section">
-                <div class="lang-content active" data-lang="en">
-                    <h2 class="section-title">📚 Module 1: Bonjou! (Greetings & Introductions)</h2>
-                </div>
-                <div class="lang-content" data-lang="fr">
-                    <h2 class="section-title">📚 Module 1 : Bonjou ! (Salutations et présentations)</h2>
-                </div>
-                <div class="lang-content" data-lang="mq">
-                    <h2 class="section-title">📚 Modil 1 : Bonjou ! (Saliitasyon ak prezantasyon)</h2>
+                <div class="module-header-row">
+                    <div>
+                        <div class="lang-content active" data-lang="en">
+                            <h2 class="section-title">📚 Module 1: Bonjou! (Greetings & Introductions)</h2>
+                        </div>
+                        <div class="lang-content" data-lang="fr">
+                            <h2 class="section-title">📚 Module 1 : Bonjou ! (Salutations et présentations)</h2>
+                        </div>
+                        <div class="lang-content" data-lang="mq">
+                            <h2 class="section-title">📚 Modil 1 : Bonjou ! (Saliitasyon ak prezantasyon)</h2>
+                        </div>
+                    </div>
+                    <button type="button" class="print-module-btn" onclick="printModule('module1')" title="Print clean study guide for Module 1" aria-label="Print Module 1 study guide">
+                        <i class="fas fa-print"></i>
+                        <span class="lang-content active" data-lang="en">Print Study Guide</span>
+                        <span class="lang-content" data-lang="fr">Imprimer la fiche</span>
+                        <span class="lang-content" data-lang="mq">Enprimé fich la</span>
+                    </button>
                 </div>
                 
                 <div class="cultural-note">
@@ -2051,14 +3304,24 @@
         <!-- MODULE 2 CONTENT -->
         <div id="module2-content" class="module-content" style="display: none;">
             <div class="lesson-section">
-                <div class="lang-content active" data-lang="en">
-                    <h2 class="section-title">🏡 Module 2: Lakay Nou (Home & Family in Martinique)</h2>
-                </div>
-                <div class="lang-content" data-lang="fr">
-                    <h2 class="section-title">🏡 Module 2 : Lakay Nou (La maison et la famille en Martinique)</h2>
-                </div>
-                <div class="lang-content" data-lang="mq">
-                    <h2 class="section-title">🏡 Modil 2 : Lakay Nou (Kay ak Fanmi an Matinik)</h2>
+                <div class="module-header-row">
+                    <div>
+                        <div class="lang-content active" data-lang="en">
+                            <h2 class="section-title">🏡 Module 2: Lakay Nou (Home & Family in Martinique)</h2>
+                        </div>
+                        <div class="lang-content" data-lang="fr">
+                            <h2 class="section-title">🏡 Module 2 : Lakay Nou (La maison et la famille en Martinique)</h2>
+                        </div>
+                        <div class="lang-content" data-lang="mq">
+                            <h2 class="section-title">🏡 Modil 2 : Lakay Nou (Kay ak Fanmi an Matinik)</h2>
+                        </div>
+                    </div>
+                    <button type="button" class="print-module-btn" onclick="printModule('module2')" title="Print clean study guide for Module 2" aria-label="Print Module 2 study guide">
+                        <i class="fas fa-print"></i>
+                        <span class="lang-content active" data-lang="en">Print Study Guide</span>
+                        <span class="lang-content" data-lang="fr">Imprimer la fiche</span>
+                        <span class="lang-content" data-lang="mq">Enprimé fich la</span>
+                    </button>
                 </div>
                 
                 <div class="cultural-note">
@@ -2326,14 +3589,24 @@
         <!-- MODULE 3 CONTENT -->
         <div id="module3-content" class="module-content" style="display: none;">
             <div class="lesson-section">
-                <div class="lang-content active" data-lang="en">
-                    <h2 class="section-title">🍛 Module 3: Kouzin Kréyòl (Martinican Cuisine & Flavors)</h2>
-                </div>
-                <div class="lang-content" data-lang="fr">
-                    <h2 class="section-title">🍛 Module 3 : Kouzin Kréyòl (Saveurs et cuisine martiniquaise)</h2>
-                </div>
-                <div class="lang-content" data-lang="mq">
-                    <h2 class="section-title">🍛 Modil 3 : Kouzin Kréyòl (Gou ak manzé Matinik)</h2>
+                <div class="module-header-row">
+                    <div>
+                        <div class="lang-content active" data-lang="en">
+                            <h2 class="section-title">🍛 Module 3: Kouzin Kréyòl (Martinican Cuisine & Flavors)</h2>
+                        </div>
+                        <div class="lang-content" data-lang="fr">
+                            <h2 class="section-title">🍛 Module 3 : Kouzin Kréyòl (Saveurs et cuisine martiniquaise)</h2>
+                        </div>
+                        <div class="lang-content" data-lang="mq">
+                            <h2 class="section-title">🍛 Modil 3 : Kouzin Kréyòl (Gou ak manzé Matinik)</h2>
+                        </div>
+                    </div>
+                    <button type="button" class="print-module-btn" onclick="printModule('module3')" title="Print clean study guide for Module 3" aria-label="Print Module 3 study guide">
+                        <i class="fas fa-print"></i>
+                        <span class="lang-content active" data-lang="en">Print Study Guide</span>
+                        <span class="lang-content" data-lang="fr">Imprimer la fiche</span>
+                        <span class="lang-content" data-lang="mq">Enprimé fich la</span>
+                    </button>
                 </div>
                 
                 <div class="cultural-note">
@@ -3308,7 +4581,9 @@
             quizzes: { quiz1: false, quiz2: false, quiz3: false },
             listenedWords: [],
             reviewedCards: [],
-            xp: 0
+            xp: 0,
+            streak: 1,
+            lastActivityDate: null
         };
 
         function loadProgress() {
@@ -3321,12 +4596,15 @@
                         quizzes: { ...userProgress.quizzes, ...(parsed.quizzes || {}) },
                         listenedWords: Array.isArray(parsed.listenedWords) ? parsed.listenedWords : [],
                         reviewedCards: Array.isArray(parsed.reviewedCards) ? parsed.reviewedCards : [],
-                        xp: typeof parsed.xp === 'number' ? parsed.xp : 0
+                        xp: typeof parsed.xp === 'number' ? parsed.xp : 0,
+                        streak: typeof parsed.streak === 'number' ? parsed.streak : 1,
+                        lastActivityDate: parsed.lastActivityDate || null
                     };
                 }
             } catch (e) {
                 console.warn('Could not parse saved progress from localStorage:', e);
             }
+            updateDailyStreak();
             updateProgressUI();
         }
 
@@ -3338,8 +4616,33 @@
             }
         }
 
+        function updateDailyStreak() {
+            const today = new Date().toISOString().split('T')[0];
+            if (!userProgress.streak) userProgress.streak = 1;
+            
+            if (!userProgress.lastActivityDate) {
+                userProgress.lastActivityDate = today;
+                userProgress.streak = 1;
+            } else if (userProgress.lastActivityDate !== today) {
+                const last = new Date(userProgress.lastActivityDate);
+                const curr = new Date(today);
+                const diffTime = curr.getTime() - last.getTime();
+                const diffDays = Math.floor(diffTime / (1000 * 3600 * 24));
+                
+                if (diffDays === 1) {
+                    userProgress.streak += 1;
+                    showToast(`🔥 Daily Streak increased! ${userProgress.streak} days active in a row!`);
+                } else if (diffDays > 1) {
+                    userProgress.streak = 1;
+                }
+                userProgress.lastActivityDate = today;
+            }
+            saveProgress();
+        }
+
         function registerWordListened(word) {
             const cleanWord = word.trim().toLowerCase();
+            updateDailyStreak();
             if (!userProgress.listenedWords.includes(cleanWord)) {
                 userProgress.listenedWords.push(cleanWord);
                 userProgress.xp += 10;
@@ -3376,6 +4679,12 @@
             const wordsStat = document.getElementById('wordsListenedStat');
             if (wordsStat) wordsStat.textContent = `${wordsCount} Word${wordsCount === 1 ? '' : 's'}`;
             
+            const streakStat = document.getElementById('dailyStreakStat');
+            if (streakStat) {
+                const s = userProgress.streak || 1;
+                streakStat.textContent = `${s} Day${s === 1 ? '' : 's'}`;
+            }
+
             const overallStat = document.getElementById('overallPercentageStat');
             if (overallStat) overallStat.textContent = `${totalPercent}%`;
             
@@ -4074,7 +5383,798 @@
         }
 
         // ==========================================
-        // 6. INITIALIZATION & NAVIGATION
+        // 6. DARK MODE THEME TOGGLE
+        // ==========================================
+        const THEME_STORAGE_KEY = 'kreyol_matinik_theme';
+        
+        function initTheme() {
+            const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = savedTheme ? (savedTheme === 'dark') : prefersDark;
+            applyTheme(isDark);
+        }
+        
+        function applyTheme(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            const icon = document.getElementById('themeToggleIcon');
+            const label = document.getElementById('themeToggleLabel');
+            if (icon) {
+                icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            }
+            if (label) {
+                label.textContent = isDark ? 'Light' : 'Dark';
+            }
+        }
+        
+        function toggleTheme() {
+            const isDark = document.body.classList.contains('dark-mode');
+            const newTheme = !isDark;
+            applyTheme(newTheme);
+            localStorage.setItem(THEME_STORAGE_KEY, newTheme ? 'dark' : 'light');
+            showToast(newTheme ? '🌙 Dark mode enabled for comfortable nighttime study' : '☀️ Light mode enabled');
+        }
+
+        // ==========================================
+        // 7. PRINT STUDY GUIDE (CLEAN OFFLINE PDF/PAPER)
+        // ==========================================
+        function printModule(moduleId) {
+            showModule(moduleId);
+            document.body.classList.remove('printing-module1', 'printing-module2', 'printing-module3');
+            document.body.classList.add(`printing-${moduleId}`);
+            
+            const modTitle = moduleId === 'module1' ? 'Module 1: Bonjou!' : moduleId === 'module2' ? 'Module 2: Lakay Nou' : 'Module 3: Kouzin Kréyòl';
+            showToast(`🖨️ Preparing offline study guide for ${modTitle}...`);
+            
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    document.body.classList.remove(`printing-${moduleId}`);
+                }, 1000);
+            }, 300);
+        }
+
+        // ==========================================
+        // 8. CURRICULUM VOCABULARY & CONTENT SEARCH
+        // ==========================================
+        function handleCurriculumSearch(query) {
+            const q = query.trim().toLowerCase();
+            const clearBtn = document.getElementById('clearSearchBtn');
+            const countFeedback = document.getElementById('searchResultsCount');
+            
+            if (clearBtn) {
+                clearBtn.style.display = q.length > 0 ? 'inline-flex' : 'none';
+            }
+            
+            const rows = document.querySelectorAll('.vocabulary-table tbody tr');
+            let matchCount = 0;
+            const matchedModules = new Set();
+            
+            if (!q) {
+                rows.forEach(row => {
+                    row.style.display = '';
+                    const wordWrap = row.querySelector('.creole-word');
+                    if (wordWrap && wordWrap.dataset.origText) {
+                        wordWrap.innerHTML = wordWrap.dataset.origText;
+                    }
+                });
+                if (countFeedback) countFeedback.style.display = 'none';
+                return;
+            }
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const parentModule = row.closest('.module-content');
+                const moduleId = parentModule ? parentModule.id.replace('-content', '') : null;
+                
+                if (text.includes(q)) {
+                    row.style.display = '';
+                    matchCount++;
+                    if (moduleId) matchedModules.add(moduleId);
+                    
+                    const wordEl = row.querySelector('.creole-word');
+                    if (wordEl) {
+                        if (!wordEl.dataset.origText) wordEl.dataset.origText = wordEl.textContent;
+                        const original = wordEl.dataset.origText;
+                        const regex = new RegExp(`(${escapeRegExp(query.trim())})`, 'gi');
+                        wordEl.innerHTML = original.replace(regex, '<mark class="search-highlight">$1</mark>');
+                    }
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            if (countFeedback) {
+                countFeedback.style.display = 'block';
+                if (matchCount > 0) {
+                    countFeedback.innerHTML = `Found <strong>${matchCount}</strong> matching vocabulary term${matchCount === 1 ? '' : 's'} across modules.`;
+                    if (!matchedModules.has(currentActiveModule) && matchedModules.size > 0) {
+                        const firstMod = Array.from(matchedModules)[0];
+                        showModule(firstMod);
+                    }
+                } else {
+                    countFeedback.innerHTML = `No terms found matching "<em>${escapeHtml(query)}</em>". Try searching for <em>Bonjou</em>, <em>Colombo</em>, or <em>Matinik</em>.`;
+                }
+            }
+        }
+        
+        function clearCurriculumSearch() {
+            const input = document.getElementById('curriculumSearchInput');
+            if (input) input.value = '';
+            handleCurriculumSearch('');
+            if (input) input.focus();
+        }
+        
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+        
+        function escapeHtml(string) {
+            return string.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // ==========================================
+        // 9. WORD OF THE DAY (PAWÒL JÒDI-A)
+        // ==========================================
+        const wordOfTheDayList = [
+            {
+                word: "M'ap kenbe",
+                pronounce: "[mahp kahn-bay]",
+                en: "I am doing well / Hanging in there!",
+                fr: "Je tiens bon / Je vais très bien !",
+                ex: '"Kouman ou yé maten-an? — M\'ap kenbe doudou!" (How are you this morning? — I\'m hanging in there, darling!)'
+            },
+            {
+                word: "Koudmen",
+                pronounce: "[kood-men]",
+                en: "Mutual community solidarity / Helping hand",
+                fr: "Coup de main solidaire / Entraide collective",
+                ex: '"Nou ké fè an koudmen pou bati kay-la." (We will do a koudmen to build the house together.)'
+            },
+            {
+                word: "Doudou",
+                pronounce: "[doo-doo]",
+                en: "Sweetheart / Term of deep affection",
+                fr: "Chéri(e) / Terme d'affection antillais",
+                ex: '"Bonjou doudou mwen, pasé an bèl jounen!" (Good morning sweetheart, have a wonderful day!)'
+            },
+            {
+                word: "An ti bren",
+                pronounce: "[ahn tee brehn]",
+                en: "A little bit / A small taste",
+                fr: "Un petit peu / Une pincée",
+                ex: '"Ban mwen an ti bren piman souplé!" (Give me just a little pepper please!)'
+            },
+            {
+                word: "Bwa dréssé",
+                pronounce: "[bwah dray-say]",
+                en: "Raised pole used in Martinican Yole racing",
+                fr: "Bois dressé / Équipage de la yole ronde martiniquaise",
+                ex: '"Manmay-la doubout anlè bwa dréssé pou balansé yòl-la." (The crew stands on the bwa dréssé to balance the traditional yole.)'
+            },
+            {
+                word: "Mèsi anpil",
+                pronounce: "[meh-see ahn-peel]",
+                en: "Thank you very much!",
+                fr: "Merci beaucoup !",
+                ex: '"Mèsi anpil pou bèl kado-a!" (Thank you very much for the beautiful gift!)'
+            },
+            {
+                word: "Pa ni pwoblèm",
+                pronounce: "[pah nee pwoh-blehm]",
+                en: "No problem / You are very welcome",
+                fr: "Pas de problème / Il n'y a pas de souci",
+                ex: '"Pa ni pwoblèm doudou, nou ansanm!" (No problem darling, we are together in this!)'
+            },
+            {
+                word: "Manmay-la",
+                pronounce: "[mahn-my-lah]",
+                en: "The children / Friends / Folks",
+                fr: "Les enfants / Les amis / La jeunesse",
+                ex: '"Manmay-la ka jwé anba pyé-bwa." (The children are playing under the tree.)'
+            },
+            {
+                word: "Lanmou",
+                pronounce: "[lahn-moo]",
+                en: "Love / Deep affection",
+                fr: "L'amour",
+                ex: '"Lanmou sé pli bèl bagay anlè latè." (Love is the most beautiful thing on earth.)'
+            },
+            {
+                word: "Doubout",
+                pronounce: "[doo-boot]",
+                en: "Standing tall / Resilient / Strong",
+                fr: "Debout / Résilient / Courageux",
+                ex: '"Matinik toujou doubout!" (Martinique always stands tall and proud!)'
+            },
+            {
+                word: "Sa k'ap fèt?",
+                pronounce: "[sah kahp feht]",
+                en: "What's happening? / What's up?",
+                fr: "Qu'est-ce qui se passe ? / Quoi de neuf ?",
+                ex: '"Sa k\'ap fèt zanmi mwen? — Tout bagay anfòm!" (What\'s up my friend? — Everything is great!)'
+            },
+            {
+                word: "Zafè kabrit pa zafè mouton",
+                pronounce: "[zah-feh kah-breet pah zah-feh moo-tohn]",
+                en: "Mind your own business (Traditional proverb)",
+                fr: "Les affaires de la chèvre ne sont pas celles du mouton",
+                ex: '"Pa mélé kò\'w: zafè kabrit pa zafè mouton!" (Don\'t meddle: mind your own business!)'
+            }
+        ];
+        
+        let currentWotdIndex = 0;
+        
+        function initWordOfTheDay() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff = now - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            const dayOfYear = Math.floor(diff / oneDay);
+            currentWotdIndex = dayOfYear % wordOfTheDayList.length;
+            renderWordOfTheDay();
+        }
+        
+        function renderWordOfTheDay() {
+            const item = wordOfTheDayList[currentWotdIndex];
+            if (!item) return;
+            
+            const wordEl = document.getElementById('wotdWord');
+            const pronounceEl = document.getElementById('wotdPronounce');
+            const enEl = document.getElementById('wotdMeaningEn');
+            const frEl = document.getElementById('wotdMeaningFr');
+            const exEl = document.getElementById('wotdExampleText');
+            
+            if (wordEl) wordEl.textContent = item.word;
+            if (pronounceEl) pronounceEl.textContent = item.pronounce;
+            if (enEl) enEl.textContent = item.en;
+            if (frEl) frEl.textContent = item.fr;
+            if (exEl) exEl.textContent = item.ex;
+        }
+        
+        function speakCurrentWotd(btn) {
+            const item = wordOfTheDayList[currentWotdIndex];
+            if (item) speakCreole(item.word, btn);
+        }
+        
+        function shuffleWotd() {
+            currentWotdIndex = (currentWotdIndex + 1) % wordOfTheDayList.length;
+            renderWordOfTheDay();
+            const btn = document.getElementById('wotdPracticeBtn');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sparkles"></i> <span>Practice & +5 XP</span>';
+            }
+        }
+        
+        function practiceWotd() {
+            const item = wordOfTheDayList[currentWotdIndex];
+            if (!item) return;
+            
+            userProgress.xp += 5;
+            registerWordListened(item.word);
+            updateDailyStreak();
+            saveProgress();
+            updateProgressUI();
+            
+            showToast(`✨ Practiced "${item.word}"! +5 XP earned & daily streak recorded!`);
+            
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 50,
+                    spread: 60,
+                    origin: { y: 0.7 }
+                });
+            }
+            
+            const btn = document.getElementById('wotdPracticeBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-check"></i> <span>Practiced! ✓</span>';
+            }
+        }
+        
+        function askTutorAboutWotd() {
+            const item = wordOfTheDayList[currentWotdIndex];
+            if (!item) return;
+            toggleAiTutor(true);
+            sendQuickPrompt(`Please explain the authentic cultural nuance, usage, and Martinican folklore behind the Creole phrase "${item.word}".`);
+        }
+
+        // ==========================================
+        // 10. INTERACTIVE MARTINIQUE MAP DATA & ENGINE
+        // ==========================================
+        const communesData = {
+            'fort-de-france': {
+                name: 'Fort-de-France',
+                creoleName: 'Fòdfrans • Capital of Martinique',
+                region: 'Centre / Baie de Fort-de-France',
+                audioPhrase: 'Fòdfrans! Bonjou tout moun!',
+                fact: 'Fort-de-France is the beating cultural and administrative heart of Martinique. Home to the colorful Grand Marché couvert filled with tropical spices, the metallic lace dome of the Bibliothèque Schœlcher (originally built for the 1889 Paris World Fair and transported by boat), and the historic waterfront Fort Saint-Louis.',
+                tradition: 'The bustling Grand Marché covered market where Creole merchants greet you with "Bonjou doudou" and offer cinnamon bark, Bois Bandé, pure vanilla pods, and fresh ti-nains (green bananas).',
+                proverb: '"An Fòdfrans tout moun ka kouri, mé tout moun ka di bonjou!" (In Fort-de-France everybody runs, but everyone still says hello!)'
+            },
+            'saint-pierre': {
+                name: 'Saint-Pierre',
+                creoleName: 'Senpyè • The Little Paris of the Antilles',
+                region: 'Nord Caraïbe / Foot of Mount Pelée',
+                audioPhrase: 'Senpyè, lavil istorik Matinik',
+                fact: 'Until May 8, 1902, Saint-Pierre was the dazzling cultural and economic jewel of the Caribbean. The sudden pyroclastic eruption of Mount Pelée destroyed the town in 3 minutes. Today it is a UNESCO World Heritage cultural memorial.',
+                tradition: 'The miraculous survival of prisoner Ludger Sylbaris (Cyparis), whose thick subterranean stone cell saved him from the 1000°C blast.',
+                proverb: '"Montany Pèlé ka dòmi, mé i pa mò!" (Mount Pelée is sleeping, but she is not dead! A reminder of Caribbean respect for nature.)'
+            },
+            'le-diamant': {
+                name: 'Le Diamant',
+                creoleName: 'Djanman • Home of the Sacred Rock',
+                region: 'Sud Caraïbe',
+                audioPhrase: 'Djanman, woch diaman ak anse cafard',
+                fact: 'Famous for the majestic 175-meter volcanic basalt offshore rock (Rocher du Diamant) that served as a British naval fortress in 1804 (HMS Diamond Rock), and the breathtaking white sandy coastline.',
+                tradition: 'Cap 110 Mémoire de l’Anse Caffard: 15 towering white triangular statues facing 110° east toward the Gulf of Guinea, sculpted by Laurent Valère in memory of the 1830 shipwreck of an illegal slave ship.',
+                proverb: '"Doubout pou la viktwa!" (Standing tall for freedom and dignity!)'
+            },
+            'sainte-marie': {
+                name: 'Sainte-Marie',
+                creoleName: 'Sanmari • Cradle of Martinican Bélè',
+                region: 'Nord Atlantique',
+                audioPhrase: 'Sanmari, bèso bèlè Matinik',
+                fact: 'Sainte-Marie is celebrated as the sacred sanctuary of traditional Martinican Bélè music, dance, and drumming, as well as the unique natural geological phenomenon of the Tombolo sandbar.',
+                tradition: 'Ancestral rhythmic drumming on the tanbou bèlè accompanied by the ti-bwa wooden sticks, call-and-response chanting (lavwa), and agrarian communal celebrations.',
+                proverb: '"Bélè sé nanm Matinik!" (Bélè is the soul of Martinique!)'
+            },
+            'le-francois': {
+                name: 'Le François',
+                creoleName: 'O Franswa • The 8 Islets & Yole Racing',
+                region: 'Atlantique Sud',
+                audioPhrase: 'O Franswa, yòl bwa dréssé ak fon blan',
+                fact: 'Renowned for its 8 protected coral islets, turquoise shallow white sandbanks (Fonds Blancs / Baignoire de Joséphine), and as the premier training waters for the Tour des Yoles Rondes.',
+                tradition: 'Racing traditional round wooden Yoles with bwa dréssé poles without keels, steered solely by the acrobatic balancing of crew members hanging over the ocean.',
+                proverb: '"Yòl-la pa ni gouvènay, sé kouraj manmay ki ka mennen\'y!" (The Yole has no fixed rudder; the courage and balance of the crew navigates it!)'
+            },
+            'les-trois-ilets': {
+                name: 'Les Trois-Îlets',
+                creoleName: 'Twa-zilè • Pottery & Heritage Village',
+                region: 'Sud / Baie Sud',
+                audioPhrase: 'Twa-zilè, vilaj potri ak bèl kay kréyòl',
+                fact: 'Located across the bay from Fort-de-France, famous for its historic red-brick Village de la Poterie (active pottery making since the 18th century) and traditional Creole wooden cottages.',
+                tradition: 'Clay craftsmanship creating traditional Martinican cooking pots (canaris), flower pots, and architectural tiles used throughout island heritage estates.',
+                proverb: '"Sé tè ki ka fè kannari!" (It is the earth itself that shapes the cooking pot!)'
+            },
+            'le-carbet': {
+                name: 'Le Carbet',
+                creoleName: 'O Kabé • Coastal Fishing Heritage',
+                region: 'Nord Caraïbe',
+                audioPhrase: 'O Kabé, bwa flo ak lapèch tradisyonèl',
+                fact: 'Where Christopher Columbus landed in 1502, and where painter Paul Gauguin lived in 1887, creating vibrant impressionist works inspired by Martinican women and turquoise coastal shores.',
+                tradition: 'Ancestral fishing on the "Bwa Flo": lightweight wooden log rafts used by traditional fishermen to glide across coastal surf.',
+                proverb: '"Pwoson ka viv an dlo, mé sé filé ki ka pran\'y." (Fish live in water, but it is patience and the net that catch them.)'
+            },
+            'grand-riviere': {
+                name: 'Grand\'Rivière',
+                creoleName: 'Gwanrivyè • The End of the World',
+                region: 'Nord Sauvage / Wild Atlantic',
+                audioPhrase: 'Gwanrivyè, bout latè Matinik',
+                fact: 'The northernmost village of Martinique, nestled at the base of Mount Pelée\'s cliffs facing the Dominica Channel, accessible by a dramatic winding road and famous suspension footbridge.',
+                tradition: 'Deep-sea artisanal fishing in traditional colorful wooden doris boats, braving the powerful ocean swells of the northern straits.',
+                proverb: '"Rivyè ki ka désann pa ka rousi mòdé wòch!" (A river flowing down does not stop for stones; keep moving forward!)'
+            },
+            'morne-rouge': {
+                name: 'Le Morne-Rouge',
+                creoleName: 'Mònwouj • Misty Volcano Highlands',
+                region: 'Nord Montagne',
+                audioPhrase: 'Mònwouj, fréchè mòn ak montany pèlé',
+                fact: 'Perched at 450m elevation on the misty plateau below Mount Pelée. Celebrated for its giant tree ferns, cool mountain climate, and rich volcanic soil ideal for tropical flowers (anthuriums, bird of paradise).',
+                tradition: 'Mountain agriculture, traditional bamboo basket weaving, and refreshing hot chocolate made with pure local cacao and lime zest.',
+                proverb: '"Dèyè mòn, toujou ni mòn!" (Beyond every mountain lies another mountain; persevere through all trials.)'
+            },
+            'trinite': {
+                name: 'La Trinité & Tartane',
+                creoleName: 'Trinité ak Tatan • Caravelle Peninsula',
+                region: 'Nord Atlantique / Presqu\'île',
+                audioPhrase: 'Trinité ak tatan, chato dibik ak lapèch',
+                fact: 'Gateway to the Presqu’île de la Caravelle nature reserve, the atmospheric ruins of 17th-century Château Dubuc, and the surfing and fishing village of Tartane.',
+                tradition: 'Artisanal coastal fish markets where fishers haul kingfish, snapper (vivaneau), and lobsters directly onto the beach at daybreak.',
+                proverb: '"Lanmè pa ni branch!" (The sea has no branches to cling to; respect the ocean at all times!)'
+            },
+            'le-marin': {
+                name: 'Le Marin',
+                creoleName: 'O Maren • Historic Bay & Marina',
+                region: 'Sud Atlantique',
+                audioPhrase: 'O Maren, bèl bè ak legliz istorik',
+                fact: 'Surrounded by one of the deepest and most sheltered hurricane-safe natural bays in the Lesser Antilles. Features an exceptional 1766 Baroque church with an imported Italian Carrara marble altar.',
+                tradition: 'Boating and seafaring traditions where modern Caribbean sailors mingle with local fishers enjoying fresh crabes farcis and colombo.',
+                proverb: '"Bato ka pasé, mé tras dlo ka rété." (Boats pass by, but the memory and wake in the water remain.)'
+            },
+            'sainte-anne': {
+                name: 'Sainte-Anne',
+                creoleName: 'Sentann • The Golden Beaches & Salines',
+                region: 'Extrême Sud',
+                audioPhrase: 'Sentann, plaj salin ak sab blan',
+                fact: 'The southernmost commune of Martinique, blessed with the island’s most famous turquoise coastline (Plage des Salines), traditional salt flats, and the desert-like geological wonder Savane des Pétrifications.',
+                tradition: 'Traditional seaside Creole picnics under the coconut palms with grilled chicken boucané, boudin créole, and coconut sorbet churned in wooden turners.',
+                proverb: '"Sé chalè soley ki ka dousi fwi!" (It is the warmth of the sun that ripens and sweetens the fruit!)'
+            }
+        };
+        
+        let currentSelectedCommune = 'fort-de-france';
+        
+        function initMartiniqueMap() {
+            const container = document.getElementById('communeChipsContainer');
+            if (container) {
+                container.innerHTML = '';
+                Object.keys(communesData).forEach(key => {
+                    const c = communesData[key];
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = `commune-chip ${key === currentSelectedCommune ? 'active' : ''}`;
+                    chip.textContent = c.name;
+                    chip.onclick = () => selectCommune(key);
+                    container.appendChild(chip);
+                });
+            }
+            selectCommune('fort-de-france');
+        }
+        
+        function selectCommune(communeKey) {
+            const data = communesData[communeKey];
+            if (!data) return;
+            currentSelectedCommune = communeKey;
+            
+            document.querySelectorAll('.commune-pin').forEach(pin => {
+                pin.classList.remove('active');
+            });
+            const activePin = document.getElementById(`pin-${communeKey}`);
+            if (activePin) {
+                activePin.classList.add('active');
+            }
+            
+            document.querySelectorAll('.commune-chip').forEach(chip => {
+                chip.classList.toggle('active', chip.textContent.trim().toLowerCase() === data.name.toLowerCase());
+            });
+            
+            const titleEl = document.getElementById('communeTitle');
+            const creoleNameEl = document.getElementById('communeCreoleName');
+            const badgeEl = document.getElementById('communeRegionBadge');
+            const factEl = document.getElementById('communeFactText');
+            const traditionEl = document.getElementById('communeTraditionText');
+            const proverbEl = document.getElementById('communeProverbText');
+            const listenLabel = document.getElementById('communeListenLabel');
+            
+            if (titleEl) titleEl.textContent = data.name;
+            if (creoleNameEl) creoleNameEl.textContent = data.creoleName;
+            if (badgeEl) badgeEl.textContent = data.region;
+            if (factEl) factEl.textContent = data.fact;
+            if (traditionEl) traditionEl.textContent = data.tradition;
+            if (proverbEl) proverbEl.textContent = data.proverb;
+            if (listenLabel) listenLabel.textContent = `Listen: "${data.name}"`;
+        }
+        
+        function speakCommuneAudio() {
+            const data = communesData[currentSelectedCommune];
+            if (data) {
+                const btn = document.getElementById('communeListenBtn');
+                speakCreole(data.audioPhrase || data.name, btn);
+            }
+        }
+        
+        function askTutorAboutCurrentCommune() {
+            const data = communesData[currentSelectedCommune];
+            if (!data) return;
+            toggleAiTutor(true);
+            sendQuickPrompt(`Tell me more about the commune of ${data.name} in Martinique: its history, local traditions, and typical Creole expressions.`);
+        }
+
+        // ==========================================
+        // 11. AUDIO-ONLY QUIZ MODE LOGIC
+        // ==========================================
+        const audioQuizQuestions = [
+            {
+                creolePhrase: "Bonjou tout moun!",
+                audioSpeech: "Bonjou tout moun!",
+                options: [
+                    { en: "Good morning / Hello everyone!", fr: "Bonjour tout le monde !", correct: true },
+                    { en: "Good evening everyone!", fr: "Bonsoir tout le monde !", correct: false },
+                    { en: "Goodbye my friends!", fr: "Au revoir mes amis !", correct: false },
+                    { en: "See you later today!", fr: "À plus tard aujourd'hui !", correct: false }
+                ],
+                explanation: '"Bonjou tout moun!" is the quintessential daily greeting in Martinique, universally spoken when entering homes, shops, and markets.'
+            },
+            {
+                creolePhrase: "M'ap kenbe!",
+                audioSpeech: "M'ap kenbe!",
+                options: [
+                    { en: "I am doing great / Hanging in there!", fr: "Je tiens bon / Je vais très bien !", correct: true },
+                    { en: "I am feeling tired today.", fr: "Je suis fatigué aujourd'hui.", correct: false },
+                    { en: "I have to leave right now.", fr: "Je dois partir maintenant.", correct: false },
+                    { en: "I don't know the answer.", fr: "Je ne sais pas la réponse.", correct: false }
+                ],
+                explanation: '"M\'ap kenbe" reflects resilient Caribbean optimism: literally meaning "I am holding on", it signifies staying joyful and strong.'
+            },
+            {
+                creolePhrase: "Kouman ou yé?",
+                audioSpeech: "Kouman ou yé?",
+                options: [
+                    { en: "How are you doing?", fr: "Comment vas-tu ?", correct: true },
+                    { en: "What is your name?", fr: "Comment tu t'appelles ?", correct: false },
+                    { en: "Where are you going?", fr: "Où vas-tu ?", correct: false },
+                    { en: "Who is this person?", fr: "Qui est cette personne ?", correct: false }
+                ],
+                explanation: '"Kouman ou yé?" is the polite and friendly inquiry about well-being used across all communes of Martinique.'
+            },
+            {
+                creolePhrase: "Mèsi anpil!",
+                audioSpeech: "Mèsi anpil!",
+                options: [
+                    { en: "Thank you very much!", fr: "Merci beaucoup !", correct: true },
+                    { en: "You're very welcome!", fr: "De rien !", correct: false },
+                    { en: "Please come inside!", fr: "S'il vous plaît entrez !", correct: false },
+                    { en: "Excuse me for a moment!", fr: "Excusez-moi un instant !", correct: false }
+                ],
+                explanation: '"Mèsi anpil" pairs "mèsi" (thank you) with "anpil" (a lot / very much).'
+            },
+            {
+                creolePhrase: "Ba mwen an ti bren colombo souplé.",
+                audioSpeech: "Ba mwen an ti bren colombo souplé.",
+                options: [
+                    { en: "Give me a little bit of colombo please.", fr: "Donne-moi un petit peu de colombo s'il te plaît.", correct: true },
+                    { en: "I would like two big plates of fish.", fr: "Je voudrais deux grandes assiettes de poisson.", correct: false },
+                    { en: "The colombo is too spicy today.", fr: "Le colombo est trop épicé aujourd'hui.", correct: false },
+                    { en: "Where can I buy cassava flour?", fr: "Où puis-je acheter de la farine de manioc ?", correct: false }
+                ],
+                explanation: '"An ti bren" means "a little bit", an essential culinary expression when ordering food in Martinique!'
+            },
+            {
+                creolePhrase: "Nou ka wè dèmen!",
+                audioSpeech: "Nou ka wè dèmen!",
+                options: [
+                    { en: "We will see each other tomorrow / See you tomorrow!", fr: "On se voit demain !", correct: true },
+                    { en: "We are eating together tonight.", fr: "Nous mangeons ensemble ce soir.", correct: false },
+                    { en: "We never spoke about this.", fr: "Nous n'avons jamais parlé de cela.", correct: false },
+                    { en: "We are arriving very soon.", fr: "Nous arrivons très bientôt.", correct: false }
+                ],
+                explanation: '"Nou ka wè dèmen" uses the continuous aspect marker "ka" and "dèmen" (tomorrow).'
+            },
+            {
+                creolePhrase: "Sa k'ap fèt jòdi-a?",
+                audioSpeech: "Sa k'ap fèt jòdi-a?",
+                options: [
+                    { en: "What's happening today? / What's up today?", fr: "Qu'est-ce qui se passe aujourd'hui ?", correct: true },
+                    { en: "Where did you go yesterday?", fr: "Où es-tu allé hier ?", correct: false },
+                    { en: "Is it going to rain today?", fr: "Est-ce qu'il va pleuvoir aujourd'hui ?", correct: false },
+                    { en: "What time is it right now?", fr: "Quelle heure est-il maintenant ?", correct: false }
+                ],
+                explanation: '"Sa k\'ap fèt" is the casual, warm greeting commonly heard on the streets and beaches of Martinique.'
+            },
+            {
+                creolePhrase: "Pa ni pwoblèm doudou mwen!",
+                audioSpeech: "Pa ni pwoblèm doudou mwen!",
+                options: [
+                    { en: "No problem, my darling / You're welcome sweetheart!", fr: "Pas de problème mon chéri / ma chérie !", correct: true },
+                    { en: "We have a big issue right now.", fr: "Nous avons un gros problème.", correct: false },
+                    { en: "Don't speak so loudly.", fr: "Ne parle pas si fort.", correct: false },
+                    { en: "Come back another day.", fr: "Reviens un autre jour.", correct: false }
+                ],
+                explanation: '"Pa ni pwoblèm" (no problem) with "doudou mwen" (my sweetheart) is a classic Martinican expression of warm hospitality.'
+            }
+        ];
+        
+        let audioQuizCurrentIdx = 0;
+        let audioQuizScore = 0;
+        let audioQuizAnswered = false;
+        let audioQuizSpeed = 1.0;
+        
+        function switchQuizMode(mode) {
+            const standardBtn = document.getElementById('btnModeStandard');
+            const audioBtn = document.getElementById('btnModeAudio');
+            const audioSection = document.getElementById('audioQuizSection');
+            const navTabs = document.getElementById('curriculumNavTabs');
+            
+            if (mode === 'audio') {
+                if (standardBtn) standardBtn.classList.remove('active');
+                if (audioBtn) audioBtn.classList.add('active');
+                if (audioSection) audioSection.style.display = 'block';
+                if (navTabs) navTabs.style.display = 'none';
+                
+                document.querySelectorAll('.module-content').forEach(m => m.style.display = 'none');
+                
+                renderAudioQuizQuestion();
+                playCurrentAudioQuizTerm();
+            } else {
+                if (audioBtn) audioBtn.classList.remove('active');
+                if (standardBtn) standardBtn.classList.add('active');
+                if (audioSection) audioSection.style.display = 'none';
+                if (navTabs) navTabs.style.display = 'flex';
+                
+                showModule(currentActiveModule);
+            }
+        }
+        
+        function setAudioQuizSpeed(speed) {
+            audioQuizSpeed = speed;
+            const normBtn = document.getElementById('speedNormalBtn');
+            const slowBtn = document.getElementById('speedSlowBtn');
+            if (normBtn && slowBtn) {
+                normBtn.classList.toggle('active', speed === 1.0);
+                slowBtn.classList.toggle('active', speed === 0.8);
+            }
+            playCurrentAudioQuizTerm();
+        }
+        
+        function playCurrentAudioQuizTerm() {
+            const q = audioQuizQuestions[audioQuizCurrentIdx];
+            if (!q) return;
+            
+            const btn = document.getElementById('audioBigPlayBtn');
+            if (btn) btn.classList.add('playing');
+            
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(q.audioSpeech);
+                const voices = window.speechSynthesis.getVoices();
+                const frenchVoice = voices.find(v => v.lang && (v.lang === 'fr-FR' || v.lang.startsWith('fr'))) || voices[0];
+                if (frenchVoice) utterance.voice = frenchVoice;
+                utterance.lang = 'fr-FR';
+                utterance.rate = audioQuizSpeed * 0.88;
+                utterance.pitch = 1.05;
+                
+                utterance.onend = () => {
+                    if (btn) btn.classList.remove('playing');
+                };
+                utterance.onerror = () => {
+                    if (btn) btn.classList.remove('playing');
+                };
+                
+                window.speechSynthesis.speak(utterance);
+            } else {
+                if (btn) btn.classList.remove('playing');
+            }
+        }
+        
+        function renderAudioQuizQuestion() {
+            const q = audioQuizQuestions[audioQuizCurrentIdx];
+            if (!q) return;
+            
+            audioQuizAnswered = false;
+            
+            const qNum = document.getElementById('audioQNum');
+            const qTotal = document.getElementById('audioQTotal');
+            const scoreDisplay = document.getElementById('audioScoreDisplay');
+            const xpDisplay = document.getElementById('audioXpDisplay');
+            const explanationEl = document.getElementById('audioQuizExplanation');
+            const nextBtn = document.getElementById('nextAudioQBtn');
+            const optionsContainer = document.getElementById('audioQuizOptions');
+            
+            if (qNum) qNum.textContent = (audioQuizCurrentIdx + 1);
+            if (qTotal) qTotal.textContent = audioQuizQuestions.length;
+            if (scoreDisplay) scoreDisplay.textContent = audioQuizScore;
+            if (xpDisplay) xpDisplay.textContent = (audioQuizScore * 15);
+            if (explanationEl) explanationEl.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            
+            if (optionsContainer) {
+                optionsContainer.innerHTML = '';
+                const letters = ['A', 'B', 'C', 'D'];
+                
+                q.options.forEach((opt, idx) => {
+                    const optBtn = document.createElement('div');
+                    optBtn.className = 'quiz-option';
+                    optBtn.setAttribute('role', 'radio');
+                    optBtn.setAttribute('tabindex', '0');
+                    optBtn.setAttribute('aria-checked', 'false');
+                    
+                    optBtn.innerHTML = `
+                        <div class="option-left-wrap">
+                            <span class="option-letter">${letters[idx]}</span>
+                            <span class="option-text">${opt.en} <em style="color: var(--text-secondary); font-size: 0.9em;">(${opt.fr})</em></span>
+                        </div>
+                        <div class="option-status-icon"></div>
+                    `;
+                    
+                    optBtn.onclick = () => handleAudioQuizSelection(optBtn, opt, q);
+                    optBtn.onkeydown = (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleAudioQuizSelection(optBtn, opt, q);
+                        }
+                    };
+                    
+                    optionsContainer.appendChild(optBtn);
+                });
+            }
+        }
+        
+        function handleAudioQuizSelection(selectedEl, selectedOpt, currentQuestion) {
+            if (audioQuizAnswered) return;
+            audioQuizAnswered = true;
+            
+            const allOptions = document.querySelectorAll('#audioQuizOptions .quiz-option');
+            const explanationEl = document.getElementById('audioQuizExplanation');
+            const nextBtn = document.getElementById('nextAudioQBtn');
+            
+            const isCorrect = Boolean(selectedOpt.correct);
+            
+            allOptions.forEach(optEl => {
+                optEl.setAttribute('aria-checked', optEl === selectedEl ? 'true' : 'false');
+            });
+            
+            if (isCorrect) {
+                selectedEl.classList.add('correct');
+                const icon = selectedEl.querySelector('.option-status-icon');
+                if (icon) icon.innerHTML = '<i class="fas fa-circle-check"></i>';
+                
+                audioQuizScore++;
+                userProgress.xp += 15;
+                updateDailyStreak();
+                saveProgress();
+                updateProgressUI();
+                
+                showToast(`🎉 Correct! You earned +15 XP for listening comprehension!`);
+                
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 70,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+                
+                if (explanationEl) {
+                    explanationEl.className = 'quiz-explanation success';
+                    explanationEl.innerHTML = `
+                        <div class="explanation-title"><i class="fas fa-check-circle"></i> Excellent Listening!</div>
+                        <div class="explanation-desc">
+                            <strong>${currentQuestion.creolePhrase}</strong> → ${selectedOpt.en}
+                            <br><span style="margin-top: 4px; display: inline-block;">${currentQuestion.explanation}</span>
+                        </div>
+                    `;
+                    explanationEl.style.display = 'block';
+                }
+            } else {
+                selectedEl.classList.add('incorrect');
+                const icon = selectedEl.querySelector('.option-status-icon');
+                if (icon) icon.innerHTML = '<i class="fas fa-circle-xmark"></i>';
+                
+                allOptions.forEach((optEl, idx) => {
+                    if (currentQuestion.options[idx].correct) {
+                        optEl.classList.add('reveal-correct');
+                        const corrIcon = optEl.querySelector('.option-status-icon');
+                        if (corrIcon) corrIcon.innerHTML = '<i class="fas fa-check" style="color: #10b981;"></i>';
+                    }
+                });
+                
+                if (explanationEl) {
+                    explanationEl.className = 'quiz-explanation warning';
+                    explanationEl.innerHTML = `
+                        <div class="explanation-title"><i class="fas fa-circle-exclamation"></i> Not quite!</div>
+                        <div class="explanation-desc">
+                            The spoken phrase was: <strong>${currentQuestion.creolePhrase}</strong>
+                            <br><span style="margin-top: 4px; display: inline-block;">${currentQuestion.explanation}</span>
+                        </div>
+                    `;
+                    explanationEl.style.display = 'block';
+                }
+            }
+            
+            const scoreDisplay = document.getElementById('audioScoreDisplay');
+            const xpDisplay = document.getElementById('audioXpDisplay');
+            if (scoreDisplay) scoreDisplay.textContent = audioQuizScore;
+            if (xpDisplay) xpDisplay.textContent = (audioQuizScore * 15);
+            
+            if (nextBtn) nextBtn.style.display = 'inline-flex';
+        }
+        
+        function nextAudioQuestion() {
+            audioQuizCurrentIdx = (audioQuizCurrentIdx + 1) % audioQuizQuestions.length;
+            renderAudioQuizQuestion();
+            setTimeout(() => {
+                playCurrentAudioQuizTerm();
+            }, 300);
+        }
+
+        // ==========================================
+        // 12. INITIALIZATION & NAVIGATION
         // ==========================================
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
@@ -4090,9 +6190,12 @@
         });
 
         // Initialize state
+        initTheme();
         loadProgress();
         showModule('module1');
         changeLanguage('en');
+        initWordOfTheDay();
+        initMartiniqueMap();
         initQuizKeyboardNav();
     </script>
 </body>
