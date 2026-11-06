@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kréyòl Matinik – Martinican Creole Heritage Course</title>
+    <meta name="description" content="Martinican Creole Heritage Course with interactive cultural map, daily study goals, speech audio, and community koudmen peer learning.">
+    <meta property="og:title" content="Kréyòl Matinik – Martinican Creole Heritage Course">
+    <meta property="og:description" content="Martinican Creole Heritage Course with interactive cultural map, daily study goals, speech audio, and community koudmen peer learning.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
@@ -2479,9 +2482,613 @@
             margin-top: 1.5rem;
         }
 
-        .next-audio-q-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(25, 118, 210, 0.35);
+        /* ========================================================
+           DAILY STUDY GOAL COMPONENT STYLES
+        ======================================================== */
+        .daily-goal-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(255, 255, 255, 0.95) 100%);
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 18px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 1.5rem;
+            align-items: center;
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .daily-goal-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, #1e293b 100%);
+            border-color: rgba(245, 158, 11, 0.35);
+        }
+
+        @media (max-width: 640px) {
+            .daily-goal-box {
+                grid-template-columns: 1fr;
+                justify-items: center;
+                text-align: center;
+            }
+        }
+
+        .daily-goal-ring-wrap {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .goal-ring-svg {
+            transform: rotate(-90deg);
+        }
+
+        .goal-ring-bg {
+            stroke: #e2e8f0;
+        }
+
+        body.dark-mode .goal-ring-bg {
+            stroke: #334155;
+        }
+
+        .goal-ring-fill {
+            stroke: var(--primary-gold);
+            transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s;
+        }
+
+        .goal-ring-fill.completed {
+            stroke: #10b981;
+            filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.5));
+        }
+
+        .goal-ring-inner {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .goal-ring-percentage {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .goal-ring-status-icon {
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        .daily-goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.4rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .daily-goal-header h4 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .daily-goal-badge {
+            background: linear-gradient(135deg, var(--primary-gold), var(--primary-orange));
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.82rem;
+            padding: 3px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25);
+        }
+
+        .daily-goal-desc {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.6rem;
+            line-height: 1.45;
+        }
+
+        .daily-goal-status-msg {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary-gold);
+            margin-bottom: 0.75rem;
+        }
+
+        .daily-goal-status-msg.goal-met {
+            color: #10b981;
+        }
+
+        .daily-goal-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .daily-goal-set-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .goal-target-chips {
+            display: inline-flex;
+            gap: 6px;
+        }
+
+        .goal-chip-btn {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        body.dark-mode .goal-chip-btn {
+            background: #334155;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        .goal-chip-btn.active {
+            background: var(--primary-gold);
+            color: #ffffff;
+            border-color: var(--primary-gold);
+        }
+
+        .goal-test-inc-btn {
+            margin-left: auto;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: var(--text-primary);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+
+        body.dark-mode .goal-test-inc-btn {
+            background: #334155;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        .goal-test-inc-btn:hover {
+            background: var(--martinique-blue);
+            color: #ffffff;
+            border-color: var(--martinique-blue);
+        }
+
+        /* ========================================================
+           COMMUNITY KOUDMEN SECTION STYLES
+        ======================================================== */
+        .community-koudmen-section {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+            border: 2px solid rgba(245, 158, 11, 0.25);
+            border-radius: 28px;
+            padding: 2.5rem;
+            margin: 2.5rem 0;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark-mode .community-koudmen-section {
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
+            border-color: rgba(245, 158, 11, 0.35);
+        }
+
+        .community-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .community-header-left h2 {
+            font-size: 2.1rem;
+            color: var(--primary-gold);
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .community-header-left p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 740px;
+        }
+
+        .post-question-trigger-btn {
+            background: linear-gradient(135deg, var(--martinique-red), var(--martinique-blue));
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(211, 47, 47, 0.25);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .post-question-trigger-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(211, 47, 47, 0.35);
+        }
+
+        .new-question-box {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+            animation: slideDown 0.3s ease;
+        }
+
+        body.dark-mode .new-question-box {
+            background: #1e293b;
+            border-color: #374151;
+        }
+
+        .new-question-box h4 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+        }
+
+        .form-row {
+            margin-bottom: 1rem;
+        }
+
+        .form-row label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.88rem;
+            margin-bottom: 0.4rem;
+            color: var(--text-primary);
+        }
+
+        .form-row input, .form-row select, .form-row textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            background: #f8fafc;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        body.dark-mode .form-row input,
+        body.dark-mode .form-row select,
+        body.dark-mode .form-row textarea {
+            background: #0f172a;
+            border-color: #334155;
+            color: #f8fafc;
+        }
+
+        .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+            border-color: var(--martinique-blue);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 1.25rem;
+        }
+
+        .submit-question-btn {
+            background: linear-gradient(135deg, var(--martinique-blue), #0d47a1);
+            color: #ffffff;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cancel-question-btn {
+            background: transparent;
+            border: 1px solid #cbd5e1;
+            color: var(--text-secondary);
+            padding: 9px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .community-filter-bar {
+            margin-bottom: 1.75rem;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .community-category-tabs {
+            display: inline-flex;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.04);
+            padding: 4px;
+            border-radius: 14px;
+        }
+
+        body.dark-mode .community-category-tabs {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .koudmen-tab {
+            background: transparent;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .koudmen-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .koudmen-tab.active {
+            background: #ffffff;
+            color: var(--primary-gold);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        body.dark-mode .koudmen-tab.active {
+            background: #1e293b;
+            color: #fbbf24;
+        }
+
+        .koudmen-discussions-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .koudmen-card {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 1.8rem;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+            transition: all 0.25s ease;
+        }
+
+        body.dark-mode .koudmen-card {
+            background: #1e293b;
+            border-color: #374151;
+        }
+
+        .koudmen-card:hover {
+            border-color: var(--primary-gold);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .koudmen-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .koudmen-cat-tag {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--primary-gold);
+        }
+
+        .koudmen-meta-text {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .koudmen-question-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .koudmen-question-body {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin-bottom: 1.25rem;
+        }
+
+        .koudmen-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+            padding-top: 1rem;
+        }
+
+        body.dark-mode .koudmen-card-footer {
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .koudmen-vote-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upvote-btn {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            color: var(--text-primary);
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        body.dark-mode .upvote-btn {
+            background: #0f172a;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        .upvote-btn:hover {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+            color: #059669;
+        }
+
+        .upvote-btn.voted {
+            background: #10b981;
+            color: #ffffff;
+            border-color: #10b981;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .koudmen-answers-section {
+            margin-top: 1.5rem;
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 1.2rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.dark-mode .koudmen-answers-section {
+            background: #0f172a;
+            border-color: #334155;
+        }
+
+        .answers-header {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .answer-bubble {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 0.75rem;
+        }
+
+        body.dark-mode .answer-bubble {
+            background: #1e293b;
+            border-color: #374151;
+        }
+
+        .answer-meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.4rem;
+            font-size: 0.82rem;
+        }
+
+        .answer-author {
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .native-speaker-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: #065f46;
+            font-weight: 700;
+            font-size: 0.72rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 6px;
+        }
+
+        body.dark-mode .native-speaker-badge {
+            background: rgba(16, 185, 129, 0.25);
+            color: #34d399;
+        }
+
+        .answer-text {
+            font-size: 0.92rem;
+            color: var(--text-primary);
+            line-height: 1.55;
+        }
+
+        .reply-input-bar {
+            display: flex;
+            gap: 8px;
+            margin-top: 1rem;
+        }
+
+        .reply-input-bar input {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.88rem;
+            background: #ffffff;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        body.dark-mode .reply-input-bar input {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        .reply-send-btn {
+            background: var(--martinique-blue);
+            color: #ffffff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -2512,6 +3119,11 @@
                 <span class="lang-content active" data-lang="en">Badges</span>
                 <span class="lang-content" data-lang="fr">Badges</span>
                 <span class="lang-content" data-lang="mq">Meday</span>
+            </a>
+            <a href="#community" class="nav-link" data-key="community_nav">
+                <span class="lang-content active" data-lang="en">Community</span>
+                <span class="lang-content" data-lang="fr">Communauté</span>
+                <span class="lang-content" data-lang="mq">Koudmen</span>
             </a>
             <button type="button" class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode" aria-label="Toggle dark mode">
                 <i class="fas fa-moon" id="themeToggleIcon"></i>
@@ -2693,6 +3305,61 @@
                             <span class="lang-content" data-lang="fr">Niveau de maîtrise</span>
                             <span class="lang-content" data-lang="mq">Nivo metriz</span>
                         </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Daily Study Goal Component with SVG Progress Ring -->
+            <div class="daily-goal-box" id="dailyStudyGoalCard">
+                <div class="daily-goal-ring-wrap">
+                    <svg class="goal-ring-svg" width="100" height="100" viewBox="0 0 100 100" aria-label="Daily goal progress ring">
+                        <circle class="goal-ring-bg" cx="50" cy="50" r="40" stroke-width="8" fill="none" />
+                        <circle class="goal-ring-fill" id="goalRingCircle" cx="50" cy="50" r="40" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="251.32" stroke-dashoffset="251.32" />
+                    </svg>
+                    <div class="goal-ring-inner">
+                        <div class="goal-ring-percentage" id="goalRingPercentage">0%</div>
+                        <div class="goal-ring-status-icon" id="goalRingStatusIcon">🎯</div>
+                    </div>
+                </div>
+                <div class="daily-goal-content">
+                    <div class="daily-goal-header">
+                        <h4>
+                            <i class="fas fa-bullseye text-amber-500 mr-2"></i>
+                            <span class="lang-content active" data-lang="en">Daily Study Goal</span>
+                            <span class="lang-content" data-lang="fr">Objectif quotidien d'étude</span>
+                            <span class="lang-content" data-lang="mq">Objèktif étid pou jòdi-a</span>
+                        </h4>
+                        <span class="daily-goal-badge" id="dailyGoalCountBadge">0 / 10 Activities</span>
+                    </div>
+                    <p class="daily-goal-desc">
+                        <span class="lang-content active" data-lang="en">Practice vocabulary listens, quiz answers, flashcard flips, or Word of the Day exercises to reach your daily goal.</span>
+                        <span class="lang-content" data-lang="fr">Révisez des fiches, écoutez des mots créoles ou réussissez des quiz pour atteindre votre cible du jour.</span>
+                        <span class="lang-content" data-lang="mq">Kouté mo kréyòl, viré kart, fè kiz épi pratiké pawòl jòdi-a pou atenn objèktif ou.</span>
+                    </p>
+                    <div class="daily-goal-status-msg" id="dailyGoalStatusMsg">
+                        <i class="fas fa-hourglass-half mr-1"></i> 
+                        <span class="lang-content active" data-lang="en">Keep going! Complete your daily target to solidify your Creole knowledge.</span>
+                        <span class="lang-content" data-lang="fr">Continuez ainsi ! Remplissez votre objectif quotidien pour ancrer vos acquis.</span>
+                        <span class="lang-content" data-lang="mq">Kouraj ! Fini kantité jòdi-a pou kréyòl ou vini pi fò chak jou.</span>
+                    </div>
+                    <div class="daily-goal-controls">
+                        <span class="daily-goal-set-label">
+                            <span class="lang-content active" data-lang="en">Daily Target:</span>
+                            <span class="lang-content" data-lang="fr">Cible du jour :</span>
+                            <span class="lang-content" data-lang="mq">Kantité chak jou :</span>
+                        </span>
+                        <div class="goal-target-chips" role="radiogroup" aria-label="Target activities per day">
+                            <button type="button" class="goal-chip-btn" data-target="5" onclick="setDailyGoalTarget(5)" title="5 exercises per day">5</button>
+                            <button type="button" class="goal-chip-btn active" data-target="10" onclick="setDailyGoalTarget(10)" title="10 exercises per day">10</button>
+                            <button type="button" class="goal-chip-btn" data-target="15" onclick="setDailyGoalTarget(15)" title="15 exercises per day">15</button>
+                            <button type="button" class="goal-chip-btn" data-target="20" onclick="setDailyGoalTarget(20)" title="20 exercises per day">20</button>
+                        </div>
+                        <button type="button" class="goal-test-inc-btn" onclick="simulateGoalProgress()" title="Practice one exercise now (+1 count & +5 XP)">
+                            <i class="fas fa-plus"></i>
+                            <span class="lang-content active" data-lang="en">+1 Quick Practice</span>
+                            <span class="lang-content" data-lang="fr">+1 Pratique rapide</span>
+                            <span class="lang-content" data-lang="mq">+1 Pratik rapid</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -2926,6 +3593,129 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Community Koudmen Section (Peer Learning & Cultural Exchange) -->
+        <div id="community" style="scroll-margin-top: 80px;"></div>
+        <div class="community-koudmen-section" id="communityKoudmenSection">
+            <div class="community-header">
+                <div class="community-header-left">
+                    <h2>
+                        <i class="fas fa-hands-holding-circle text-amber-500 mr-2"></i>
+                        <span class="lang-content active" data-lang="en">Community Koudmen</span>
+                        <span class="lang-content" data-lang="fr">Koudmen Communautaire</span>
+                        <span class="lang-content" data-lang="mq">Koudmen Kominoté-a</span>
+                    </h2>
+                    <p>
+                        <span class="lang-content active" data-lang="en">Inspired by the cherished Martinican tradition of <em>« Koudmen »</em> (collective mutual aid and neighborly solidarity), ask questions about Creole grammar, nuances, and local traditions or share helpful answers with fellow learners.</span>
+                        <span class="lang-content" data-lang="fr">Inspiré par la belle tradition martiniquaise du <em>« Koudmen »</em> (solidarité d'entraide collective), posez vos questions sur la grammaire créole, les coutumes et partagez vos réponses avec d'autres étudiants.</span>
+                        <span class="lang-content" data-lang="mq">Selon gran tradisyon Matinik <em>« Koudmen »</em> (palé épi ba lanmen ansanm), pozé kèsyon anlè gramè kréyòl, koutim peyi-a épi poté léglis épi repons ba zélèv parèy ou.</span>
+                    </p>
+                </div>
+                <button type="button" class="post-question-trigger-btn" id="openQuestionFormBtn" onclick="toggleQuestionForm()">
+                    <i class="fas fa-pen-to-square"></i>
+                    <span class="lang-content active" data-lang="en">Ask a Question</span>
+                    <span class="lang-content" data-lang="fr">Poser une question</span>
+                    <span class="lang-content" data-lang="mq">Pozé an kèsyon</span>
+                </button>
+            </div>
+
+            <!-- New Question Form (collapsible) -->
+            <div class="new-question-box" id="newQuestionBox" style="display: none;">
+                <h4>
+                    <i class="fas fa-feather-pointed text-amber-500 mr-2"></i>
+                    <span class="lang-content active" data-lang="en">Start a New Creole Discussion</span>
+                    <span class="lang-content" data-lang="fr">Nouvelle discussion en créole</span>
+                    <span class="lang-content" data-lang="mq">Koumansé an nouvo kozé</span>
+                </h4>
+                <form id="koudmenQuestionForm" onsubmit="handleNewQuestionSubmit(event)">
+                    <div class="form-row">
+                        <label for="koudmenAuthorInput">
+                            <span class="lang-content active" data-lang="en">Your Name / Learner Alias:</span>
+                            <span class="lang-content" data-lang="fr">Votre Nom / Pseudo d'apprenant :</span>
+                            <span class="lang-content" data-lang="mq">Non ou / Non-jè ou :</span>
+                        </label>
+                        <input type="text" id="koudmenAuthorInput" required placeholder="e.g. Doudou972 or Sophie L.">
+                    </div>
+                    <div class="form-row">
+                        <label for="koudmenCategorySelect">
+                            <span class="lang-content active" data-lang="en">Category / Topic:</span>
+                            <span class="lang-content" data-lang="fr">Catégorie / Thème :</span>
+                            <span class="lang-content" data-lang="mq">Katégori / Chonjé :</span>
+                        </label>
+                        <select id="koudmenCategorySelect" required>
+                            <option value="grammar">Grammar & Syntax (Tenses: ka, té, ké)</option>
+                            <option value="traditions">Cultural Traditions & Martinican Folklore</option>
+                            <option value="vocabulary">Vocabulary & Daily Expressions</option>
+                            <option value="pronunciation">Pronunciation & Accents</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="koudmenTitleInput">
+                            <span class="lang-content active" data-lang="en">Question Title:</span>
+                            <span class="lang-content" data-lang="fr">Titre de la question :</span>
+                            <span class="lang-content" data-lang="mq">Tit kèsyon-an :</span>
+                        </label>
+                        <input type="text" id="koudmenTitleInput" required placeholder="e.g. When do I use 'ka' vs 'té ka' in everyday conversation?">
+                    </div>
+                    <div class="form-row">
+                        <label for="koudmenBodyTextarea">
+                            <span class="lang-content active" data-lang="en">Detailed Question & Context:</span>
+                            <span class="lang-content" data-lang="fr">Détails et contexte :</span>
+                            <span class="lang-content" data-lang="mq">Detay épi sitiasyon :</span>
+                        </label>
+                        <textarea id="koudmenBodyTextarea" rows="3" required placeholder="Explain what you are trying to say in Martinican Creole or ask about a custom..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="submit-question-btn">
+                            <i class="fas fa-paper-plane"></i>
+                            <span class="lang-content active" data-lang="en">Publish to Koudmen (+15 XP)</span>
+                            <span class="lang-content" data-lang="fr">Publier sur Koudmen (+15 XP)</span>
+                            <span class="lang-content" data-lang="mq">Pibliyé an Koudmen (+15 XP)</span>
+                        </button>
+                        <button type="button" class="cancel-question-btn" onclick="toggleQuestionForm(false)">
+                            <span class="lang-content active" data-lang="en">Cancel</span>
+                            <span class="lang-content" data-lang="fr">Annuler</span>
+                            <span class="lang-content" data-lang="mq">Annilé</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Category Filter Tabs -->
+            <div class="community-filter-bar">
+                <div class="community-category-tabs" role="tablist">
+                    <button type="button" class="koudmen-tab active" data-cat="all" onclick="filterKoudmen('all')">
+                        <i class="fas fa-layer-group mr-1"></i>
+                        <span class="lang-content active" data-lang="en">All Topics (<span id="catCountAll">4</span>)</span>
+                        <span class="lang-content" data-lang="fr">Tous les sujets (<span id="catCountAllFr">4</span>)</span>
+                        <span class="lang-content" data-lang="mq">Tout kozé (<span id="catCountAllMq">4</span>)</span>
+                    </button>
+                    <button type="button" class="koudmen-tab" data-cat="grammar" onclick="filterKoudmen('grammar')">
+                        <i class="fas fa-spell-check mr-1"></i>
+                        <span class="lang-content active" data-lang="en">Grammar (<span id="catCountGrammar">2</span>)</span>
+                        <span class="lang-content" data-lang="fr">Grammaire (<span id="catCountGrammarFr">2</span>)</span>
+                        <span class="lang-content" data-lang="mq">Gramè (<span id="catCountGrammarMq">2</span>)</span>
+                    </button>
+                    <button type="button" class="koudmen-tab" data-cat="traditions" onclick="filterKoudmen('traditions')">
+                        <i class="fas fa-drum mr-1"></i>
+                        <span class="lang-content active" data-lang="en">Traditions (<span id="catCountTraditions">1</span>)</span>
+                        <span class="lang-content" data-lang="fr">Traditions (<span id="catCountTraditionsFr">1</span>)</span>
+                        <span class="lang-content" data-lang="mq">Tradision (<span id="catCountTraditionsMq">1</span>)</span>
+                    </button>
+                    <button type="button" class="koudmen-tab" data-cat="vocabulary" onclick="filterKoudmen('vocabulary')">
+                        <i class="fas fa-book mr-1"></i>
+                        <span class="lang-content active" data-lang="en">Vocabulary (<span id="catCountVocab">1</span>)</span>
+                        <span class="lang-content" data-lang="fr">Vocabulaire (<span id="catCountVocabFr">1</span>)</span>
+                        <span class="lang-content" data-lang="mq">Vokabilè (<span id="catCountVocabMq">1</span>)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Discussions Grid -->
+            <div class="koudmen-discussions-grid" id="koudmenDiscussionsList">
+                <!-- Dynamically populated by renderKoudmenDiscussions() -->
             </div>
         </div>
 
@@ -4404,19 +5194,22 @@
                 home_nav: "Home",
                 curriculum_nav: "Curriculum",
                 flashcards_nav: "Flashcards",
-                gamification_nav: "Badges"
+                gamification_nav: "Badges",
+                community_nav: "Community"
             },
             fr: {
                 home_nav: "Accueil",
                 curriculum_nav: "Programme",
                 flashcards_nav: "Fiches",
-                gamification_nav: "Badges"
+                gamification_nav: "Badges",
+                community_nav: "Communauté"
             },
             mq: {
                 home_nav: "Lakay",
                 curriculum_nav: "Pwogram",
                 flashcards_nav: "Kart",
-                gamification_nav: "Meday"
+                gamification_nav: "Meday",
+                community_nav: "Koudmen"
             }
         };
         
@@ -4490,8 +5283,62 @@
                     }
                 }
             });
+
+            // Update interactive input placeholders
+            const searchInput = document.getElementById('curriculumSearchInput');
+            if (searchInput) {
+                if (lang === 'fr') {
+                    searchInput.placeholder = "Rechercher des termes de vocabulaire, expressions ou significations (ex. Bonjou, merci, colombo)...";
+                } else if (lang === 'mq') {
+                    searchInput.placeholder = "Chaché mo kréyòl, fraz oben sans yo (pa egzanp Bonjou, mèsi, kolombo)...";
+                } else {
+                    searchInput.placeholder = "Search vocabulary terms, phrases, or meanings (e.g. Bonjou, thank you, colombo, family)...";
+                }
+            }
+            const aiInput = document.getElementById('aiUserInput');
+            if (aiInput) {
+                if (lang === 'fr') {
+                    aiInput.placeholder = "Posez une question en français, créole ou anglais...";
+                } else if (lang === 'mq') {
+                    aiInput.placeholder = "Pozé kèsyon an kréyòl, fransé oben anglé...";
+                } else {
+                    aiInput.placeholder = "Ask in English, French, or Kréyòl...";
+                }
+            }
+            const koudmenAuthor = document.getElementById('koudmenAuthorInput');
+            if (koudmenAuthor) {
+                if (lang === 'fr') {
+                    koudmenAuthor.placeholder = "ex. Doudou972 ou Sophie L.";
+                } else if (lang === 'mq') {
+                    koudmenAuthor.placeholder = "pa egzanp Doudou972 oben Sophie L.";
+                } else {
+                    koudmenAuthor.placeholder = "e.g. Doudou972 or Sophie L.";
+                }
+            }
+            const koudmenTitle = document.getElementById('koudmenTitleInput');
+            if (koudmenTitle) {
+                if (lang === 'fr') {
+                    koudmenTitle.placeholder = "ex. Quand employer 'ka' vs 'té ka' dans la conversation ?";
+                } else if (lang === 'mq') {
+                    koudmenTitle.placeholder = "pa egzanp Ki lè pou sèvi 'ka' oben 'té ka' an kozé ?";
+                } else {
+                    koudmenTitle.placeholder = "e.g. When do I use 'ka' vs 'té ka' in everyday conversation?";
+                }
+            }
+            const koudmenBody = document.getElementById('koudmenBodyTextarea');
+            if (koudmenBody) {
+                if (lang === 'fr') {
+                    koudmenBody.placeholder = "Expliquez ce que vous essayez d'exprimer en créole ou questionnez sur une coutume...";
+                } else if (lang === 'mq') {
+                    koudmenBody.placeholder = "Èspliké sa ou lé di an Kréyòl Matinik oben mandé anlè an koutim...";
+                } else {
+                    koudmenBody.placeholder = "Explain what you are trying to say in Martinican Creole or ask about a custom...";
+                }
+            }
             
             updateProgressUI();
+            if (typeof updateDailyGoalUI === 'function') updateDailyGoalUI();
+            if (typeof renderKoudmenDiscussions === 'function') renderKoudmenDiscussions();
         }
         
         // Module navigation
@@ -4643,6 +5490,9 @@
         function registerWordListened(word) {
             const cleanWord = word.trim().toLowerCase();
             updateDailyStreak();
+            if (typeof incrementDailyGoalProgress === 'function') {
+                incrementDailyGoalProgress(1);
+            }
             if (!userProgress.listenedWords.includes(cleanWord)) {
                 userProgress.listenedWords.push(cleanWord);
                 userProgress.xp += 10;
@@ -4958,6 +5808,9 @@
                 explanationWrap.style.display = 'flex';
                 
                 // Award progress & XP
+                if (typeof incrementDailyGoalProgress === 'function') {
+                    incrementDailyGoalProgress(1);
+                }
                 if (!userProgress.quizzes[quizId]) {
                     userProgress.quizzes[quizId] = true;
                     userProgress.xp += 25;
@@ -5209,6 +6062,9 @@
             if (!userProgress.reviewedCards.includes(cardKey)) {
                 userProgress.reviewedCards.push(cardKey);
                 userProgress.xp += 2;
+                if (typeof incrementDailyGoalProgress === 'function') {
+                    incrementDailyGoalProgress(1);
+                }
                 saveProgress();
                 updateProgressUI();
             }
@@ -5867,6 +6723,568 @@
         }
 
         // ==========================================
+        // 9. DAILY STUDY GOAL LOGIC
+        // ==========================================
+        const DAILY_GOAL_STORAGE_KEY = 'kreyol_daily_study_goal_v1';
+        let dailyStudyGoal = {
+            target: 10,
+            completedToday: 0,
+            lastDate: null,
+            celebratedToday: false
+        };
+
+        function getTodayDateStr() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function initDailyGoal() {
+            try {
+                const saved = localStorage.getItem(DAILY_GOAL_STORAGE_KEY);
+                const today = getTodayDateStr();
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    dailyStudyGoal.target = typeof parsed.target === 'number' && parsed.target > 0 ? parsed.target : 10;
+                    if (parsed.lastDate === today) {
+                        dailyStudyGoal.completedToday = typeof parsed.completedToday === 'number' ? parsed.completedToday : 0;
+                        dailyStudyGoal.celebratedToday = Boolean(parsed.celebratedToday);
+                    } else {
+                        dailyStudyGoal.completedToday = 0;
+                        dailyStudyGoal.celebratedToday = false;
+                    }
+                    dailyStudyGoal.lastDate = today;
+                } else {
+                    dailyStudyGoal.lastDate = today;
+                    dailyStudyGoal.completedToday = 0;
+                    dailyStudyGoal.celebratedToday = false;
+                }
+            } catch (e) {
+                console.warn('Could not load daily goal from localStorage:', e);
+            }
+            saveDailyGoal();
+            updateDailyGoalUI();
+        }
+
+        function saveDailyGoal() {
+            try {
+                localStorage.setItem(DAILY_GOAL_STORAGE_KEY, JSON.stringify(dailyStudyGoal));
+            } catch (e) {
+                console.warn('Could not save daily goal to localStorage:', e);
+            }
+        }
+
+        function setDailyGoalTarget(num) {
+            dailyStudyGoal.target = parseInt(num, 10) || 10;
+            saveDailyGoal();
+            updateDailyGoalUI();
+            
+            const msgEn = `Daily study target set to ${dailyStudyGoal.target} activities!`;
+            const msgFr = `Objectif quotidien fixé à ${dailyStudyGoal.target} activités !`;
+            const msgMq = `Objèktif jòdi-a fikse a ${dailyStudyGoal.target} travay !`;
+            const toastMsg = currentLang === 'fr' ? msgFr : (currentLang === 'mq' ? msgMq : msgEn);
+            showToast(toastMsg);
+        }
+
+        function incrementDailyGoalProgress(count = 1) {
+            const today = getTodayDateStr();
+            if (dailyStudyGoal.lastDate !== today) {
+                dailyStudyGoal.lastDate = today;
+                dailyStudyGoal.completedToday = 0;
+                dailyStudyGoal.celebratedToday = false;
+            }
+            
+            dailyStudyGoal.completedToday += count;
+            const reachedTarget = dailyStudyGoal.completedToday >= dailyStudyGoal.target;
+            
+            if (reachedTarget && !dailyStudyGoal.celebratedToday) {
+                dailyStudyGoal.celebratedToday = true;
+                userProgress.xp += 20;
+                saveProgress();
+                updateProgressUI();
+                
+                const winMsgEn = `🎯 Goal Achieved! You reached today's target of ${dailyStudyGoal.target} activities (+20 Bonus XP)!`;
+                const winMsgFr = `🎯 Objectif atteint ! Vous avez terminé vos ${dailyStudyGoal.target} activités du jour (+20 XP bonus) !`;
+                const winMsgMq = `🎯 Bravo ! Ou atenn objèktif ${dailyStudyGoal.target} travay jòdi-a (+20 XP an plis) !`;
+                const toastMsg = currentLang === 'fr' ? winMsgFr : (currentLang === 'mq' ? winMsgMq : winMsgEn);
+                showToast(toastMsg);
+                
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 90,
+                        spread: 80,
+                        origin: { y: 0.65 },
+                        colors: ['#ffd700', '#f59e0b', '#10b981', '#1976d2', '#d32f2f']
+                    });
+                }
+            }
+            
+            saveDailyGoal();
+            updateDailyGoalUI();
+        }
+
+        function simulateGoalProgress() {
+            incrementDailyGoalProgress(1);
+            userProgress.xp += 5;
+            saveProgress();
+            updateProgressUI();
+            const msg = currentLang === 'fr' ? '+1 Pratique enregistrée (+5 XP)' : (currentLang === 'mq' ? '+1 Pratik anrejistré (+5 XP)' : '+1 Quick practice logged (+5 XP)!');
+            showToast(msg);
+        }
+
+        function updateDailyGoalUI() {
+            const circle = document.getElementById('goalRingCircle');
+            const percentEl = document.getElementById('goalRingPercentage');
+            const iconEl = document.getElementById('goalRingStatusIcon');
+            const badgeEl = document.getElementById('dailyGoalCountBadge');
+            const statusMsgEl = document.getElementById('dailyGoalStatusMsg');
+            
+            if (!badgeEl) return;
+            
+            const target = dailyStudyGoal.target || 10;
+            const completed = dailyStudyGoal.completedToday || 0;
+            const percent = Math.min(100, Math.round((completed / target) * 100));
+            
+            // Update chip states
+            document.querySelectorAll('.goal-chip-btn').forEach(btn => {
+                const btnTarget = parseInt(btn.getAttribute('data-target'), 10);
+                btn.classList.toggle('active', btnTarget === target);
+            });
+            
+            // SVG ring: circumference = 2 * PI * 40 = 251.32
+            const circumference = 251.32;
+            const offset = circumference - (percent / 100) * circumference;
+            
+            if (circle) {
+                circle.style.strokeDashoffset = offset;
+                circle.classList.toggle('completed', percent >= 100);
+            }
+            
+            if (percentEl) {
+                percentEl.textContent = `${percent}%`;
+            }
+            
+            if (iconEl) {
+                iconEl.textContent = percent >= 100 ? '🏆' : (percent >= 50 ? '⚡' : '🎯');
+            }
+            
+            // Badge text
+            const actLabel = currentLang === 'fr' ? 'Activités' : (currentLang === 'mq' ? 'Travay' : 'Activities');
+            badgeEl.textContent = `${completed} / ${target} ${actLabel}`;
+            
+            // Status message
+            if (statusMsgEl) {
+                if (percent >= 100) {
+                    statusMsgEl.className = 'daily-goal-status-msg goal-met';
+                    if (currentLang === 'fr') {
+                        statusMsgEl.innerHTML = `<i class="fas fa-circle-check mr-1"></i> <strong>Félicitations !</strong> Vous avez accompli votre objectif de ${target} activités aujourd'hui !`;
+                    } else if (currentLang === 'mq') {
+                        statusMsgEl.innerHTML = `<i class="fas fa-circle-check mr-1"></i> <strong>Bonda manman !</strong> Ou fini objèktif ${target} travay ou pou jòdi-a ! Kontinié bèl travay-la !`;
+                    } else {
+                        statusMsgEl.innerHTML = `<i class="fas fa-circle-check mr-1"></i> <strong>Awesome work!</strong> You reached today's goal of ${target} activities. Keep practicing to maintain fluency!`;
+                    }
+                } else {
+                    statusMsgEl.className = 'daily-goal-status-msg';
+                    const remaining = target - completed;
+                    if (currentLang === 'fr') {
+                        statusMsgEl.innerHTML = `<i class="fas fa-hourglass-half mr-1"></i> Encore <strong>${remaining}</strong> activité${remaining > 1 ? 's' : ''} pour valider votre objectif créole du jour.`;
+                    } else if (currentLang === 'mq') {
+                        statusMsgEl.innerHTML = `<i class="fas fa-hourglass-half mr-1"></i> Rété <strong>${remaining}</strong> ti travay ankò pou fini objèktif Kréyòl ou jòdi-a.`;
+                    } else {
+                        statusMsgEl.innerHTML = `<i class="fas fa-hourglass-half mr-1"></i> <strong>${remaining}</strong> more exercise${remaining > 1 ? 's' : ''} left to fulfill today's Creole study target.`;
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // 10. COMMUNITY KOUDMEN PEER LEARNING
+        // ==========================================
+        const KOUDMEN_STORAGE_KEY = 'kreyol_koudmen_discussions_v2';
+        let currentKoudmenFilter = 'all';
+        let koudmenDiscussions = [];
+
+        const defaultKoudmenData = [
+            {
+                id: 'koudmen-1',
+                category: 'grammar',
+                author: 'Ti-Mawon972',
+                authorRegion: 'Fòdfrans (Fort-de-France)',
+                timeAgo: '3h ago',
+                title: 'How do verbal particles "ka", "té", and "ké" interact in Martinican Creole?',
+                body: 'I often hear elders alternate between "Mwen ka vini", "Mwen ké vini", and "Mwen té ké vini". How do these particles stack together to express tenses without conjugating the verb?',
+                upvotes: 18,
+                hasUpvoted: false,
+                answers: [
+                    {
+                        id: 'ans-1-1',
+                        author: 'Man Solange',
+                        isNative: true,
+                        timeAgo: '2h ago',
+                        text: 'An kréyòl matinik, the verb stem NEVER changes ending! We place aspect/tense particles in front: <strong>« ka »</strong> indicates continuous/present action (<em>mwen ka manjé</em> = I am eating), <strong>« té »</strong> marks the past (<em>mwen té manjé</em> = I ate), <strong>« ké »</strong> is future (<em>mwen ké vini</em> = I will come), and <strong>« té ké »</strong> is conditional (<em>mwen té ké vini</em> = I would have come). Pa jen bliyé sa !',
+                        upvotes: 14,
+                        hasUpvoted: false
+                    }
+                ]
+            },
+            {
+                id: 'koudmen-2',
+                category: 'traditions',
+                author: 'ArawakRoots',
+                authorRegion: 'Sent-Mari (Sainte-Marie)',
+                timeAgo: 'Yesterday',
+                title: 'What is the true cultural spirit and etiquette of "Koudmen"?',
+                body: 'I want to explain to my family abroad what "koudmen" represents in Martinique beyond just "helping someone". How does it happen traditionally in countryside communes?',
+                upvotes: 24,
+                hasUpvoted: false,
+                answers: [
+                    {
+                        id: 'ans-2-1',
+                        author: 'Tonton Doudou',
+                        isNative: true,
+                        timeAgo: '18h ago',
+                        text: '<em>« Koudmen »</em> is our sacred communal pact of neighborly solidarity. In communes like Gros-Morne or Morne-Rouge, when someone builds a wooden house (dékazé), harvests yams, or clears land, the whole community gathers at dawn with drums (tibwa and bèlè), shared food (migan, soup pwan), and rum. No money is exchanged; solidarity is reciprocated whenever another neighbor calls. Sé la fòs nou !',
+                        upvotes: 21,
+                        hasUpvoted: false
+                    }
+                ]
+            },
+            {
+                id: 'koudmen-3',
+                category: 'grammar',
+                author: 'Clara_London',
+                authorRegion: 'Learner',
+                timeAgo: '1 day ago',
+                title: 'Negation rules: Where does "pa" go relative to particles like "té" and "ka"?',
+                body: 'When expressing "I do not understand" or "I never went there", where does the negative marker "pa" sit in the sentence?',
+                upvotes: 12,
+                hasUpvoted: false,
+                answers: [
+                    {
+                        id: 'ans-3-1',
+                        author: 'Jérôme (Professeur)',
+                        isNative: true,
+                        timeAgo: '20h ago',
+                        text: 'Negation in Martinican Creole always places <strong>« pa »</strong> directly BEFORE verbal particles: <em>« Mwen pa sav »</em> (I don\'t know). With \'ka\': <em>« Mwen pa ka konprann »</em> (I don\'t understand). With past \'té\': <em>« Mwen pa té alé »</em> (I didn\'t go). For \'never\', pair with \'janmen\': <em>« Mwen pa janmen wè sa »</em> (I never saw that).',
+                        upvotes: 9,
+                        hasUpvoted: false
+                    }
+                ]
+            },
+            {
+                id: 'koudmen-4',
+                category: 'vocabulary',
+                author: 'CaribbeanSoul',
+                authorRegion: 'Wobè (Le Robert)',
+                timeAgo: '2 days ago',
+                title: 'Terms of endearment: When to use "doudou", "manmay", and "ti-kè"?',
+                body: 'These warm terms appear everywhere at markets and in Creole songs. Are they strictly for close family or commonly used with shopkeepers and acquaintances?',
+                upvotes: 16,
+                hasUpvoted: false,
+                answers: [
+                    {
+                        id: 'ans-4-1',
+                        author: 'Chantal M.',
+                        isNative: true,
+                        timeAgo: '1 day ago',
+                        text: '<strong>« Doudou »</strong> (darling / sweetie) is widely used warmly at markets: vendors will greet you with <em>« Vini doudou ! »</em>. <strong>« Manmay »</strong> means children or the gang / folks (<em>« Manmay-la, annou pati ! »</em>). <strong>« Ti-kè »</strong> literally means \'little heart\' and is reserved affectionately for children, sweethearts, or close loved ones.',
+                        upvotes: 11,
+                        hasUpvoted: false
+                    }
+                ]
+            }
+        ];
+
+        function initKoudmen() {
+            loadKoudmenDiscussions();
+            renderKoudmenDiscussions();
+        }
+
+        function loadKoudmenDiscussions() {
+            try {
+                const saved = localStorage.getItem(KOUDMEN_STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        koudmenDiscussions = parsed;
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not load koudmen discussions:', e);
+            }
+            koudmenDiscussions = JSON.parse(JSON.stringify(defaultKoudmenData));
+            saveKoudmenDiscussions();
+        }
+
+        function saveKoudmenDiscussions() {
+            try {
+                localStorage.setItem(KOUDMEN_STORAGE_KEY, JSON.stringify(koudmenDiscussions));
+            } catch (e) {
+                console.warn('Could not save koudmen discussions:', e);
+            }
+        }
+
+        function toggleQuestionForm(forceState) {
+            const formBox = document.getElementById('newQuestionBox');
+            if (!formBox) return;
+            
+            const isVisible = formBox.style.display !== 'none';
+            const willShow = (forceState !== undefined) ? forceState : !isVisible;
+            
+            formBox.style.display = willShow ? 'block' : 'none';
+            if (willShow) {
+                formBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const input = document.getElementById('koudmenAuthorInput');
+                if (input) input.focus();
+            }
+        }
+
+        function filterKoudmen(cat) {
+            currentKoudmenFilter = cat;
+            document.querySelectorAll('.koudmen-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.getAttribute('data-cat') === cat);
+            });
+            renderKoudmenDiscussions();
+        }
+
+        function upvoteQuestion(questionId) {
+            const q = koudmenDiscussions.find(item => item.id === questionId);
+            if (!q) return;
+            
+            q.hasUpvoted = !q.hasUpvoted;
+            q.upvotes += q.hasUpvoted ? 1 : -1;
+            
+            if (q.hasUpvoted) {
+                userProgress.xp += 5;
+                saveProgress();
+                updateProgressUI();
+                showToast(currentLang === 'fr' ? '👍 Question soutenue ! (+5 XP)' : (currentLang === 'mq' ? '👍 Ou ba lanmen ! (+5 XP)' : '👍 Question upvoted! (+5 XP)'));
+            }
+            
+            saveKoudmenDiscussions();
+            renderKoudmenDiscussions();
+        }
+
+        function upvoteAnswer(questionId, answerId) {
+            const q = koudmenDiscussions.find(item => item.id === questionId);
+            if (!q) return;
+            const a = q.answers.find(ans => ans.id === answerId);
+            if (!a) return;
+            
+            a.hasUpvoted = !a.hasUpvoted;
+            a.upvotes += a.hasUpvoted ? 1 : -1;
+            
+            if (a.hasUpvoted) {
+                userProgress.xp += 3;
+                saveProgress();
+                updateProgressUI();
+                showToast(currentLang === 'fr' ? '👏 Réponse approuvée ! (+3 XP)' : (currentLang === 'mq' ? '👏 Bèl repons ! (+3 XP)' : '👏 Helpful answer upvoted! (+3 XP)'));
+            }
+            
+            saveKoudmenDiscussions();
+            renderKoudmenDiscussions();
+        }
+
+        function handleNewQuestionSubmit(e) {
+            e.preventDefault();
+            const authorInput = document.getElementById('koudmenAuthorInput');
+            const categorySelect = document.getElementById('koudmenCategorySelect');
+            const titleInput = document.getElementById('koudmenTitleInput');
+            const bodyTextarea = document.getElementById('koudmenBodyTextarea');
+            
+            if (!titleInput || !bodyTextarea) return;
+            
+            const newQ = {
+                id: 'koudmen-' + Date.now(),
+                category: categorySelect ? categorySelect.value : 'grammar',
+                author: authorInput && authorInput.value.trim() ? authorInput.value.trim() : 'MatinikLearner',
+                authorRegion: 'Community Member',
+                timeAgo: 'Just now',
+                title: titleInput.value.trim(),
+                body: bodyTextarea.value.trim(),
+                upvotes: 1,
+                hasUpvoted: true,
+                answers: []
+            };
+            
+            koudmenDiscussions.unshift(newQ);
+            saveKoudmenDiscussions();
+            
+            // Gamification reward
+            userProgress.xp += 15;
+            saveProgress();
+            updateProgressUI();
+            incrementDailyGoalProgress(1);
+            
+            // Reset form
+            titleInput.value = '';
+            bodyTextarea.value = '';
+            toggleQuestionForm(false);
+            
+            showToast(currentLang === 'fr' ? '🎉 Question publiée sur Koudmen ! (+15 XP)' : (currentLang === 'mq' ? '🎉 Kèsyon ou pibliyé an Koudmen ! (+15 XP)' : '🎉 Question published to Community Koudmen (+15 XP)!'));
+            renderKoudmenDiscussions();
+        }
+
+        function handleAnswerSubmit(questionId, e) {
+            e.preventDefault();
+            const form = e.target;
+            const input = form.querySelector('input');
+            if (!input || !input.value.trim()) return;
+            
+            const q = koudmenDiscussions.find(item => item.id === questionId);
+            if (!q) return;
+            
+            const newAns = {
+                id: 'ans-' + Date.now(),
+                author: 'You (Student)',
+                isNative: false,
+                timeAgo: 'Just now',
+                text: input.value.trim(),
+                upvotes: 1,
+                hasUpvoted: true
+            };
+            
+            q.answers.push(newAns);
+            saveKoudmenDiscussions();
+            
+            userProgress.xp += 10;
+            saveProgress();
+            updateProgressUI();
+            incrementDailyGoalProgress(1);
+            
+            input.value = '';
+            showToast(currentLang === 'fr' ? '🤝 Réponse d\'entraide ajoutée ! (+10 XP)' : (currentLang === 'mq' ? '🤝 Ou ba koudmen ou ! (+10 XP)' : '🤝 Helpful answer posted (+10 XP)!'));
+            renderKoudmenDiscussions();
+        }
+
+        function renderKoudmenDiscussions() {
+            const listEl = document.getElementById('koudmenDiscussionsList');
+            if (!listEl) return;
+            
+            const filtered = koudmenDiscussions.filter(item => {
+                if (currentKoudmenFilter === 'all') return true;
+                return item.category === currentKoudmenFilter;
+            });
+            
+            // Update tab badge counters
+            const countAll = koudmenDiscussions.length;
+            const countGrammar = koudmenDiscussions.filter(i => i.category === 'grammar').length;
+            const countTraditions = koudmenDiscussions.filter(i => i.category === 'traditions').length;
+            const countVocab = koudmenDiscussions.filter(i => i.category === 'vocabulary').length;
+            
+            ['catCountAll', 'catCountAllFr', 'catCountAllMq'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = countAll;
+            });
+            ['catCountGrammar', 'catCountGrammarFr', 'catCountGrammarMq'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = countGrammar;
+            });
+            ['catCountTraditions', 'catCountTraditionsFr', 'catCountTraditionsMq'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = countTraditions;
+            });
+            ['catCountVocab', 'catCountVocabFr', 'catCountVocabMq'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = countVocab;
+            });
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `
+                    <div style="text-align: center; padding: 2.5rem; color: var(--text-secondary); background: #ffffff; border-radius: 18px; border: 2px dashed #cbd5e1;">
+                        <i class="fas fa-comments text-amber-500" style="font-size: 2rem; margin-bottom: 0.8rem; display: block;"></i>
+                        <p style="font-size: 1.1rem; font-weight: 600;">No discussions yet in this category.</p>
+                        <button type="button" class="post-question-trigger-btn" onclick="toggleQuestionForm(true)" style="margin-top: 1rem;">
+                            <i class="fas fa-plus"></i> Be the first to ask!
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const upvoteLabel = currentLang === 'fr' ? 'Utile' : (currentLang === 'mq' ? 'Ba lanmen' : 'Helpful');
+            const answersHeading = currentLang === 'fr' ? 'Réponses de la communauté' : (currentLang === 'mq' ? 'Repons kominoté-a' : 'Community Answers');
+            const replyPlaceholder = currentLang === 'fr' ? 'Rédiger une réponse d\'entraide...' : (currentLang === 'mq' ? 'Ékri an ti koudmen repons...' : 'Write a helpful reply or Creole explanation...');
+            const replyBtnText = currentLang === 'fr' ? 'Répondre' : (currentLang === 'mq' ? 'Réponn' : 'Reply');
+            const nativeBadgeText = currentLang === 'fr' ? 'Locuteur Natif' : (currentLang === 'mq' ? 'Moun Matinik' : 'Native Speaker');
+            
+            listEl.innerHTML = filtered.map(item => {
+                const catLabels = {
+                    grammar: currentLang === 'fr' ? 'Grammaire & Syntaxe' : (currentLang === 'mq' ? 'Gramè & Fraz' : 'Grammar & Syntax'),
+                    traditions: currentLang === 'fr' ? 'Traditions & Bèlè' : (currentLang === 'mq' ? 'Koutim & Bèlè' : 'Traditions & Heritage'),
+                    vocabulary: currentLang === 'fr' ? 'Vocabulaire Quotidien' : (currentLang === 'mq' ? 'Mo & Pawòl' : 'Daily Expressions'),
+                    pronunciation: currentLang === 'fr' ? 'Prononciation' : (currentLang === 'mq' ? 'Prononsiyasion' : 'Pronunciation')
+                };
+                const catDisplay = catLabels[item.category] || item.category;
+
+                const answersHtml = (item.answers && item.answers.length > 0) ? `
+                    <div class="koudmen-answers-section">
+                        <div class="answers-header">
+                            <i class="fas fa-comment-dots text-blue-500"></i>
+                            <span>${answersHeading} (${item.answers.length})</span>
+                        </div>
+                        ${item.answers.map(ans => `
+                            <div class="answer-bubble">
+                                <div class="answer-meta-row">
+                                    <div>
+                                        <span class="answer-author">${ans.author}</span>
+                                        ${ans.isNative ? `<span class="native-speaker-badge"><i class="fas fa-circle-check"></i> ${nativeBadgeText}</span>` : ''}
+                                    </div>
+                                    <span style="color: var(--text-secondary); font-size: 0.8rem;">${ans.timeAgo}</span>
+                                </div>
+                                <div class="answer-text">${ans.text}</div>
+                                <div style="margin-top: 8px; display: flex; justify-content: flex-end;">
+                                    <button type="button" class="upvote-btn ${ans.hasUpvoted ? 'voted' : ''}" onclick="upvoteAnswer('${item.id}', '${ans.id}')" title="Upvote this answer" aria-label="Upvote answer">
+                                        <i class="fas fa-thumbs-up"></i>
+                                        <span>${ans.upvotes} ${upvoteLabel}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                        <form class="reply-input-bar" onsubmit="handleAnswerSubmit('${item.id}', event)">
+                            <input type="text" placeholder="${replyPlaceholder}" required autocomplete="off">
+                            <button type="submit" class="reply-send-btn">
+                                <i class="fas fa-reply mr-1"></i> ${replyBtnText}
+                            </button>
+                        </form>
+                    </div>
+                ` : `
+                    <div class="koudmen-answers-section">
+                        <div class="answers-header" style="color: var(--text-secondary); font-size: 0.88rem;">
+                            <i class="fas fa-hand-holding-heart text-amber-500"></i>
+                            <span>${currentLang === 'fr' ? 'Soyez le premier à donner un koudmen !' : (currentLang === 'mq' ? 'Sé vou ki pou ba pémmyé koudmen-an !' : 'Be the first neighbor to offer a koudmen answer!')}</span>
+                        </div>
+                        <form class="reply-input-bar" onsubmit="handleAnswerSubmit('${item.id}', event)">
+                            <input type="text" placeholder="${replyPlaceholder}" required autocomplete="off">
+                            <button type="submit" class="reply-send-btn">
+                                <i class="fas fa-reply mr-1"></i> ${replyBtnText}
+                            </button>
+                        </form>
+                    </div>
+                `;
+
+                return `
+                    <article class="koudmen-card" id="card-${item.id}">
+                        <div class="koudmen-card-top">
+                            <div>
+                                <span class="koudmen-cat-tag">${catDisplay}</span>
+                                <div class="koudmen-meta-text">
+                                    <i class="fas fa-user-circle mr-1"></i><strong>${item.author}</strong> (${item.authorRegion}) • ${item.timeAgo}
+                                </div>
+                            </div>
+                            <button type="button" class="upvote-btn ${item.hasUpvoted ? 'voted' : ''}" onclick="upvoteQuestion('${item.id}')" title="Upvote this question" aria-label="Upvote question">
+                                <i class="fas fa-thumbs-up"></i>
+                                <span>${item.upvotes}</span>
+                            </button>
+                        </div>
+                        <h3 class="koudmen-question-title">${item.title}</h3>
+                        <p class="koudmen-question-body">${item.body}</p>
+                        ${answersHtml}
+                    </article>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
         // 11. AUDIO-ONLY QUIZ MODE LOGIC
         // ==========================================
         const audioQuizQuestions = [
@@ -6107,6 +7525,9 @@
                 audioQuizScore++;
                 userProgress.xp += 15;
                 updateDailyStreak();
+                if (typeof incrementDailyGoalProgress === 'function') {
+                    incrementDailyGoalProgress(1);
+                }
                 saveProgress();
                 updateProgressUI();
                 
@@ -6192,6 +7613,8 @@
         // Initialize state
         initTheme();
         loadProgress();
+        initDailyGoal();
+        initKoudmen();
         showModule('module1');
         changeLanguage('en');
         initWordOfTheDay();
