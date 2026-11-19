@@ -79,7 +79,11 @@ export async function initFirebase() {
   if (initPromise) return initPromise;
   initPromise = (async () => {
     try {
-      const resp = await fetch('/firebase-applet-config.json', { cache: 'no-store' });
+      const configUrl = new URL('../firebase-applet-config.json', import.meta.url).href;
+      let resp = await fetch(configUrl, { cache: 'no-store' });
+      if (!resp.ok) {
+        resp = await fetch('./firebase-applet-config.json', { cache: 'no-store' });
+      }
       if (!resp.ok) throw new Error('Missing firebase-applet-config.json');
       const config = await resp.json();
       firebaseApp = initializeApp(config);
@@ -402,5 +406,106 @@ export async function deleteKoudmenPost(postId) {
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, path);
   }
+}
+
+export function sanitizeLocationSlug(raw) {
+  const clean = String(raw || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 64);
+  return clean || `site-${Date.now()}`;
+}
+
+export function subscribeMapLocations(onData) {
+  if (!db) return () => {};
+  const path = 'mapLocations';
+  const q = query(collection(db, path), orderBy('createdAt', 'desc'), limit(80));
+  return onSnapshot(q, (snap) => {
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data(), isCloud: true }));
+    onData(items);
+  }, (error) => {
+    handleFirestoreError(error, OperationType.LIST, path);
+  });
+}
+
+export async function createMapLocation(data, user) {
+  if (!db || !user) throw new Error('Authentication required');
+  const id = sanitizeLocationSlug(data.id || data.name);
+  const path = `mapLocations/${id}`;
+  const allowedCats = ['commune', 'historical', 'offbeat'];
+  try {
+    const lat = Number(data.lat);
+    const lng = Number(data.lng);
+    if (!Number.isFinite(lat) || lat < -90 || lat > 90) throw new Error('Valid latitude (-90 to 90) is required');
+    if (!Number.isFinite(lng) || lng < -180 || lng > 180) throw new Error('Valid longitude (-180 to 180) is required');
+
+    const payload = {
+      id,
+      name: String(data.name || '').trim().slice(0, 140),
+      creoleName: String(data.creoleName || data.name || '').trim().slice(0, 180),
+      category: allowedCats.includes(data.category) ? data.category : 'historical',
+      region: String(data.region || 'Martinique').trim().slice(0, 120),
+      lat,
+      lng,
+      audioPhrase: String(data.audioPhrase || data.creoleName || data.name || '').trim().slice(0, 240),
+      fact: String(data.fact || '').trim().slice(0, 1200),
+      tradition: String(data.tradition || '').trim().slice(0, 800),
+      proverb: String(data.proverb || '').trim().slice(0, 400),
+      imageUrl: String(data.imageUrl || '').trim().slice(0, 200000),
+      authorId: user.uid,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+    await setDoc(doc(db, 'mapLocations', id), payload);
+    return id;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, path);
+  }
+}
+
+export async function deleteMapLocation(locationId) {
+  if (!db) return;
+  const path = `mapLocations/${locationId}`;
+  try {
+    await deleteDoc(doc(db, 'mapLocations', locationId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
+  }
+}
+
+export async function seedCuratedMapLocations(locationsMap, user) {
+  if (!db || !user) throw new Error('Admin sign-in required');
+  const entries = Object.values(locationsMap || {});
+  let synced = 0;
+  for (const loc of entries) {
+    const id = sanitizeLocationSlug(loc.id || loc.name);
+    const payload = {
+      id,
+      name: String(loc.name || '').trim().slice(0, 140),
+      creoleName: String(loc.creoleName || loc.name || '').trim().slice(0, 180),
+      category: ['commune', 'historical', 'offbeat'].includes(loc.category) ? loc.category : 'commune',
+      region: String(loc.region || 'Martinique').trim().slice(0, 120),
+      lat: Number(loc.lat),
+      lng: Number(loc.lng),
+      audioPhrase: String(loc.audioPhrase || loc.name || '').trim().slice(0, 240),
+      fact: String(loc.fact || '').trim().slice(0, 1200),
+      tradition: String(loc.tradition || '').trim().slice(0, 800),
+      proverb: String(loc.proverb || '').trim().slice(0, 400),
+      imageUrl: String(loc.gallery?.[0]?.src || '').trim().slice(0, 200000),
+      authorId: user.uid,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+    try {
+      await setDoc(doc(db, 'mapLocations', id), payload);
+      synced += 1;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `mapLocations/${id}`);
+    }
+  }
+  return synced;
 }
 

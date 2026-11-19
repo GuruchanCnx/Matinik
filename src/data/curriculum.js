@@ -1,6 +1,6 @@
 // Clean Martinican Creole Curriculum, Localization, Oral Labs & Archival Heritage Metadata (GEREC Standard)
 
-export const HERO_BANNER_IMAGE = '/src/assets/images/hero_heritage_story_1795118200648.jpg';
+export const HERO_BANNER_IMAGE = './src/assets/images/hero_heritage_story_1795118200648.jpg';
 
 export const UI_STRINGS = {
   en: {

@@ -126,6 +126,29 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
+    function isValidMapLocation(data, locationId) {
+      return data.keys().hasAll(['id', 'name', 'creoleName', 'category', 'region', 'lat', 'lng', 'fact', 'authorId', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly([
+          'id', 'name', 'creoleName', 'category', 'region', 'lat', 'lng',
+          'audioPhrase', 'fact', 'tradition', 'proverb', 'imageUrl', 'authorId', 'createdAt', 'updatedAt'
+        ])
+        && data.id is string && data.id.size() <= 128 && data.id == locationId
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 140
+        && data.creoleName is string && data.creoleName.size() >= 2 && data.creoleName.size() <= 180
+        && data.category is string && data.category.size() <= 24 && data.category in ['commune', 'historical', 'offbeat']
+        && data.region is string && data.region.size() >= 2 && data.region.size() <= 120
+        && data.lat is number && data.lat >= -90 && data.lat <= 90
+        && data.lng is number && data.lng >= -180 && data.lng <= 180
+        && (!('audioPhrase' in data) || (data.audioPhrase is string && data.audioPhrase.size() <= 240))
+        && data.fact is string && data.fact.size() >= 4 && data.fact.size() <= 1200
+        && (!('tradition' in data) || (data.tradition is string && data.tradition.size() <= 800))
+        && (!('proverb' in data) || (data.proverb is string && data.proverb.size() <= 400))
+        && (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 200000))
+        && data.authorId is string && data.authorId.size() <= 128
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
     // Users Collection (PII strictly isolated to owner or admin)
     match /users/{userId} {
       allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
@@ -244,6 +267,29 @@ service cloud.firestore {
           )
         );
       allow delete: if isValidId(postId) && (isAdmin() || (isVerifiedUser() && existing().authorId == request.auth.uid));
+    }
+
+    // Dynamic Martinique Heritage Map Locations (Historical Sites, Offbeat & Communes)
+    match /mapLocations/{locationId} {
+      allow get: if isValidId(locationId);
+      allow list: if true;
+      allow create: if isValidId(locationId)
+        && isAdmin()
+        && isValidMapLocation(incoming(), locationId)
+        && incoming().authorId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(locationId)
+        && isAdmin()
+        && isValidMapLocation(incoming(), locationId)
+        && incoming().authorId == existing().authorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'creoleName', 'category', 'region', 'lat', 'lng',
+          'audioPhrase', 'fact', 'tradition', 'proverb', 'imageUrl', 'updatedAt'
+        ]);
+      allow delete: if isValidId(locationId) && isAdmin();
     }
   }
 }

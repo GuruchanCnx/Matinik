@@ -17,17 +17,22 @@
   <script type="importmap">
   {
     "imports": {
-      "firebase/app": "/vendor/firebase/firebase-app.js",
-      "firebase/auth": "/vendor/firebase/firebase-auth.js",
-      "firebase/firestore": "/vendor/firebase/firebase-firestore.js",
-      "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js": "/vendor/firebase/firebase-app.js"
+      "firebase/app": "./src/vendor/firebase/firebase-app.js",
+      "firebase/auth": "./src/vendor/firebase/firebase-auth.js",
+      "firebase/firestore": "./src/vendor/firebase/firebase-firestore.js",
+      "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js": "./src/vendor/firebase/firebase-app.js"
     }
   }
   </script>
-  <link rel="stylesheet" href="/src/styles.css">
+  <link rel="stylesheet" href="./src/styles.css">
 </head>
 <body>
   <div id="app"></div>
-  <script type="module" src="/src/app.js"></script>
+  <noscript>
+    <div style="padding:2rem; font-family:sans-serif; text-align:center;">
+      Kréyòl Matinik requires JavaScript enabled to load interactive audio, maps, and flashcards.
+    </div>
+  </noscript>
+  <script type="module" src="./src/app.js"></script>
 </body>
 </html>

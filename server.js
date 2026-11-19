@@ -3,7 +3,6 @@ import os from 'os';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { GoogleGenAI, Type } from '@google/genai';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,21 +39,37 @@ app.use('/src', express.static(path.join(STATIC_ROOT, 'src')));
 app.use('/uploads', express.static(UPLOADS_DIR));
 app.use('/vendor/firebase', express.static(path.join(STATIC_ROOT, 'node_modules', 'firebase')));
 
-// Lazy initialization of Gemini client
+// Lazy initialization of Gemini client (avoids top-level cold-start crashes if key or native deps are absent)
 let aiClient = null;
-function getAIClient() {
+let cachedGenAiType = null;
+async function getAIClient() {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
-  if (!aiClient) {
-    aiClient = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: { 'User-Agent': 'aistudio-build' }
-      }
-    });
+  try {
+    if (!aiClient || !cachedGenAiType) {
+      const mod = await import('@google/genai');
+      cachedGenAiType = mod.Type;
+      aiClient = new mod.GoogleGenAI({
+        apiKey,
+        httpOptions: {
+          headers: { 'User-Agent': 'aistudio-build' }
+        }
+      });
+    }
+    return { ai: aiClient, Type: cachedGenAiType };
+  } catch (err) {
+    console.warn('Gemini SDK lazy load skipped:', err.message);
+    return null;
   }
-  return aiClient;
 }
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    ok: true,
+    serverless: IS_SERVERLESS,
+    aiConfigured: Boolean(process.env.GEMINI_API_KEY)
+  });
+});
 
 function withTimeout(promise, ms = 6000) {
   return Promise.race([
@@ -89,8 +104,9 @@ app.post('/api/tutor', async (req, res) => {
       ? history
       : (Array.isArray(conversationHistory) ? conversationHistory : []);
 
-    const ai = getAIClient();
-    if (ai) {
+    const aiBundle = await getAIClient();
+    if (aiBundle) {
+      const { ai } = aiBundle;
       try {
         const langName = currentLang === 'fr'
           ? 'French'
@@ -174,8 +190,9 @@ app.post('/api/agentic-coach', async (req, res) => {
     const recordedCount = Number(stats.recordedCount || 0);
     const visitedCommunes = Array.isArray(stats.visitedCommunes) ? stats.visitedCommunes : [];
 
-    const ai = getAIClient();
-    if (ai) {
+    const aiBundle = await getAIClient();
+    if (aiBundle) {
+      const { ai, Type } = aiBundle;
       try {
         const langLabel = currentLang === 'fr' ? 'French' : currentLang === 'mq' ? 'Martinican Creole' : 'English';
         const coachPrompt = `You are an adaptive Martinican Creole (Kréyòl Matinik, GEREC orthography) heritage study coach.
@@ -394,6 +411,12 @@ app.get('*', (req, res) => {
     return res.status(404).send('Application entry not found');
   }
   return res.sendFile(indexPath);
+});
+
+app.use((err, req, res, _next) => {
+  console.error('Unhandled Express error:', err);
+  if (res.headersSent) return;
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 if (!IS_SERVERLESS) {

@@ -1,5 +1,5 @@
 import { DEFAULT_KOUDMEN_THREADS, HERITAGE_INSTITUTIONS } from '../data/curriculum.js';
-import { MAP_LOCATIONS } from '../data/mapData.js';
+import { IMG_RAINFOREST, MAP_LOCATIONS } from '../data/mapData.js';
 import { speakTermSequence } from '../services/audioEngine.js';
 import { escapeHtml } from './curriculumAndQuiz.js';
 
@@ -7,8 +7,35 @@ let leafletMapInstance = null;
 let leafletMarkersLayer = null;
 let leafletMarkersById = new Map();
 
+export function getMergedMapLocations(ctx) {
+  const merged = { ...MAP_LOCATIONS };
+  const cloudItems = ctx?.cloud?.mapLocations || [];
+  cloudItems.forEach((doc) => {
+    if (!doc || !doc.id) return;
+    const baseline = merged[doc.id];
+    const gallery = doc.imageUrl
+      ? [{ src: doc.imageUrl, title: doc.name, caption: doc.region || 'Martinique Heritage Site' }, ...(baseline?.gallery || [])]
+      : (baseline?.gallery || [{ src: IMG_RAINFOREST, title: doc.name, caption: doc.region || 'Martinique Heritage' }]);
+    merged[doc.id] = {
+      id: doc.id,
+      category: ['commune', 'historical', 'offbeat'].includes(doc.category) ? doc.category : 'historical',
+      name: doc.name || baseline?.name || doc.id,
+      creoleName: doc.creoleName || baseline?.creoleName || '',
+      region: doc.region || baseline?.region || 'Martinique',
+      lat: Number.isFinite(Number(doc.lat)) ? Number(doc.lat) : (baseline?.lat || 14.6415),
+      lng: Number.isFinite(Number(doc.lng)) ? Number(doc.lng) : (baseline?.lng || -61.0242),
+      audioPhrase: doc.audioPhrase || baseline?.audioPhrase || doc.name,
+      fact: doc.fact || baseline?.fact || '',
+      tradition: doc.tradition || baseline?.tradition || 'Living Martinican cultural heritage',
+      proverb: doc.proverb || baseline?.proverb || '',
+      gallery,
+      isCloud: true
+    };
+  });
+  return merged;
+}
+
 function projectLatLngToSvg(lat, lng) {
-  // Maps Martinique bounds (~14.38..14.89 lat, -61.24..-60.81 lng) smoothly onto 340x400 SVG canvas
   const x = Math.max(24, Math.min(316, ((lng - (-61.24)) / (-60.81 - (-61.24))) * 280 + 30));
   const y = Math.max(24, Math.min(376, ((14.89 - lat) / (14.89 - 14.38)) * 340 + 30));
   return { x: Math.round(x), y: Math.round(y) };
@@ -38,11 +65,12 @@ function buildMarkerIcon(loc, isSelected) {
 function buildMarkerPopupHtml(loc) {
   const meta = getCategoryMeta(loc.category);
   const thumb = loc.gallery?.[0]?.src || '';
-  const excerpt = loc.fact.length > 120 ? `${loc.fact.slice(0, 117)}...` : loc.fact;
+  const excerpt = loc.fact.length > 125 ? `${loc.fact.slice(0, 122)}...` : loc.fact;
+  const sourceNote = loc.isCloud ? ' · Firestore Live' : '';
   return `
     <div class="km-osm-popup-card">
       ${thumb ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(loc.name)}" class="km-osm-popup-thumb" referrerpolicy="no-referrer">` : ''}
-      <div class="km-meta-line" style="color:${meta.color};"><i class="fas ${meta.icon}"></i> ${escapeHtml(meta.label)} · ${escapeHtml(loc.region)}</div>
+      <div class="km-meta-line" style="color:${meta.color};"><i class="fas ${meta.icon}"></i> ${escapeHtml(meta.label)} · ${escapeHtml(loc.region)}${sourceNote}</div>
       <strong style="font-size:1.02rem; line-height:1.2;">${escapeHtml(loc.name)}</strong>
       <div style="font-size:0.8rem; font-weight:700; color:var(--cobalt);">${escapeHtml(loc.creoleName)}</div>
       <p style="font-size:0.8rem; color:var(--ink-secondary); margin:0;">${escapeHtml(excerpt)}</p>
@@ -58,20 +86,25 @@ function buildMarkerPopupHtml(loc) {
   `;
 }
 
-function renderMapDetailPanel(panelEl, selected, visited, ctx) {
+function renderMapDetailPanel(panelEl, selected, visited, totalCount, ctx) {
   if (!panelEl || !selected) return;
   const meta = getCategoryMeta(selected.category);
   panelEl.innerHTML = `
-    <div class="km-meta-line"><i class="fas ${meta.icon}" style="color:${meta.color};"></i> ${escapeHtml(meta.label)} · ${escapeHtml(selected.region)} · ${visited.length}/${Object.keys(MAP_LOCATIONS).length} explored</div>
+    <div class="km-meta-line">
+      <i class="fas ${meta.icon}" style="color:${meta.color};"></i>
+      ${escapeHtml(meta.label)} · ${escapeHtml(selected.region)}${selected.isCloud ? ' · Firestore Live' : ''} · ${visited.length}/${totalCount} explored
+    </div>
     <h3 style="font-size:1.38rem;">${escapeHtml(selected.name)}</h3>
     <div style="font-weight:700; color:var(--cobalt); font-size:0.95rem;">${escapeHtml(selected.creoleName)}</div>
     <p style="font-size:0.9rem; color:var(--ink-secondary);">${escapeHtml(selected.fact)}</p>
     <div style="background:var(--surface-subtle); padding:0.7rem 0.85rem; border-radius:10px; font-size:0.86rem;">
       <strong>Living Tradition:</strong> ${escapeHtml(selected.tradition)}
     </div>
-    <div style="font-size:0.86rem; font-style:italic; color:var(--emerald); font-weight:600;">
-      ${escapeHtml(selected.proverb)}
-    </div>
+    ${selected.proverb ? `
+      <div style="font-size:0.86rem; font-style:italic; color:var(--emerald); font-weight:600;">
+        ${escapeHtml(selected.proverb)}
+      </div>
+    ` : ''}
 
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:0.25rem;">
       <button type="button" class="km-btn km-btn-sm km-btn-primary" id="mapListenBtn">
@@ -104,21 +137,117 @@ function renderMapDetailPanel(panelEl, selected, visited, ctx) {
   });
 }
 
-export function renderMartiniqueMapSection(container, ctx) {
+function syncLeafletMarkers(entries, selected, onSelect) {
+  if (!leafletMapInstance || !leafletMarkersLayer || typeof window.L === 'undefined') return;
+  leafletMarkersLayer.clearLayers();
+  leafletMarkersById.clear();
+
+  entries.forEach((loc) => {
+    const isSel = loc.id === selected.id;
+    const marker = window.L.marker([loc.lat, loc.lng], {
+      icon: buildMarkerIcon(loc, isSel)
+    }).addTo(leafletMarkersLayer);
+
+    marker.bindTooltip(`${loc.name} · ${loc.creoleName.split('•')[0]}`, { direction: 'top', offset: [0, -24] });
+    marker.bindPopup(buildMarkerPopupHtml(loc), { maxWidth: 280, className: 'km-osm-popup' });
+    marker.on('click', () => onSelect(loc.id, true));
+    leafletMarkersById.set(loc.id, marker);
+  });
+}
+
+export function refreshDynamicMapMarkers(ctx) {
+  const container = document.getElementById('mapMount');
   if (!container) return;
+  const acc = document.getElementById('acc-map');
+  if (!acc || acc.getAttribute('data-open') !== 'true') return;
+
+  const allMap = getMergedMapLocations(ctx);
   const filter = ctx.state.mapCategory || 'all';
   const mode = ctx.state.mapMode || 'osm';
-  const entries = Object.values(MAP_LOCATIONS).filter((loc) => filter === 'all' || loc.category === filter);
-  const selected = MAP_LOCATIONS[ctx.state.selectedSiteId] || entries[0] || MAP_LOCATIONS['fort-de-france'];
+  const entries = Object.values(allMap).filter((loc) => filter === 'all' || loc.category === filter);
+  const selected = allMap[ctx.state.selectedSiteId] || entries[0] || allMap['fort-de-france'];
+  const visited = ctx.collection.visitedSites || [];
+
+  if (mode === 'osm' && leafletMapInstance && leafletMarkersLayer) {
+    syncLeafletMarkers(entries, selected, (siteId, openPopup) => selectMapSite(container, siteId, openPopup, ctx));
+    const chipsWrap = container.querySelector('#kmSiteChipsWrap');
+    if (chipsWrap) {
+      chipsWrap.innerHTML = entries.map((loc) => `
+        <button type="button" class="km-btn km-btn-sm ${loc.id === selected.id ? 'active' : ''}" data-site-select="${escapeHtml(loc.id)}">
+          ${visited.includes(loc.id) ? '✓ ' : ''}${escapeHtml(loc.name)}
+        </button>
+      `).join('');
+      chipsWrap.querySelectorAll('[data-site-select]').forEach((b) => {
+        b.addEventListener('click', () => selectMapSite(container, b.getAttribute('data-site-select'), true, ctx));
+      });
+    }
+    const detailPanel = container.querySelector('#kmMapDetailPanel');
+    renderMapDetailPanel(detailPanel, selected, visited, Object.keys(allMap).length, ctx);
+  } else {
+    destroyLeafletMap();
+    renderMartiniqueMapSection(container, ctx);
+  }
+}
+
+function selectMapSite(container, siteId, openPopup, ctx) {
+  const allMap = getMergedMapLocations(ctx);
+  const loc = allMap[siteId];
+  if (!loc) return;
+  ctx.state.selectedSiteId = siteId;
+  ctx.actions.markSiteVisited(siteId);
+  const updatedVisited = ctx.collection.visitedSites || [];
+  const mode = ctx.state.mapMode || 'osm';
+  const detailPanel = container.querySelector('#kmMapDetailPanel');
+
+  if (mode === 'osm' && leafletMapInstance && leafletMarkersById.has(siteId)) {
+    renderMapDetailPanel(detailPanel, loc, updatedVisited, Object.keys(allMap).length, ctx);
+    container.querySelectorAll('[data-site-select]').forEach((btn) => {
+      const id = btn.getAttribute('data-site-select');
+      const site = allMap[id];
+      btn.classList.toggle('active', id === siteId);
+      if (site) {
+        btn.textContent = `${updatedVisited.includes(id) ? '✓ ' : ''}${site.name}`;
+      }
+    });
+    leafletMarkersById.forEach((m, id) => {
+      const site = allMap[id];
+      if (site) m.setIcon(buildMarkerIcon(site, id === siteId));
+    });
+    const targetMarker = leafletMarkersById.get(siteId);
+    if (targetMarker) {
+      leafletMapInstance.panTo([loc.lat, loc.lng], { animate: !ctx.settings.reduceMotion });
+      if (openPopup && !targetMarker.isPopupOpen()) {
+        targetMarker.openPopup();
+      }
+    }
+  } else {
+    destroyLeafletMap();
+    renderMartiniqueMapSection(container, ctx);
+  }
+}
+
+export function renderMartiniqueMapSection(container, ctx) {
+  if (!container) return;
+  const allMap = getMergedMapLocations(ctx);
+  const allValues = Object.values(allMap);
+  const communeCount = allValues.filter((l) => l.category === 'commune').length;
+  const histCount = allValues.filter((l) => l.category === 'historical').length;
+  const offbeatCount = allValues.filter((l) => l.category === 'offbeat').length;
+  const cloudCount = (ctx?.cloud?.mapLocations || []).length;
+
+  const filter = ctx.state.mapCategory || 'all';
+  const mode = ctx.state.mapMode || 'osm';
+  const entries = allValues.filter((loc) => filter === 'all' || loc.category === filter);
+  const selected = allMap[ctx.state.selectedSiteId] || entries[0] || allMap['fort-de-france'];
   const visited = ctx.collection.visitedSites || [];
 
   container.innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.65rem; margin-bottom:0.75rem;">
       <div class="km-seg-group" role="tablist" aria-label="Map filter categories">
-        <button type="button" class="km-seg-btn ${filter === 'all' ? 'active' : ''}" data-map-cat="all">All (${Object.keys(MAP_LOCATIONS).length})</button>
-        <button type="button" class="km-seg-btn ${filter === 'commune' ? 'active' : ''}" data-map-cat="commune">12 Communes</button>
-        <button type="button" class="km-seg-btn ${filter === 'historical' ? 'active' : ''}" data-map-cat="historical">Historical Sites</button>
-        <button type="button" class="km-seg-btn ${filter === 'offbeat' ? 'active' : ''}" data-map-cat="offbeat">Off the Beaten Path</button>
+        <button type="button" class="km-seg-btn ${filter === 'all' ? 'active' : ''}" data-map-cat="all">All (${allValues.length})</button>
+        <button type="button" class="km-seg-btn ${filter === 'commune' ? 'active' : ''}" data-map-cat="commune">Communes (${communeCount})</button>
+        <button type="button" class="km-seg-btn ${filter === 'historical' ? 'active' : ''}" data-map-cat="historical">Historical Sites (${histCount})</button>
+        <button type="button" class="km-seg-btn ${filter === 'offbeat' ? 'active' : ''}" data-map-cat="offbeat">Off the Beaten Path (${offbeatCount})</button>
       </div>
 
       <div class="km-seg-group" role="tablist" aria-label="Map engine switch">
@@ -131,6 +260,7 @@ export function renderMartiniqueMapSection(container, ctx) {
       <span class="km-osm-legend-item"><span class="km-osm-dot" style="background:#1d4ed8;"></span> Communes</span>
       <span class="km-osm-legend-item"><span class="km-osm-dot" style="background:#b45309;"></span> Historical Sites</span>
       <span class="km-osm-legend-item"><span class="km-osm-dot" style="background:#047857;"></span> Off the Beaten Path</span>
+      <span class="km-meta-line" style="margin-left:auto;">${cloudCount > 0 ? `${cloudCount} live Firestore markers synced` : 'Curated heritage dataset + live Firestore listener'}</span>
     </div>
 
     <div class="km-map-layout">
@@ -147,7 +277,6 @@ export function renderMartiniqueMapSection(container, ctx) {
                 </linearGradient>
               </defs>
               <rect width="340" height="400" rx="14" fill="url(#kmSeaGrad)" />
-              <!-- Stylized Martinique Madinina island outline -->
               <path d="M98 44 C122 36, 152 46, 178 72 C205 98, 224 128, 250 156 C272 178, 244 210, 232 232 C240 258, 266 286, 268 320 C268 352, 236 368, 206 356 C180 345, 162 318, 134 304 C112 292, 108 260, 126 232 C142 208, 128 186, 104 166 C82 146, 74 96, 86 64 Z"
                 fill="#bbf7d0" stroke="#047857" stroke-width="2.5" />
               ${entries.map((loc) => {
@@ -179,13 +308,12 @@ export function renderMartiniqueMapSection(container, ctx) {
   `;
 
   const detailPanel = container.querySelector('#kmMapDetailPanel');
-  renderMapDetailPanel(detailPanel, selected, visited, ctx);
+  renderMapDetailPanel(detailPanel, selected, visited, allValues.length, ctx);
 
-  // Wire filters & mode switch
   container.querySelectorAll('[data-map-cat]').forEach((b) => {
     b.addEventListener('click', () => {
       ctx.state.mapCategory = b.getAttribute('data-map-cat');
-      const nextList = Object.values(MAP_LOCATIONS).filter((l) => ctx.state.mapCategory === 'all' || l.category === ctx.state.mapCategory);
+      const nextList = Object.values(getMergedMapLocations(ctx)).filter((l) => ctx.state.mapCategory === 'all' || l.category === ctx.state.mapCategory);
       if (nextList.length && !nextList.some((l) => l.id === ctx.state.selectedSiteId)) {
         ctx.state.selectedSiteId = nextList[0].id;
       }
@@ -202,40 +330,7 @@ export function renderMartiniqueMapSection(container, ctx) {
     });
   });
 
-  const handleSelectSite = (siteId, openPopup = true) => {
-    const loc = MAP_LOCATIONS[siteId];
-    if (!loc) return;
-    ctx.state.selectedSiteId = siteId;
-    ctx.actions.markSiteVisited(siteId);
-    const updatedVisited = ctx.collection.visitedSites || [];
-
-    if (mode === 'osm' && leafletMapInstance && leafletMarkersById.has(siteId)) {
-      // Smoothly update side detail card, chips, and marker icons without tearing down Leaflet popup
-      renderMapDetailPanel(detailPanel, loc, updatedVisited, ctx);
-      container.querySelectorAll('[data-site-select]').forEach((btn) => {
-        const id = btn.getAttribute('data-site-select');
-        const site = MAP_LOCATIONS[id];
-        btn.classList.toggle('active', id === siteId);
-        if (site) {
-          btn.textContent = `${updatedVisited.includes(id) ? '✓ ' : ''}${site.name}`;
-        }
-      });
-      leafletMarkersById.forEach((m, id) => {
-        const site = MAP_LOCATIONS[id];
-        if (site) m.setIcon(buildMarkerIcon(site, id === siteId));
-      });
-      const targetMarker = leafletMarkersById.get(siteId);
-      if (targetMarker) {
-        leafletMapInstance.panTo([loc.lat, loc.lng], { animate: !ctx.settings.reduceMotion });
-        if (openPopup && !targetMarker.isPopupOpen()) {
-          targetMarker.openPopup();
-        }
-      }
-    } else {
-      destroyLeafletMap();
-      renderMartiniqueMapSection(container, ctx);
-    }
-  };
+  const handleSelectSite = (siteId, openPopup = true) => selectMapSite(container, siteId, openPopup, ctx);
 
   container.querySelectorAll('[data-site-select]').forEach((b) => {
     b.addEventListener('click', () => handleSelectSite(b.getAttribute('data-site-select'), true));
@@ -268,24 +363,15 @@ function initLeafletCanvas(mapEl, entries, selected, onSelect, ctx) {
     }).addTo(leafletMapInstance);
 
     leafletMarkersLayer = window.L.layerGroup().addTo(leafletMapInstance);
-    entries.forEach((loc) => {
-      const isSel = loc.id === selected.id;
-      const marker = window.L.marker([loc.lat, loc.lng], {
-        icon: buildMarkerIcon(loc, isSel)
-      }).addTo(leafletMarkersLayer);
-
-      marker.bindTooltip(`${loc.name} · ${loc.creoleName.split('•')[0]}`, { direction: 'top', offset: [0, -24] });
-      marker.bindPopup(buildMarkerPopupHtml(loc), { maxWidth: 280, className: 'km-osm-popup' });
-      marker.on('click', () => onSelect(loc.id, true));
-      leafletMarkersById.set(loc.id, marker);
-    });
+    syncLeafletMarkers(entries, selected, onSelect);
 
     leafletMapInstance.on('popupopen', (e) => {
       const el = e.popup?.getElement();
       if (!el) return;
+      const merged = getMergedMapLocations(ctx);
       el.querySelector('[data-popup-listen]')?.addEventListener('click', (ev) => {
         const siteId = ev.currentTarget.getAttribute('data-popup-listen');
-        const site = MAP_LOCATIONS[siteId];
+        const site = merged[siteId];
         if (!site) return;
         speakTermSequence(site.audioPhrase || site.name, '', {
           settings: { ...ctx.settings, translationPlayback: false },
@@ -310,7 +396,8 @@ function initLeafletCanvas(mapEl, entries, selected, onSelect, ctx) {
 
 export function renderGalleryModal(backdrop, ctx) {
   if (!backdrop) return;
-  const site = MAP_LOCATIONS[ctx.state.gallerySiteId] || MAP_LOCATIONS['fort-de-france'];
+  const allMap = getMergedMapLocations(ctx);
+  const site = allMap[ctx.state.gallerySiteId] || allMap['fort-de-france'];
   const gallery = site.gallery || [];
   if (!gallery.length) return;
   const idx = (ctx.state.galleryIdx || 0) % gallery.length;
@@ -372,7 +459,6 @@ export function renderCommunityAndInstitutions(container, ctx) {
   const topicFilter = ctx.state.koudmenTopic || 'all';
   const lang = ctx.state.lang;
 
-  // Combine live Firestore threads + local posts + curated starter heritage threads
   const cloudPosts = (ctx.cloud.koudmen || []).map((p) => ({
     id: p.id,
     topic: p.topic || 'grammar',

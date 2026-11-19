@@ -2,7 +2,7 @@
   "version": 2,
   "functions": {
     "api/index.js": {
-      "includeFiles": "{index.html,firebase-applet-config.json,src/**,public/**,node_modules/firebase/firebase-app.js,node_modules/firebase/firebase-auth.js,node_modules/firebase/firebase-firestore.js}"
+      "includeFiles": "node_modules/firebase/**"
     }
   },
   "rewrites": [
@@ -19,7 +19,7 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!src/|public/|api/|vendor/|uploads/|firebase-applet-config\\.json|favicon\\.ico).*)",
       "destination": "/index.html"
     }
   ]

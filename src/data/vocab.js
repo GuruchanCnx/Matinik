@@ -252,11 +252,11 @@ export const CURRICULUM_TERMS = {
 
 // Complete 20 Flashcard Decks + 25+ Expanded Flashcards, Explanations, Fun Facts & AI Illustrations
 export const ARTWORKS = {
-  greetings: '/src/assets/images/flashcard_greetings_scene_1795116463426.jpg',
-  market: '/src/assets/images/flashcard_market_cuisine_1795116463413.jpg',
-  music: '/src/assets/images/flashcard_music_bele_1795116463374.jpg',
-  nature: '/src/assets/images/flashcard_nature_pelee_1795116463051.jpg',
-  dictionary: '/src/assets/images/dictionary_heritage_banner_1795116464309.jpg'
+  greetings: './src/assets/images/flashcard_greetings_scene_1795116463426.jpg',
+  market: './src/assets/images/flashcard_market_cuisine_1795116463413.jpg',
+  music: './src/assets/images/flashcard_music_bele_1795116463374.jpg',
+  nature: './src/assets/images/flashcard_nature_pelee_1795116463051.jpg',
+  dictionary: './src/assets/images/dictionary_heritage_banner_1795116464309.jpg'
 };
 
 export const LEARNING_LEVELS = [

@@ -600,8 +600,8 @@ export function renderAdminStudio(container, ctx) {
         </form>
 
         <div class="km-subpanel">
-          <strong style="font-size:0.95rem;">Published Cloud Content (${ctx.cloud.lessons.length} Lessons · ${ctx.cloud.dictionary.length} Terms)</strong>
-          <div style="display:flex; flex-direction:column; gap:6px; margin-top:0.55rem; max-height:200px; overflow-y:auto;">
+          <strong style="font-size:0.95rem;">Published Cloud Content (${ctx.cloud.lessons.length} Lessons · ${ctx.cloud.dictionary.length} Terms · ${(ctx.cloud.mapLocations || []).length} Map Pins)</strong>
+          <div style="display:flex; flex-direction:column; gap:6px; margin-top:0.55rem; max-height:210px; overflow-y:auto;">
             ${ctx.cloud.lessons.map((l) => `
               <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:0.84rem;">
                 <span>📘 ${escapeHtml(l.title)}</span>
@@ -614,9 +614,44 @@ export function renderAdminStudio(container, ctx) {
                 <button type="button" class="km-btn km-btn-sm" data-del-dict="${escapeHtml(d.id)}" style="color:var(--crimson);">Delete</button>
               </div>
             `).join('')}
+            ${(ctx.cloud.mapLocations || []).map((m) => `
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:0.84rem;">
+                <span>📍 ${escapeHtml(m.name)} (${escapeHtml(m.category)})</span>
+                <button type="button" class="km-btn km-btn-sm" data-del-maploc="${escapeHtml(m.id)}" style="color:var(--crimson);">Delete</button>
+              </div>
+            `).join('')}
           </div>
         </div>
       </div>
+
+      <!-- Publish Dynamic Leaflet Map Location to Firestore -->
+      <form id="adminMapForm" class="km-subpanel" style="display:flex; flex-direction:column; gap:0.6rem; grid-column:1 / -1;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <strong style="font-size:1rem;"><i class="fas fa-map-pin" style="color:var(--emerald);"></i> Add Heritage Map Pin (Historical / Offbeat / Commune)</strong>
+          <button type="button" class="km-btn km-btn-sm" id="adminSeedMapBtn">
+            <i class="fas fa-cloud-arrow-up"></i> Sync All 22 Curated Sites to Firestore
+          </button>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:6px;">
+          <input type="text" id="amName" class="km-input" placeholder="Site Name (e.g. Anse Turin) *" required>
+          <input type="text" id="amCreole" class="km-input" placeholder="Creole Title *" required>
+          <select id="amCategory" class="km-select">
+            <option value="historical">Historical Site</option>
+            <option value="offbeat">Off the Beaten Path</option>
+            <option value="commune">Commune</option>
+          </select>
+          <input type="text" id="amRegion" class="km-input" placeholder="Region / Parish *" required>
+          <input type="number" step="any" id="amLat" class="km-input" placeholder="Lat (e.g. 14.731)" required>
+          <input type="number" step="any" id="amLng" class="km-input" placeholder="Lng (e.g. -61.178)" required>
+        </div>
+        <input type="text" id="amAudio" class="km-input" placeholder="Creole audio greeting phrase">
+        <textarea id="amFact" class="km-textarea" rows="2" placeholder="Cultural & historical note for popup card *" required></textarea>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <input type="text" id="amTradition" class="km-input" placeholder="Living tradition...">
+          <input type="text" id="amProverb" class="km-input" placeholder="Related proverb...">
+        </div>
+        <button type="submit" class="km-btn km-btn-emerald"><i class="fas fa-location-dot"></i> Publish Live OSM Marker to Firestore</button>
+      </form>
     </div>
   `;
 
@@ -689,10 +724,34 @@ export function renderAdminStudio(container, ctx) {
     });
   });
 
+  container.querySelector('#adminMapForm')?.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    await ctx.actions.adminCreateMapLocation({
+      name: container.querySelector('#amName')?.value,
+      creoleName: container.querySelector('#amCreole')?.value,
+      category: container.querySelector('#amCategory')?.value,
+      region: container.querySelector('#amRegion')?.value,
+      lat: container.querySelector('#amLat')?.value,
+      lng: container.querySelector('#amLng')?.value,
+      audioPhrase: container.querySelector('#amAudio')?.value,
+      fact: container.querySelector('#amFact')?.value,
+      tradition: container.querySelector('#amTradition')?.value,
+      proverb: container.querySelector('#amProverb')?.value,
+      imageUrl: ctx.state.adminImageUrl || ''
+    });
+  });
+
+  container.querySelector('#adminSeedMapBtn')?.addEventListener('click', () => {
+    ctx.actions.adminSeedMapLocations();
+  });
+
   container.querySelectorAll('[data-del-lesson]').forEach((b) => {
     b.addEventListener('click', () => ctx.actions.adminDeleteLesson(b.getAttribute('data-del-lesson')));
   });
   container.querySelectorAll('[data-del-dict]').forEach((b) => {
     b.addEventListener('click', () => ctx.actions.adminDeleteDictEntry(b.getAttribute('data-del-dict')));
+  });
+  container.querySelectorAll('[data-del-maploc]').forEach((b) => {
+    b.addEventListener('click', () => ctx.actions.adminDeleteMapLocation(b.getAttribute('data-del-maploc')));
   });
 }

@@ -1,11 +1,11 @@
 // Martinique Interactive OSM & SVG Map Locations + Generated Commune Landscape Galleries
 
-export const IMG_FORT_DE_FRANCE = '/src/assets/images/martinique_fort_de_france_1795111105144.jpg';
-export const IMG_SAINT_PIERRE = '/src/assets/images/martinique_saint_pierre_pelee_1795111105506.jpg';
-export const IMG_LE_DIAMANT = '/src/assets/images/martinique_le_diamant_rock_1795111106354.jpg';
-export const IMG_SAINTE_ANNE = '/src/assets/images/martinique_sainte_anne_salines_1795111106566.jpg';
-export const IMG_LE_FRANCOIS = '/src/assets/images/martinique_le_francois_yoles_1795111107434.jpg';
-export const IMG_RAINFOREST = '/src/assets/images/martinique_northern_rainforest_1795111107328.jpg';
+export const IMG_FORT_DE_FRANCE = './src/assets/images/martinique_fort_de_france_1795111105144.jpg';
+export const IMG_SAINT_PIERRE = './src/assets/images/martinique_saint_pierre_pelee_1795111105506.jpg';
+export const IMG_LE_DIAMANT = './src/assets/images/martinique_le_diamant_rock_1795111106354.jpg';
+export const IMG_SAINTE_ANNE = './src/assets/images/martinique_sainte_anne_salines_1795111106566.jpg';
+export const IMG_LE_FRANCOIS = './src/assets/images/martinique_le_francois_yoles_1795111107434.jpg';
+export const IMG_RAINFOREST = './src/assets/images/martinique_northern_rainforest_1795111107328.jpg';
 
 export const MAP_LOCATIONS = {
   // === 12 ICONIC COMMUNES ===

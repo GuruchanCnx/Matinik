@@ -88,6 +88,29 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["authorId", "authorName", "topic", "title", "body", "upvotes", "createdAt", "updatedAt"]
+    },
+    "MapLocation": {
+      "title": "MapLocation",
+      "description": "Dynamic Martinique cultural map point of interest (commune, historical site, or off-the-beaten-path landmark)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 140 },
+        "creoleName": { "type": "string", "maxLength": 180 },
+        "category": { "type": "string", "enum": ["commune", "historical", "offbeat"] },
+        "region": { "type": "string", "maxLength": 120 },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "audioPhrase": { "type": "string", "maxLength": 240 },
+        "fact": { "type": "string", "maxLength": 1200 },
+        "tradition": { "type": "string", "maxLength": 800 },
+        "proverb": { "type": "string", "maxLength": 400 },
+        "imageUrl": { "type": "string", "maxLength": 200000 },
+        "authorId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "creoleName", "category", "region", "lat", "lng", "fact", "authorId", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
@@ -110,6 +133,10 @@
     "/koudmen/{postId}": {
       "schema": { "$ref": "#/entities/KoudmenPost" },
       "description": "Community Koudmen peer-learning posts."
+    },
+    "/mapLocations/{locationId}": {
+      "schema": { "$ref": "#/entities/MapLocation" },
+      "description": "Dynamic Leaflet OSM markers for communes, historical sites, and off-the-beaten-path heritage points."
     }
   }
 }

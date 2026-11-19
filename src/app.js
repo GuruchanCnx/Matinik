@@ -6,13 +6,16 @@ import {
   createDictionaryEntry,
   createKoudmenPost,
   createLessonArticle,
+  createMapLocation,
   deleteDictionaryEntry,
   deleteLessonArticle,
+  deleteMapLocation,
   initFirebase,
   loadUserProgressFromCloud,
   observeAuth,
   resendVerificationEmail,
   resetUserPassword,
+  seedCuratedMapLocations,
   signInWithApple,
   signInWithEmail,
   signInWithGoogle,
@@ -21,6 +24,7 @@ import {
   subscribeDictionary,
   subscribeKoudmen,
   subscribeLessons,
+  subscribeMapLocations,
   syncUserProgressToCloud,
   upvoteKoudmenPost
 } from './firebase.js';
@@ -48,6 +52,8 @@ import {
 } from './views/flashcardsAndDictionary.js';
 import {
   destroyLeafletMap,
+  getMergedMapLocations,
+  refreshDynamicMapMarkers,
   renderCommunityAndInstitutions,
   renderGalleryModal,
   renderMartiniqueMapSection
@@ -172,11 +178,13 @@ const ctx = {
   cloud: {
     lessons: [],
     dictionary: [],
-    koudmen: []
+    koudmen: [],
+    mapLocations: []
   },
   state: {
     lang: 'en',
     isDark: false,
+    mobileMenuOpen: false,
     wotdIdx: dayOfYear % 12,
     openAccordions: new Set(['acc-curriculum', 'acc-progress']),
     activeModule: 'module1',
@@ -454,7 +462,8 @@ ctx.actions = {
       ctx.collection.points += 5;
       ctx.collection.mapPoints += 5;
       ctx.progress.xp += 5;
-      notify(`Explored ${MAP_LOCATIONS[siteId]?.name || siteId}! +5 Collection Points`);
+      const merged = getMergedMapLocations(ctx);
+      notify(`Explored ${merged[siteId]?.name || MAP_LOCATIONS[siteId]?.name || siteId}! +5 Collection Points`);
       saveProgress();
       rerenderProgressAndNav();
     }
@@ -589,12 +598,12 @@ ctx.actions = {
       notify(text);
     }
   },
-  runAgenticCoach: async (mountEl) => {
+  runAgenticCoach: async () => {
+    const totals = Object.values(ctx.collection.termStats).reduce(
+      (acc, t) => ({ right: acc.right + (t.right || 0), almost: acc.almost + (t.almost || 0), wrong: acc.wrong + (t.wrong || 0) }),
+      { right: 0, almost: 0, wrong: 0 }
+    );
     try {
-      const totals = Object.values(ctx.collection.termStats).reduce(
-        (acc, t) => ({ right: acc.right + (t.right || 0), almost: acc.almost + (t.almost || 0), wrong: acc.wrong + (t.wrong || 0) }),
-        { right: 0, almost: 0, wrong: 0 }
-      );
       const res = await fetch('/api/agentic-coach', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -611,13 +620,32 @@ ctx.actions = {
           }
         })
       });
+      if (!res.ok) throw new Error('Coach endpoint unavailable');
       const data = await res.json();
       if (data.coach) {
         ctx.state.lastCoachData = data.coach;
         renderProgressDashboard(document.getElementById('progressMount'), ctx);
+        return;
       }
-    } catch (err) {
-      notify('Unable to load study coach right now.');
+    } catch (_err) {
+      // Offline / static-host adaptive heritage recommendation fallback (e.g. GitHub Pages)
+      const visitedLen = (ctx.collection.visitedSites || []).length;
+      const recDeck = totals.wrong > totals.right ? 'verbs' : visitedLen < 3 ? 'history' : 'greetings';
+      ctx.state.lastCoachData = {
+        encouragement: `Fòs épi kouraj! With ${ctx.progress.xp} XP and ${ctx.collection.points} Collection Points, keep building daily fluency.`,
+        focusArea: recDeck === 'verbs' ? 'Core Verb Markers (ka / té / ké)' : recDeck === 'history' ? 'Cultural Geography & Heritage Sites' : 'Daily Greetings & Pronunciation',
+        recommendedDeck: recDeck,
+        recommendedModule: recDeck === 'history' ? 'module3' : 'module1',
+        culturalInsight: 'Practice 2 minutes aloud with "Speak-Along" or visit Kap 110 & Senpyè on the interactive OSM map to deepen cultural memory.',
+        miniChallenge: {
+          creole: 'Nou ansanm pou fè an koudmen!',
+          phonetic: '[noo ahn-sahnm poo feh ahn kood-mehn]',
+          prompt: 'What does « an koudmen » represent in Martinican communities?',
+          answer: 'Collective neighborly mutual aid',
+          options: ['Collective neighborly mutual aid', 'A carnival percussion solo', 'A volcanic mountain pass', 'A tropical storm warning']
+        }
+      };
+      renderProgressDashboard(document.getElementById('progressMount'), ctx);
     }
   },
   setFocusDuration: (mins) => {
@@ -759,6 +787,29 @@ ctx.actions = {
   adminDeleteDictEntry: async (id) => {
     await deleteDictionaryEntry(id);
     notify('Dictionary entry removed.');
+  },
+  adminCreateMapLocation: async (locData) => {
+    try {
+      const createdId = await createMapLocation(locData, ctx.user);
+      ctx.state.adminImageUrl = '';
+      if (createdId) ctx.state.selectedSiteId = createdId;
+      notify(`Published map marker "${locData.name}" to Firestore!`);
+    } catch (err) {
+      notify(`Could not publish map marker: ${err.message}`);
+    }
+  },
+  adminDeleteMapLocation: async (id) => {
+    await deleteMapLocation(id);
+    notify('Cloud map marker removed.');
+  },
+  adminSeedMapLocations: async () => {
+    try {
+      notify('Syncing heritage sites to Firestore...');
+      const count = await seedCuratedMapLocations(MAP_LOCATIONS, ctx.user);
+      notify(`Synced ${count} Martinique heritage sites to Firestore!`);
+    } catch (err) {
+      notify(`Map seed failed: ${err.message}`);
+    }
   }
 };
 
@@ -799,83 +850,142 @@ function renderAppShell() {
   const t = UI_STRINGS[lang] || UI_STRINGS.en;
 
   root.innerHTML = `
-    <!-- Strictly 3-Zone Single-Row Top Bar -->
-    <header class="km-topbar no-print">
+    <!-- Unified Single-Bar Frosted Liquid Glass Header (All Nav & Workspace Actions Integrated) -->
+    <header class="km-topbar no-print" id="kmTopbar">
       <div class="km-topbar-inner">
         <a href="#top" class="km-brand" aria-label="Kréyòl Matinik Home">
           <span class="km-brand-mark"><i class="fas fa-feather-pointed"></i></span>
           <span>${escapeHtml(t.brandTitle)}</span>
         </a>
 
-        <nav class="km-nav-links" aria-label="Primary Navigation">
-          <button type="button" class="km-nav-link" data-jump="acc-curriculum">${escapeHtml(t.navLearn)}</button>
-          <button type="button" class="km-nav-link" id="navCardsBtn">${escapeHtml(t.navCards)}</button>
-          <button type="button" class="km-nav-link" data-jump="acc-dictionary">${escapeHtml(t.navDictionary)}</button>
-          <button type="button" class="km-nav-link" data-jump="acc-map">${escapeHtml(t.navMap)}</button>
-          <button type="button" class="km-nav-link" data-jump="acc-koudmen">${escapeHtml(t.navCommunity)}</button>
-        </nav>
+        <div class="km-topbar-navwrap" id="kmTopbarNavwrap">
+          <nav class="km-nav-links" aria-label="Primary Navigation">
+            <button type="button" class="km-nav-link" data-jump="acc-curriculum">${escapeHtml(t.navLearn)}</button>
+            <button type="button" class="km-nav-link" id="navCardsBtn">${escapeHtml(t.navCards)}</button>
+            <button type="button" class="km-nav-link" data-jump="acc-dictionary">${escapeHtml(t.navDictionary)}</button>
+            <button type="button" class="km-nav-link" data-jump="acc-map">${escapeHtml(t.navMap)}</button>
+            <button type="button" class="km-nav-link" data-jump="acc-koudmen">${escapeHtml(t.navCommunity)}</button>
+          </nav>
 
-        <button type="button" class="km-cta-btn" id="headerAccountBtn">
-          <i class="fas fa-user-circle"></i>
-          <span>${escapeHtml(t.signInCta)}</span>
-        </button>
+          <div class="km-topbar-tools">
+            <div class="km-seg-group km-seg-compact" role="group" aria-label="Interface language selector">
+              <button type="button" class="km-seg-btn ${lang === 'mq' ? 'active' : ''}" data-set-lang="mq">MQ</button>
+              <button type="button" class="km-seg-btn ${lang === 'fr' ? 'active' : ''}" data-set-lang="fr">FR</button>
+              <button type="button" class="km-seg-btn ${lang === 'en' ? 'active' : ''}" data-set-lang="en">EN</button>
+            </div>
+            <button type="button" class="km-nav-tool-btn" id="themeToggleBtn" aria-label="Toggle light and dark theme" title="Toggle Dark/Light Theme">
+              <i class="fas ${ctx.state.isDark ? 'fa-sun' : 'fa-moon'}"></i>
+              <span class="km-tool-label">${ctx.state.isDark ? 'Light' : 'Dark'}</span>
+            </button>
+            <button type="button" class="km-nav-tool-btn" id="tourBtn" title="${escapeHtml(t.btnStartTour)}">
+              <i class="fas fa-route"></i>
+              <span class="km-tool-label">${escapeHtml(t.btnStartTour)}</span>
+            </button>
+            <button type="button" class="km-nav-tool-btn" id="settingsBtn" title="${escapeHtml(t.btnSettings)}">
+              <i class="fas fa-sliders"></i>
+              <span class="km-tool-label">${escapeHtml(t.btnSettings)}</span>
+            </button>
+            <button type="button" class="km-nav-tool-btn km-nav-tool-accent" id="tutorBtn" title="${escapeHtml(t.btnAskTutor)}">
+              <i class="fas fa-comments"></i>
+              <span>${escapeHtml(t.btnAskTutor)}</span>
+            </button>
+            <button type="button" class="km-nav-tool-btn" data-jump="acc-admin" title="${escapeHtml(t.btnAdmin)}">
+              <i class="fas fa-pen-to-square"></i>
+              <span class="km-tool-label">${escapeHtml(t.btnAdmin)}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="km-topbar-end">
+          <button type="button" class="km-cta-btn" id="headerAccountBtn">
+            <i class="fas fa-user-circle"></i>
+            <span>${escapeHtml(t.signInCta)}</span>
+          </button>
+          <button type="button" class="km-mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu" aria-expanded="false">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
       </div>
     </header>
 
-    <!-- Slim Workspace Utility Bar -->
-    <div class="km-utility-strip no-print">
-      <div class="km-motto-banner">${escapeHtml(t.motto)}</div>
-      <div class="km-utility-actions">
-        <div class="km-seg-group" role="group" aria-label="Interface language selector">
-          <button type="button" class="km-seg-btn ${lang === 'mq' ? 'active' : ''}" data-set-lang="mq">MQ</button>
-          <button type="button" class="km-seg-btn ${lang === 'fr' ? 'active' : ''}" data-set-lang="fr">FR</button>
-          <button type="button" class="km-seg-btn ${lang === 'en' ? 'active' : ''}" data-set-lang="en">EN</button>
-        </div>
-        <button type="button" class="km-btn km-btn-sm" id="themeToggleBtn" aria-label="Toggle light and dark theme">
-          <i class="fas ${ctx.state.isDark ? 'fa-sun' : 'fa-moon'}"></i>
-          <span>${ctx.state.isDark ? 'Light' : 'Dark'}</span>
-        </button>
-        <button type="button" class="km-btn km-btn-sm" id="tourBtn"><i class="fas fa-route"></i> ${escapeHtml(t.btnStartTour)}</button>
-        <button type="button" class="km-btn km-btn-sm" id="settingsBtn"><i class="fas fa-sliders"></i> ${escapeHtml(t.btnSettings)}</button>
-        <button type="button" class="km-btn km-btn-sm km-btn-primary" id="tutorBtn"><i class="fas fa-comments"></i> ${escapeHtml(t.btnAskTutor)}</button>
-        <button type="button" class="km-btn km-btn-sm" data-jump="acc-admin"><i class="fas fa-pen-to-square"></i> ${escapeHtml(t.btnAdmin)}</button>
-      </div>
-    </div>
-
     <main class="km-shell" id="top">
-      <!-- HERO + WORD OF THE DAY + 3-STEP START -->
-      <section class="km-card km-hero-section">
+      <!-- ENGAGING EDITORIAL HERO WALL + CTAS + WORD OF THE DAY -->
+      <section class="km-card km-hero-section km-hero-wall">
         <div class="km-hero-grid">
-          <div style="display:flex; flex-direction:column; justify-content:space-between; gap:0.85rem;">
-            <div>
-              <div class="km-meta-line">GEREC Orthography · Archives Territoriales de Martinique · UNESCO Preservation Spirit</div>
-              <h1 class="km-hero-title">${escapeHtml(t.heroTitle)}</h1>
-              <p class="km-hero-sub">${escapeHtml(t.heroSubtitle)}</p>
+          <div class="km-hero-editorial">
+            <div class="km-hero-eyebrow">
+              <span>${escapeHtml(t.motto)}</span>
+            </div>
+            <h1 class="km-hero-title">${escapeHtml(t.heroTitle)}</h1>
+            <p class="km-hero-sub">${escapeHtml(t.heroSubtitle)}</p>
+
+            <div class="km-hero-cta-row">
+              <button type="button" class="km-btn km-btn-primary km-hero-cta-main" data-jump="acc-curriculum">
+                <i class="fas fa-play"></i> Start Module 1 · Bonjou
+              </button>
+              <button type="button" class="km-btn" id="heroCardsBtn">
+                <i class="fas fa-layer-group"></i> 20 Visual Flashcard Decks
+              </button>
+              <button type="button" class="km-btn km-btn-emerald" data-jump="acc-map">
+                <i class="fas fa-map-location-dot"></i> Culture Map
+              </button>
+            </div>
+
+            <div class="km-editorial-steps" aria-label="Three-step heritage learning flow">
+              <button type="button" class="km-editorial-step" data-jump="acc-curriculum">
+                <span class="km-step-index km-mono">01.</span>
+                <div>
+                  <strong>${escapeHtml(t.step1Title.replace(/^\d+\.\s*/, ''))}</strong>
+                  <span>${escapeHtml(t.step1Desc)}</span>
+                </div>
+              </button>
+              <button type="button" class="km-editorial-step" id="step2CardsBtn">
+                <span class="km-step-index km-mono">02.</span>
+                <div>
+                  <strong>${escapeHtml(t.step2Title.replace(/^\d+\.\s*/, ''))}</strong>
+                  <span>${escapeHtml(t.step2Desc)}</span>
+                </div>
+              </button>
+              <button type="button" class="km-editorial-step" data-jump="acc-map">
+                <span class="km-step-index km-mono">03.</span>
+                <div>
+                  <strong>${escapeHtml(t.step3Title.replace(/^\d+\.\s*/, ''))}</strong>
+                  <span>${escapeHtml(t.step3Desc)}</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="km-hero-showcase">
+            <div class="km-hero-visual">
+              <img src="${HERO_BANNER_IMAGE}" alt="Martinican Creole wooden veranda overlooking lush Mount Pelee rainforest" referrerpolicy="no-referrer">
+              <div class="km-hero-scrim">
+                <span class="km-hero-kicker">MADININA · LIVING ARCHIVE</span>
+                <div class="km-hero-caption-title">Bèlè, Koudmen &amp; Oral Memory</div>
+                <div class="km-hero-caption-sub">GEREC Phonetic Standard · Martinique Heritage Trail</div>
+              </div>
             </div>
             <div id="wotdMount"></div>
           </div>
-
-          <div class="km-hero-visual">
-            <img src="${HERO_BANNER_IMAGE}" alt="Martinican Creole wooden veranda overlooking lush Mount Pelee rainforest" referrerpolicy="no-referrer">
-            <div class="km-hero-caption">
-              Madinina Heritage Study · Living Oral Traditions, Music &amp; Parishes
-            </div>
-          </div>
         </div>
 
-        <div class="km-steps-grid">
-          <button type="button" class="km-step-btn" data-jump="acc-curriculum">
-            <strong>${escapeHtml(t.step1Title)}</strong>
-            <span>${escapeHtml(t.step1Desc)}</span>
-          </button>
-          <button type="button" class="km-step-btn" id="step2CardsBtn">
-            <strong>${escapeHtml(t.step2Title)}</strong>
-            <span>${escapeHtml(t.step2Desc)}</span>
-          </button>
-          <button type="button" class="km-step-btn" data-jump="acc-map">
-            <strong>${escapeHtml(t.step3Title)}</strong>
-            <span>${escapeHtml(t.step3Desc)}</span>
-          </button>
+        <div class="km-heritage-strip" aria-label="Heritage Institutions and Curriculum Scope">
+          <div class="km-heritage-cell">
+            <span class="km-heritage-num km-mono">20 Decks</span>
+            <span class="km-heritage-label">Visual Motion Flashcards &amp; Swipe</span>
+          </div>
+          <div class="km-heritage-cell">
+            <span class="km-heritage-num km-mono">GEREC</span>
+            <span class="km-heritage-label">Institut du Créole &amp; Archives Standard</span>
+          </div>
+          <div class="km-heritage-cell">
+            <span class="km-heritage-num km-mono">22+ Sites</span>
+            <span class="km-heritage-label">OSM Historical &amp; Offbeat Pins</span>
+          </div>
+          <div class="km-heritage-cell">
+            <span class="km-heritage-num km-mono">UNESCO</span>
+            <span class="km-heritage-label">Intangible Language Preservation</span>
+          </div>
         </div>
       </section>
 
@@ -1111,12 +1221,27 @@ function renderTutorDrawer() {
   });
 }
 
+function offlineTutorFallback(userText) {
+  const lower = String(userText || '').toLowerCase();
+  if (lower.includes('ka') || lower.includes('té') || lower.includes('ké') || lower.includes('grammar')) {
+    return '**Martinican Creole Aspect Markers (Pa ni konjigezon!):**\nPlace particles right before invariant verbs:\n- **ka** = ongoing (*Mwen ka palé Kréyòl*)\n- **té** = past (*Mwen té wè manman mwen*)\n- **ké** = future (*Nou ké pati dèmen*)\n- **pa** = negation (*Mwen pa ka konprann*)';
+  }
+  if (lower.includes('market') || lower.includes('maché') || lower.includes('food')) {
+    return '**Gran Maché Fòdfrans Dialogue:**\n- « Bonjou manmay ! Konben mango-a yé ? » (Hello friend! How much are the mangoes?)\n- « Sé dé éwo pou twa bèl mango, doudou. » (Two euros for three lovely mangoes.)\n- « Ban mwen an ti bren piman souplé ! » (Give me a small bit of chili please!)';
+  }
+  if (lower.includes('proverb') || lower.includes('pawòl')) {
+    return '**Pawòl Matinik (Traditional Proverbs):**\n- « Dèyè mòn, toujou ni mòn. » — Beyond every hill lies another hill (Perseverance).\n- « Sé kouto sèl ki sav sa ki an tchè jiromon. » — Only the knife knows what lies inside the pumpkin’s heart.';
+  }
+  return '**Bonjou ! Mwen sé Man Mayotte.**\nHere is a daily phrase to practice aloud:\n- « Kouman ou yé jòdi-a ? — M\'ap kenbe doudou ! » (How are you today? — I am holding strong!)\nAsk me about GEREC grammar (**ka / té / ké**), market expressions, or Martinican communes like **Kap 110**, **Senpyè**, and **Sanmari**.';
+}
+
 async function submitTutorChat(userText) {
   if (ctx.state.tutorLoading || !userText) return;
   ctx.state.tutorHistory.push({ role: 'user', content: userText });
   ctx.state.tutorLoading = true;
   renderTutorDrawer();
 
+  let reply = '';
   try {
     const res = await fetch('/api/tutor', {
       method: 'POST',
@@ -1133,26 +1258,27 @@ async function submitTutorChat(userText) {
         }
       })
     });
+    if (!res.ok) throw new Error('Tutor API unavailable');
     const data = await res.json();
-    const reply = data.reply || "Mwen la pou édé'w!";
-    const formatted = escapeHtml(reply)
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/\n/g, '<br>');
-    const clipMatch = reply.match(/«([^»]+)»/) || reply.match(/"([^"]+)"/);
-    ctx.state.tutorHistory.push({
-      role: 'assistant',
-      content: reply,
-      html: formatted,
-      creoleClip: clipMatch ? clipMatch[1] : ''
-    });
-    ctx.actions.awardXp(5);
-  } catch (err) {
-    ctx.state.tutorHistory.push({ role: 'assistant', content: 'Pardon — unable to reach tutor server right now.' });
-  } finally {
-    ctx.state.tutorLoading = false;
-    renderTutorDrawer();
+    reply = data.reply || offlineTutorFallback(userText);
+  } catch (_err) {
+    reply = offlineTutorFallback(userText);
   }
+
+  const formatted = escapeHtml(reply)
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+  const clipMatch = reply.match(/«([^»]+)»/) || reply.match(/"([^"]+)"/);
+  ctx.state.tutorHistory.push({
+    role: 'assistant',
+    content: reply,
+    html: formatted,
+    creoleClip: clipMatch ? clipMatch[1] : ''
+  });
+  ctx.actions.awardXp(5);
+  ctx.state.tutorLoading = false;
+  renderTutorDrawer();
 }
 
 // =========================================================
@@ -1312,15 +1438,33 @@ function wireGlobalShellEvents() {
     });
   });
 
+  // Mobile Menu Collapse Toggle inside Unified Header
+  const topbar = document.getElementById('kmTopbar');
+  const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+  const closeMobileMenu = () => {
+    ctx.state.mobileMenuOpen = false;
+    topbar?.classList.remove('menu-open');
+    mobileMenuBtn?.setAttribute('aria-expanded', 'false');
+  };
+  mobileMenuBtn?.addEventListener('click', () => {
+    ctx.state.mobileMenuOpen = !ctx.state.mobileMenuOpen;
+    topbar?.classList.toggle('menu-open', ctx.state.mobileMenuOpen);
+    mobileMenuBtn.setAttribute('aria-expanded', ctx.state.mobileMenuOpen ? 'true' : 'false');
+  });
+
   // Jump buttons (Nav, Steps, Dock, Admin)
   document.querySelectorAll('[data-jump]').forEach((el) => {
-    el.addEventListener('click', () => jumpToAccordion(el.getAttribute('data-jump')));
+    el.addEventListener('click', () => {
+      closeMobileMenu();
+      jumpToAccordion(el.getAttribute('data-jump'));
+    });
   });
 
   // Language switcher
   document.querySelectorAll('[data-set-lang]').forEach((btn) => {
     btn.addEventListener('click', () => {
       ctx.state.lang = btn.getAttribute('data-set-lang');
+      closeMobileMenu();
       renderAppShell();
     });
   });
@@ -1335,14 +1479,19 @@ function wireGlobalShellEvents() {
   });
 
   // Modals & Drawers
-  document.getElementById('navCardsBtn')?.addEventListener('click', () => ctx.actions.openFlashcards('greetings'));
+  document.getElementById('navCardsBtn')?.addEventListener('click', () => { closeMobileMenu(); ctx.actions.openFlashcards('greetings'); });
+  document.getElementById('heroCardsBtn')?.addEventListener('click', () => ctx.actions.openFlashcards('greetings'));
   document.getElementById('step2CardsBtn')?.addEventListener('click', () => ctx.actions.openFlashcards('greetings'));
   document.getElementById('dockCardsBtn')?.addEventListener('click', () => ctx.actions.openFlashcards('greetings'));
   document.getElementById('dockHandsFreeBtn')?.addEventListener('click', () => ctx.actions.openHandsFree(true));
-  document.getElementById('settingsBtn')?.addEventListener('click', () => ctx.actions.openSettings(true));
-  document.getElementById('headerAccountBtn')?.addEventListener('click', () => ctx.actions.openAuthModal(true));
-  document.getElementById('tutorBtn')?.addEventListener('click', () => document.getElementById('tutorDrawerBackdrop')?.classList.add('open'));
+  document.getElementById('settingsBtn')?.addEventListener('click', () => { closeMobileMenu(); ctx.actions.openSettings(true); });
+  document.getElementById('headerAccountBtn')?.addEventListener('click', () => { closeMobileMenu(); ctx.actions.openAuthModal(true); });
+  document.getElementById('tutorBtn')?.addEventListener('click', () => {
+    closeMobileMenu();
+    document.getElementById('tutorDrawerBackdrop')?.classList.add('open');
+  });
   document.getElementById('tourBtn')?.addEventListener('click', () => {
+    closeMobileMenu();
     ctx.state.tourStep = 0;
     document.getElementById('tourModalBackdrop')?.classList.add('open');
     renderTourModal();
@@ -1450,6 +1599,11 @@ async function bootstrap() {
       subscribeKoudmen((items) => {
         ctx.cloud.koudmen = items;
         renderCommunityAndInstitutions(document.getElementById('koudmenMount'), ctx);
+      });
+      subscribeMapLocations((items) => {
+        ctx.cloud.mapLocations = items;
+        refreshDynamicMapMarkers(ctx);
+        renderAdminStudio(document.getElementById('adminMount'), ctx);
       });
     }
     observeAuth(async (user) => {
