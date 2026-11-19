@@ -5,12 +5,103 @@ import { escapeHtml } from './curriculumAndQuiz.js';
 
 let leafletMapInstance = null;
 let leafletMarkersLayer = null;
+let leafletMarkersById = new Map();
 
 function projectLatLngToSvg(lat, lng) {
   // Maps Martinique bounds (~14.38..14.89 lat, -61.24..-60.81 lng) smoothly onto 340x400 SVG canvas
   const x = Math.max(24, Math.min(316, ((lng - (-61.24)) / (-60.81 - (-61.24))) * 280 + 30));
   const y = Math.max(24, Math.min(376, ((14.89 - lat) / (14.89 - 14.38)) * 340 + 30));
   return { x: Math.round(x), y: Math.round(y) };
+}
+
+function getCategoryMeta(cat) {
+  if (cat === 'historical') {
+    return { label: 'Historical Site', icon: 'fa-landmark', pinClass: 'km-osm-pin--historical', color: '#b45309' };
+  }
+  if (cat === 'offbeat') {
+    return { label: 'Off the Beaten Path', icon: 'fa-compass', pinClass: 'km-osm-pin--offbeat', color: '#047857' };
+  }
+  return { label: 'Commune', icon: 'fa-map-pin', pinClass: 'km-osm-pin--commune', color: '#1d4ed8' };
+}
+
+function buildMarkerIcon(loc, isSelected) {
+  const meta = getCategoryMeta(loc.category);
+  return window.L.divIcon({
+    className: '',
+    html: `<div class="km-osm-pin ${meta.pinClass} ${isSelected ? 'is-active' : ''}" title="${escapeHtml(loc.name)}"><i class="fas ${meta.icon}"></i></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 30],
+    popupAnchor: [0, -28]
+  });
+}
+
+function buildMarkerPopupHtml(loc) {
+  const meta = getCategoryMeta(loc.category);
+  const thumb = loc.gallery?.[0]?.src || '';
+  const excerpt = loc.fact.length > 120 ? `${loc.fact.slice(0, 117)}...` : loc.fact;
+  return `
+    <div class="km-osm-popup-card">
+      ${thumb ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(loc.name)}" class="km-osm-popup-thumb" referrerpolicy="no-referrer">` : ''}
+      <div class="km-meta-line" style="color:${meta.color};"><i class="fas ${meta.icon}"></i> ${escapeHtml(meta.label)} · ${escapeHtml(loc.region)}</div>
+      <strong style="font-size:1.02rem; line-height:1.2;">${escapeHtml(loc.name)}</strong>
+      <div style="font-size:0.8rem; font-weight:700; color:var(--cobalt);">${escapeHtml(loc.creoleName)}</div>
+      <p style="font-size:0.8rem; color:var(--ink-secondary); margin:0;">${escapeHtml(excerpt)}</p>
+      <div style="display:flex; gap:6px; margin-top:4px;">
+        <button type="button" class="km-btn km-btn-sm km-btn-primary" data-popup-listen="${escapeHtml(loc.id)}" style="flex:1;">
+          <i class="fas fa-volume-up"></i> Listen
+        </button>
+        <button type="button" class="km-btn km-btn-sm km-btn-emerald" data-popup-gallery="${escapeHtml(loc.id)}" style="flex:1;">
+          <i class="fas fa-images"></i> Gallery
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderMapDetailPanel(panelEl, selected, visited, ctx) {
+  if (!panelEl || !selected) return;
+  const meta = getCategoryMeta(selected.category);
+  panelEl.innerHTML = `
+    <div class="km-meta-line"><i class="fas ${meta.icon}" style="color:${meta.color};"></i> ${escapeHtml(meta.label)} · ${escapeHtml(selected.region)} · ${visited.length}/${Object.keys(MAP_LOCATIONS).length} explored</div>
+    <h3 style="font-size:1.38rem;">${escapeHtml(selected.name)}</h3>
+    <div style="font-weight:700; color:var(--cobalt); font-size:0.95rem;">${escapeHtml(selected.creoleName)}</div>
+    <p style="font-size:0.9rem; color:var(--ink-secondary);">${escapeHtml(selected.fact)}</p>
+    <div style="background:var(--surface-subtle); padding:0.7rem 0.85rem; border-radius:10px; font-size:0.86rem;">
+      <strong>Living Tradition:</strong> ${escapeHtml(selected.tradition)}
+    </div>
+    <div style="font-size:0.86rem; font-style:italic; color:var(--emerald); font-weight:600;">
+      ${escapeHtml(selected.proverb)}
+    </div>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:0.25rem;">
+      <button type="button" class="km-btn km-btn-sm km-btn-primary" id="mapListenBtn">
+        <i class="fas fa-volume-up"></i> Listen Audio Greeting
+      </button>
+      <button type="button" class="km-btn km-btn-sm km-btn-emerald" id="mapViewGalleryBtn">
+        <i class="fas fa-images"></i> View Gallery (${selected.gallery?.length || 1})
+      </button>
+      <button type="button" class="km-btn km-btn-sm" id="mapAskTutorBtn">
+        <i class="fas fa-comments"></i> Ask Man Mayotte
+      </button>
+    </div>
+  `;
+
+  panelEl.querySelector('#mapListenBtn')?.addEventListener('click', (e) => {
+    speakTermSequence(selected.audioPhrase || selected.name, '', {
+      settings: { ...ctx.settings, translationPlayback: false },
+      lang: ctx.state.lang,
+      btnEl: e.currentTarget,
+      onListened: ctx.actions.registerWordListened
+    });
+  });
+
+  panelEl.querySelector('#mapViewGalleryBtn')?.addEventListener('click', () => {
+    ctx.actions.openGallery(selected.id, 0);
+  });
+
+  panelEl.querySelector('#mapAskTutorBtn')?.addEventListener('click', () => {
+    ctx.actions.openTutorWithPrompt(`Tell me the cultural story, Creole toponymy, and oral heritage of ${selected.name} (${selected.creoleName}) in Martinique.`);
+  });
 }
 
 export function renderMartiniqueMapSection(container, ctx) {
@@ -22,7 +113,7 @@ export function renderMartiniqueMapSection(container, ctx) {
   const visited = ctx.collection.visitedSites || [];
 
   container.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.65rem; margin-bottom:0.9rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.65rem; margin-bottom:0.75rem;">
       <div class="km-seg-group" role="tablist" aria-label="Map filter categories">
         <button type="button" class="km-seg-btn ${filter === 'all' ? 'active' : ''}" data-map-cat="all">All (${Object.keys(MAP_LOCATIONS).length})</button>
         <button type="button" class="km-seg-btn ${filter === 'commune' ? 'active' : ''}" data-map-cat="commune">12 Communes</button>
@@ -34,6 +125,12 @@ export function renderMartiniqueMapSection(container, ctx) {
         <button type="button" class="km-seg-btn ${mode === 'osm' ? 'active' : ''}" data-map-mode="osm"><i class="fas fa-earth-americas"></i> Live OSM Map</button>
         <button type="button" class="km-seg-btn ${mode === 'svg' ? 'active' : ''}" data-map-mode="svg"><i class="fas fa-compass"></i> SVG Island Map</button>
       </div>
+    </div>
+
+    <div class="km-osm-legend" aria-label="Map marker legend">
+      <span class="km-osm-legend-item"><span class="km-osm-dot" style="background:#1d4ed8;"></span> Communes</span>
+      <span class="km-osm-legend-item"><span class="km-osm-dot" style="background:#b45309;"></span> Historical Sites</span>
+      <span class="km-osm-legend-item"><span class="km-osm-dot" style="background:#047857;"></span> Off the Beaten Path</span>
     </div>
 
     <div class="km-map-layout">
@@ -56,9 +153,10 @@ export function renderMartiniqueMapSection(container, ctx) {
               ${entries.map((loc) => {
                 const pt = projectLatLngToSvg(loc.lat, loc.lng);
                 const isSel = loc.id === selected.id;
+                const fill = getCategoryMeta(loc.category).color;
                 return `
                   <g class="km-svg-pin ${isSel ? 'active' : ''}" data-svg-site="${escapeHtml(loc.id)}" tabindex="0" role="button" aria-label="Select ${escapeHtml(loc.name)}">
-                    <circle cx="${pt.x}" cy="${pt.y}" r="${isSel ? 8 : 6}" fill="${isSel ? '#047857' : '#1d4ed8'}" stroke="#ffffff" stroke-width="2" />
+                    <circle cx="${pt.x}" cy="${pt.y}" r="${isSel ? 8 : 6}" fill="${fill}" stroke="#ffffff" stroke-width="2" />
                     <text x="${pt.x + 9}" y="${pt.y + 4}" font-size="10" font-weight="${isSel ? '700' : '600'}" fill="#0f172a">${escapeHtml(loc.name.split(' ')[0])}</text>
                   </g>
                 `;
@@ -67,7 +165,7 @@ export function renderMartiniqueMapSection(container, ctx) {
           </div>
         `}
 
-        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:0.75rem;">
+        <div id="kmSiteChipsWrap" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:0.75rem;">
           ${entries.map((loc) => `
             <button type="button" class="km-btn km-btn-sm ${loc.id === selected.id ? 'active' : ''}" data-site-select="${escapeHtml(loc.id)}">
               ${visited.includes(loc.id) ? '✓ ' : ''}${escapeHtml(loc.name)}
@@ -76,34 +174,14 @@ export function renderMartiniqueMapSection(container, ctx) {
         </div>
       </div>
 
-      <article class="km-subpanel" style="display:flex; flex-direction:column; gap:0.65rem;">
-        <div class="km-meta-line">${escapeHtml(selected.region)} · ${visited.length}/${Object.keys(MAP_LOCATIONS).length} explored</div>
-        <h3 style="font-size:1.38rem;">${escapeHtml(selected.name)}</h3>
-        <div style="font-weight:700; color:var(--cobalt); font-size:0.95rem;">${escapeHtml(selected.creoleName)}</div>
-        <p style="font-size:0.9rem; color:var(--ink-secondary);">${escapeHtml(selected.fact)}</p>
-        <div style="background:var(--surface-subtle); padding:0.7rem 0.85rem; border-radius:10px; font-size:0.86rem;">
-          <strong>Living Tradition:</strong> ${escapeHtml(selected.tradition)}
-        </div>
-        <div style="font-size:0.86rem; font-style:italic; color:var(--emerald); font-weight:600;">
-          ${escapeHtml(selected.proverb)}
-        </div>
-
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:0.25rem;">
-          <button type="button" class="km-btn km-btn-sm km-btn-primary" id="mapListenBtn">
-            <i class="fas fa-volume-up"></i> Listen Audio Greeting
-          </button>
-          <button type="button" class="km-btn km-btn-sm km-btn-emerald" id="mapViewGalleryBtn">
-            <i class="fas fa-images"></i> View Gallery (${selected.gallery?.length || 1})
-          </button>
-          <button type="button" class="km-btn km-btn-sm" id="mapAskTutorBtn">
-            <i class="fas fa-comments"></i> Ask Man Mayotte
-          </button>
-        </div>
-      </article>
+      <article id="kmMapDetailPanel" class="km-subpanel" style="display:flex; flex-direction:column; gap:0.65rem;"></article>
     </div>
   `;
 
-  // Wire controls
+  const detailPanel = container.querySelector('#kmMapDetailPanel');
+  renderMapDetailPanel(detailPanel, selected, visited, ctx);
+
+  // Wire filters & mode switch
   container.querySelectorAll('[data-map-cat]').forEach((b) => {
     b.addEventListener('click', () => {
       ctx.state.mapCategory = b.getAttribute('data-map-cat');
@@ -124,39 +202,50 @@ export function renderMartiniqueMapSection(container, ctx) {
     });
   });
 
-  const handleSelectSite = (siteId) => {
+  const handleSelectSite = (siteId, openPopup = true) => {
+    const loc = MAP_LOCATIONS[siteId];
+    if (!loc) return;
     ctx.state.selectedSiteId = siteId;
     ctx.actions.markSiteVisited(siteId);
-    destroyLeafletMap();
-    renderMartiniqueMapSection(container, ctx);
+    const updatedVisited = ctx.collection.visitedSites || [];
+
+    if (mode === 'osm' && leafletMapInstance && leafletMarkersById.has(siteId)) {
+      // Smoothly update side detail card, chips, and marker icons without tearing down Leaflet popup
+      renderMapDetailPanel(detailPanel, loc, updatedVisited, ctx);
+      container.querySelectorAll('[data-site-select]').forEach((btn) => {
+        const id = btn.getAttribute('data-site-select');
+        const site = MAP_LOCATIONS[id];
+        btn.classList.toggle('active', id === siteId);
+        if (site) {
+          btn.textContent = `${updatedVisited.includes(id) ? '✓ ' : ''}${site.name}`;
+        }
+      });
+      leafletMarkersById.forEach((m, id) => {
+        const site = MAP_LOCATIONS[id];
+        if (site) m.setIcon(buildMarkerIcon(site, id === siteId));
+      });
+      const targetMarker = leafletMarkersById.get(siteId);
+      if (targetMarker) {
+        leafletMapInstance.panTo([loc.lat, loc.lng], { animate: !ctx.settings.reduceMotion });
+        if (openPopup && !targetMarker.isPopupOpen()) {
+          targetMarker.openPopup();
+        }
+      }
+    } else {
+      destroyLeafletMap();
+      renderMartiniqueMapSection(container, ctx);
+    }
   };
 
   container.querySelectorAll('[data-site-select]').forEach((b) => {
-    b.addEventListener('click', () => handleSelectSite(b.getAttribute('data-site-select')));
+    b.addEventListener('click', () => handleSelectSite(b.getAttribute('data-site-select'), true));
   });
   container.querySelectorAll('[data-svg-site]').forEach((pin) => {
-    pin.addEventListener('click', () => handleSelectSite(pin.getAttribute('data-svg-site')));
-  });
-
-  container.querySelector('#mapListenBtn')?.addEventListener('click', (e) => {
-    speakTermSequence(selected.audioPhrase || selected.name, '', {
-      settings: { ...ctx.settings, translationPlayback: false },
-      lang: ctx.state.lang,
-      btnEl: e.currentTarget,
-      onListened: ctx.actions.registerWordListened
-    });
-  });
-
-  container.querySelector('#mapViewGalleryBtn')?.addEventListener('click', () => {
-    ctx.actions.openGallery(selected.id, 0);
-  });
-
-  container.querySelector('#mapAskTutorBtn')?.addEventListener('click', () => {
-    ctx.actions.openTutorWithPrompt(`Tell me the cultural story, Creole toponymy, and oral heritage of ${selected.name} (${selected.creoleName}) in Martinique.`);
+    pin.addEventListener('click', () => handleSelectSite(pin.getAttribute('data-svg-site'), false));
   });
 
   if (mode === 'osm') {
-    initLeafletCanvas(container.querySelector('#kmLeafletMap'), entries, selected, handleSelectSite);
+    initLeafletCanvas(container.querySelector('#kmLeafletMap'), entries, selected, handleSelectSite, ctx);
   }
 }
 
@@ -165,12 +254,14 @@ export function destroyLeafletMap() {
     try { leafletMapInstance.remove(); } catch (e) {}
     leafletMapInstance = null;
     leafletMarkersLayer = null;
+    leafletMarkersById.clear();
   }
 }
 
-function initLeafletCanvas(mapEl, entries, selected, onSelect) {
+function initLeafletCanvas(mapEl, entries, selected, onSelect, ctx) {
   if (!mapEl || typeof window.L === 'undefined') return;
   try {
+    leafletMarkersById.clear();
     leafletMapInstance = window.L.map(mapEl, { scrollWheelZoom: false }).setView([selected.lat || 14.6415, selected.lng || -61.0242], 10);
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
@@ -179,19 +270,36 @@ function initLeafletCanvas(mapEl, entries, selected, onSelect) {
     leafletMarkersLayer = window.L.layerGroup().addTo(leafletMapInstance);
     entries.forEach((loc) => {
       const isSel = loc.id === selected.id;
-      const color = loc.category === 'historical' ? '#b45309' : loc.category === 'offbeat' ? '#047857' : '#1d4ed8';
-      const marker = window.L.circleMarker([loc.lat, loc.lng], {
-        radius: isSel ? 10 : 7,
-        fillColor: color,
-        color: '#ffffff',
-        weight: isSel ? 3 : 2,
-        opacity: 1,
-        fillOpacity: 0.92
+      const marker = window.L.marker([loc.lat, loc.lng], {
+        icon: buildMarkerIcon(loc, isSel)
       }).addTo(leafletMarkersLayer);
 
-      marker.bindTooltip(`${loc.name} · ${loc.creoleName.split('•')[0]}`, { direction: 'top' });
-      marker.on('click', () => onSelect(loc.id));
+      marker.bindTooltip(`${loc.name} · ${loc.creoleName.split('•')[0]}`, { direction: 'top', offset: [0, -24] });
+      marker.bindPopup(buildMarkerPopupHtml(loc), { maxWidth: 280, className: 'km-osm-popup' });
+      marker.on('click', () => onSelect(loc.id, true));
+      leafletMarkersById.set(loc.id, marker);
     });
+
+    leafletMapInstance.on('popupopen', (e) => {
+      const el = e.popup?.getElement();
+      if (!el) return;
+      el.querySelector('[data-popup-listen]')?.addEventListener('click', (ev) => {
+        const siteId = ev.currentTarget.getAttribute('data-popup-listen');
+        const site = MAP_LOCATIONS[siteId];
+        if (!site) return;
+        speakTermSequence(site.audioPhrase || site.name, '', {
+          settings: { ...ctx.settings, translationPlayback: false },
+          lang: ctx.state.lang,
+          btnEl: ev.currentTarget,
+          onListened: ctx.actions.registerWordListened
+        });
+      });
+      el.querySelector('[data-popup-gallery]')?.addEventListener('click', (ev) => {
+        const siteId = ev.currentTarget.getAttribute('data-popup-gallery');
+        if (siteId) ctx.actions.openGallery(siteId, 0);
+      });
+    });
+
     setTimeout(() => {
       if (leafletMapInstance) leafletMapInstance.invalidateSize();
     }, 180);

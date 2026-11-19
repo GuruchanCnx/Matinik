@@ -141,6 +141,16 @@ const ctx = {
   },
   collection: {
     points: Number(savedColl.points || 0),
+    flashcardPoints: Number(
+      savedColl.flashcardPoints ??
+      Object.values(savedColl.termStats || {}).reduce((sum, st) => sum + (st.right || 0) * 8 + (st.almost || 0) * 5 + (st.wrong || 0) * 3, 0)
+    ),
+    lessonPoints: Number(
+      savedColl.lessonPoints ??
+      (Object.values(savedProg.modules || {}).filter(Boolean).length * 20 +
+       Object.values(savedProg.quizzes || {}).filter(Boolean).length * 15)
+    ),
+    mapPoints: Number(savedColl.mapPoints ?? ((savedColl.visitedSites || []).length * 5)),
     visitedSites: Array.isArray(savedColl.visitedSites) ? savedColl.visitedSites : [],
     termStats: savedColl.termStats && typeof savedColl.termStats === 'object' ? savedColl.termStats : {}
   },
@@ -323,8 +333,12 @@ ctx.actions = {
     if (msg) notify(msg);
     rerenderProgressAndNav();
   },
-  addCollectionPoints: (pts) => {
-    ctx.collection.points += pts;
+  addCollectionPoints: (pts, source = 'lessons') => {
+    const val = Number(pts || 0);
+    ctx.collection.points += val;
+    if (source === 'flashcards') ctx.collection.flashcardPoints += val;
+    else if (source === 'map') ctx.collection.mapPoints += val;
+    else ctx.collection.lessonPoints += val;
     saveProgress();
     rerenderProgressAndNav();
   },
@@ -369,11 +383,14 @@ ctx.actions = {
     if (!prev) {
       ctx.progress.xp += 30;
       ctx.collection.points += 20;
+      ctx.collection.lessonPoints += 20;
       ctx.actions.playSfx('right');
       fireConfetti({ particleCount: 95, spread: 80 });
-      notify(modId === 'module1' ? 'Badge Unlocked: Beginner! First module complete (+30 XP)' : 'Module completed! +30 XP');
+      notify(modId === 'module1' ? 'Badge Unlocked: Beginner! First module complete (+30 XP, +20 Pts)' : 'Module completed! +30 XP & +20 Collection Pts');
     } else {
       ctx.progress.xp = Math.max(0, ctx.progress.xp - 30);
+      ctx.collection.points = Math.max(0, ctx.collection.points - 20);
+      ctx.collection.lessonPoints = Math.max(0, ctx.collection.lessonPoints - 20);
     }
     saveProgress();
     rerenderProgressAndNav();
@@ -383,6 +400,7 @@ ctx.actions = {
       ctx.progress.quizzes[quizId] = true;
       ctx.progress.xp += 25;
       ctx.collection.points += 15;
+      ctx.collection.lessonPoints += 15;
     }
     ctx.actions.incrementDailyGoal(1);
     saveProgress();
@@ -392,6 +410,8 @@ ctx.actions = {
     if (!ctx.progress.reviewedCards.includes(cardKey)) {
       ctx.progress.reviewedCards.push(cardKey);
       ctx.progress.xp += 2;
+      ctx.collection.points += 2;
+      ctx.collection.flashcardPoints += 2;
       saveProgress();
       rerenderProgressAndNav();
     }
@@ -402,6 +422,7 @@ ctx.actions = {
       st.right += 1;
       st.memory = Math.min(100, st.memory + 20);
       ctx.collection.points += 8;
+      ctx.collection.flashcardPoints += 8;
       ctx.progress.xp += 6;
       ctx.actions.playSfx('right');
       ctx.actions.incrementDailyGoal(1);
@@ -409,6 +430,7 @@ ctx.actions = {
       st.almost += 1;
       st.memory = Math.min(90, st.memory + 8);
       ctx.collection.points += 5;
+      ctx.collection.flashcardPoints += 5;
       ctx.progress.xp += 3;
       ctx.actions.playSfx('almost');
       ctx.actions.incrementDailyGoal(1);
@@ -416,6 +438,7 @@ ctx.actions = {
       st.wrong += 1;
       st.memory = Math.max(10, st.memory - 15);
       ctx.collection.points += 3;
+      ctx.collection.flashcardPoints += 3;
       ctx.actions.playSfx('wrong');
     }
     saveProgress();
@@ -429,6 +452,7 @@ ctx.actions = {
     if (!ctx.collection.visitedSites.includes(siteId)) {
       ctx.collection.visitedSites.push(siteId);
       ctx.collection.points += 5;
+      ctx.collection.mapPoints += 5;
       ctx.progress.xp += 5;
       notify(`Explored ${MAP_LOCATIONS[siteId]?.name || siteId}! +5 Collection Points`);
       saveProgress();
@@ -1328,7 +1352,7 @@ function wireGlobalShellEvents() {
   document.getElementById('cancelResetBtn')?.addEventListener('click', () => ctx.actions.openResetModal(false));
   document.getElementById('confirmResetBtn')?.addEventListener('click', async () => {
     ctx.progress = { modules: { module1: false, module2: false, module3: false }, quizzes: { quiz1: false, quiz2: false, quiz3: false }, listenedWords: [], reviewedCards: [], xp: 0, streak: 1, lastActivityDate: todayIso() };
-    ctx.collection = { points: 0, visitedSites: [], termStats: {} };
+    ctx.collection = { points: 0, flashcardPoints: 0, lessonPoints: 0, mapPoints: 0, visitedSites: [], termStats: {} };
     ctx.recordedMeta = {};
     writeJson(STORAGE_KEYS.RECORD_META, {});
     await clearAllVoiceRecordings();

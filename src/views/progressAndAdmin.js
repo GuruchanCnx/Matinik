@@ -1,5 +1,5 @@
 import { BADGES_CATALOG } from '../data/curriculum.js';
-import { ARTIFACTS_CATALOG } from '../data/vocab.js';
+import { ARTIFACTS_CATALOG, LEARNING_LEVELS } from '../data/vocab.js';
 import {
   getSortedVoices,
   setNatureAmbientVolume,
@@ -37,6 +37,18 @@ export function renderProgressDashboard(container, ctx) {
 
   const ft = ctx.focusTimer;
   const collPts = Number(ctx.collection.points || 0);
+  const flashcardPts = Number(ctx.collection.flashcardPoints || 0);
+  const lessonPts = Number(ctx.collection.lessonPoints || 0);
+  const mapPts = Number(ctx.collection.mapPoints || 0);
+  const reviewedCount = (p.reviewedCards || []).length;
+  const visitedCount = (ctx.collection.visitedSites || []).length;
+  const sourceDenom = Math.max(1, flashcardPts + lessonPts + mapPts);
+
+  const LEVEL_CAPS = [60, 160, 300, 500];
+  let activeLvlIdx = 0;
+  LEARNING_LEVELS.forEach((lvl, i) => {
+    if (p.xp >= lvl.minXp) activeLvlIdx = i;
+  });
 
   container.innerHTML = `
     <div class="km-stats-row">
@@ -150,6 +162,90 @@ export function renderProgressDashboard(container, ctx) {
         </div>
       </section>
     </div>
+
+    <!-- Cultural Progress Section: Collection Points Breakdown & Level Mastery Bars -->
+    <section class="km-subpanel km-cultural-progress" aria-label="Cultural Progress">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <strong style="font-size:1.05rem;"><i class="fas fa-award" style="color:var(--ochre);"></i> Cultural Progress</strong>
+          <div class="km-meta-line">Collection points earned from completed flashcards, lessons, and island heritage sites</div>
+        </div>
+        <div class="km-mono" style="font-weight:700; font-size:0.95rem; color:var(--cobalt);">${collPts} Total Pts · ${p.xp} XP</div>
+      </div>
+
+      <div class="km-source-breakdown">
+        <div class="km-source-tile">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="km-stat-label">Flashcards</span>
+            <span class="km-mono" style="font-weight:700; color:var(--cobalt);">${flashcardPts} Pts</span>
+          </div>
+          <div class="km-meta-line">${reviewedCount} card${reviewedCount === 1 ? '' : 's'} completed &amp; graded</div>
+          <div class="km-level-bar-track">
+            <div class="km-level-bar-fill" style="width:${flashcardPts > 0 ? Math.max(8, Math.round((flashcardPts / sourceDenom) * 100)) : 0}%;"></div>
+          </div>
+        </div>
+
+        <div class="km-source-tile">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="km-stat-label">Lessons &amp; Quizzes</span>
+            <span class="km-mono" style="font-weight:700; color:var(--emerald);">${lessonPts} Pts</span>
+          </div>
+          <div class="km-meta-line">${modsDone}/3 modules · ${quizzesDone}/3 quizzes passed</div>
+          <div class="km-level-bar-track">
+            <div class="km-level-bar-fill is-completed" style="width:${lessonPts > 0 ? Math.max(8, Math.round((lessonPts / sourceDenom) * 100)) : 0}%;"></div>
+          </div>
+        </div>
+
+        <div class="km-source-tile">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="km-stat-label">Heritage Sites</span>
+            <span class="km-mono" style="font-weight:700; color:var(--ochre);">${mapPts} Pts</span>
+          </div>
+          <div class="km-meta-line">${visitedCount} / 22 Martinique locations explored</div>
+          <div class="km-level-bar-track">
+            <div class="km-level-bar-fill" style="background:var(--ochre); width:${mapPts > 0 ? Math.max(8, Math.round((mapPts / sourceDenom) * 100)) : 0}%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="km-meta-line" style="margin-bottom:0.55rem;">Learning Level Progress Bars</div>
+        <div class="km-level-bars-list">
+          ${LEARNING_LEVELS.map((lvl, idx) => {
+            const cap = LEVEL_CAPS[idx] || (lvl.minXp + 200);
+            const span = Math.max(1, cap - lvl.minXp);
+            const isCompleted = p.xp >= cap;
+            const isActive = idx === activeLvlIdx && !isCompleted;
+            const pctFill = isCompleted
+              ? 100
+              : p.xp >= lvl.minXp
+                ? Math.max(4, Math.min(99, Math.round(((p.xp - lvl.minXp) / span) * 100)))
+                : 0;
+            const gainedInTier = Math.max(0, Math.min(span, p.xp - lvl.minXp));
+            const statusText = isCompleted
+              ? 'Completed ✓'
+              : p.xp >= lvl.minXp
+                ? `In Progress · ${pctFill}%`
+                : `Unlocks at ${lvl.minXp} XP`;
+            return `
+              <div class="km-level-bar-row ${isCompleted ? 'is-completed' : isActive ? 'is-active' : ''}">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                  <strong style="font-size:0.9rem;">${lvl.badge} ${escapeHtml(lvl.creoleTitle)}</strong>
+                  <span class="km-meta-line" style="color:${isCompleted ? 'var(--emerald)' : isActive ? 'var(--cobalt)' : 'var(--ink-muted)'};">${statusText}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:var(--ink-secondary);">
+                  <span>${escapeHtml(lvl.title)}</span>
+                  <span class="km-mono">${gainedInTier} / ${span} XP</span>
+                </div>
+                <div class="km-level-bar-track" role="progressbar" aria-valuenow="${pctFill}" aria-valuemin="0" aria-valuemax="100" aria-label="${escapeHtml(lvl.title)} progress">
+                  <div class="km-level-bar-fill ${isCompleted ? 'is-completed' : pctFill === 0 ? 'is-locked' : ''}" style="width:${pctFill}%;"></div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </section>
 
     <div style="margin-top:1.15rem;">
       <strong style="font-size:0.98rem;">Kòlèksyon Matinik · Cultural Heritage Artifacts</strong>

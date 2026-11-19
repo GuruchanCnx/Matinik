@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "{index.html,firebase-applet-config.json,src/**,public/**,node_modules/firebase/firebase-app.js,node_modules/firebase/firebase-auth.js,node_modules/firebase/firebase-firestore.js}"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/vendor/firebase/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/uploads/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

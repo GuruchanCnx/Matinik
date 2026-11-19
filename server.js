@@ -1,4 +1,5 @@
 import fs from 'fs';
+import os from 'os';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,19 +7,38 @@ import { GoogleGenAI, Type } from '@google/genai';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+const IS_SERVERLESS = Boolean(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.NOW_REGION
+);
+const STATIC_ROOT = fs.existsSync(path.join(__dirname, 'index.html'))
+  ? __dirname
+  : process.cwd();
+const UPLOADS_DIR = IS_SERVERLESS
+  ? path.join(os.tmpdir(), 'kreyol-uploads')
+  : path.join(__dirname, 'uploads');
+
+function ensureUploadsDir() {
+  try {
+    if (!fs.existsSync(UPLOADS_DIR)) {
+      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    }
+    return true;
+  } catch (err) {
+    console.warn('Uploads directory unavailable on this filesystem:', err.message);
+    return false;
+  }
 }
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '6mb' }));
-app.use(express.static(__dirname));
-app.use('/src', express.static(path.join(__dirname, 'src')));
+app.use(express.static(STATIC_ROOT));
+app.use('/src', express.static(path.join(STATIC_ROOT, 'src')));
 app.use('/uploads', express.static(UPLOADS_DIR));
-app.use('/vendor/firebase', express.static(path.join(__dirname, 'node_modules', 'firebase')));
+app.use('/vendor/firebase', express.static(path.join(STATIC_ROOT, 'node_modules', 'firebase')));
 
 // Lazy initialization of Gemini client
 let aiClient = null;
@@ -343,6 +363,17 @@ app.post('/api/upload', (req, res) => {
       return res.status(400).json({ error: 'File exceeds 4MB upload limit' });
     }
     const cleanBase = path.basename(filename).replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80);
+    if (IS_SERVERLESS && dataUrl.length <= 190000) {
+      return res.json({
+        url: dataUrl,
+        name: cleanBase,
+        mime,
+        size: buffer.length
+      });
+    }
+    if (!ensureUploadsDir()) {
+      return res.status(503).json({ error: 'File storage temporarily unavailable' });
+    }
     const savedName = `${Date.now()}_${cleanBase}`;
     fs.writeFileSync(path.join(UPLOADS_DIR, savedName), buffer);
     return res.json({
@@ -358,9 +389,18 @@ app.post('/api/upload', (req, res) => {
 });
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  const indexPath = path.join(STATIC_ROOT, 'index.html');
+  if (!fs.existsSync(indexPath)) {
+    return res.status(404).send('Application entry not found');
+  }
+  return res.sendFile(indexPath);
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
-});
+if (!IS_SERVERLESS) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+export default app;
+
