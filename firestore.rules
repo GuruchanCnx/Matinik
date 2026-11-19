@@ -1,0 +1,249 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Shared Hardened Helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'banheruka@gmail.com'
+      );
+    }
+
+    function isBoundedStringArray(arr, maxLen) {
+      return arr is list && arr.size() <= maxLen && (arr.size() == 0 || (arr[0] is string && arr[0].size() <= 160));
+    }
+
+    function isValidUserProgress(data, userId) {
+      return data.keys().hasAll(['uid', 'displayName', 'role', 'xp', 'streak', 'collectionPoints', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly([
+          'uid', 'displayName', 'email', 'role', 'xp', 'streak', 'collectionPoints',
+          'modules', 'quizzes', 'reviewedCards', 'listenedWords', 'visitedSites',
+          'createdAt', 'updatedAt'
+        ])
+        && data.uid is string && data.uid.size() <= 128 && data.uid == userId
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80
+        && (!('email' in data) || (data.email is string && data.email.size() <= 160))
+        && data.role is string && data.role.size() <= 16 && (data.role == 'learner' || data.role == 'admin')
+        && data.xp is int && data.xp >= 0 && data.xp <= 1000000
+        && data.streak is int && data.streak >= 0 && data.streak <= 10000
+        && data.collectionPoints is int && data.collectionPoints >= 0 && data.collectionPoints <= 1000000
+        && (!('modules' in data) || data.modules is map)
+        && (!('quizzes' in data) || data.quizzes is map)
+        && (!('reviewedCards' in data) || isBoundedStringArray(data.reviewedCards, 200))
+        && (!('listenedWords' in data) || isBoundedStringArray(data.listenedWords, 200))
+        && (!('visitedSites' in data) || isBoundedStringArray(data.visitedSites, 60))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAdminMember(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'email', 'createdAt'])
+        && data.uid is string && data.uid.size() <= 128 && data.uid == userId
+        && data.email is string && data.email.size() <= 160
+        && data.createdAt is timestamp;
+    }
+
+    function isValidLessonArticle(data) {
+      return data.keys().hasAll(['title', 'level', 'creoleSummary', 'bodyHtml', 'authorId', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly([
+          'title', 'level', 'creoleSummary', 'bodyHtml', 'funFact',
+          'imageUrl', 'attachmentName', 'attachmentUrl', 'authorId', 'createdAt', 'updatedAt'
+        ])
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 140
+        && data.level is string && data.level.size() <= 24 && data.level in ['beginner', 'intermediate', 'advanced', 'master']
+        && data.creoleSummary is string && data.creoleSummary.size() >= 2 && data.creoleSummary.size() <= 400
+        && data.bodyHtml is string && data.bodyHtml.size() >= 2 && data.bodyHtml.size() <= 40000
+        && (!('funFact' in data) || (data.funFact is string && data.funFact.size() <= 600))
+        && (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 200000))
+        && (!('attachmentName' in data) || (data.attachmentName is string && data.attachmentName.size() <= 160))
+        && (!('attachmentUrl' in data) || (data.attachmentUrl is string && data.attachmentUrl.size() <= 200000))
+        && data.authorId is string && data.authorId.size() <= 128
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidDictionaryEntry(data) {
+      return data.keys().hasAll(['word', 'pos', 'en', 'fr', 'level', 'authorId', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly([
+          'word', 'pos', 'pronounce', 'en', 'fr', 'level', 'explanation',
+          'funFact', 'example', 'imageUrl', 'authorId', 'createdAt', 'updatedAt'
+        ])
+        && data.word is string && data.word.size() >= 1 && data.word.size() <= 120
+        && data.pos is string && data.pos.size() >= 1 && data.pos.size() <= 40
+        && (!('pronounce' in data) || (data.pronounce is string && data.pronounce.size() <= 120))
+        && data.en is string && data.en.size() >= 1 && data.en.size() <= 200
+        && data.fr is string && data.fr.size() >= 1 && data.fr.size() <= 200
+        && data.level is string && data.level.size() <= 24 && data.level in ['beginner', 'intermediate', 'advanced', 'master']
+        && (!('explanation' in data) || (data.explanation is string && data.explanation.size() <= 600))
+        && (!('funFact' in data) || (data.funFact is string && data.funFact.size() <= 400))
+        && (!('example' in data) || (data.example is string && data.example.size() <= 300))
+        && (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 200000))
+        && data.authorId is string && data.authorId.size() <= 128
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidKoudmenPost(data) {
+      return data.keys().hasAll(['authorId', 'authorName', 'topic', 'title', 'body', 'upvotes', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['authorId', 'authorName', 'topic', 'title', 'body', 'upvotes', 'createdAt', 'updatedAt'])
+        && data.authorId is string && data.authorId.size() <= 128
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
+        && data.topic is string && data.topic.size() <= 24 && data.topic in ['grammar', 'culture', 'pronunciation', 'history']
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 160
+        && data.body is string && data.body.size() >= 2 && data.body.size() <= 2000
+        && data.upvotes is int && data.upvotes >= 0 && data.upvotes <= 100000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Users Collection (PII strictly isolated to owner or admin)
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isValidId(userId)
+        && isVerifiedUser()
+        && isOwner(userId)
+        && isValidUserProgress(incoming(), userId)
+        && incoming().role == 'learner'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId)
+        && isVerifiedUser()
+        && isValidUserProgress(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() ||
+          (
+            isOwner(userId)
+            && incoming().role == existing().role
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'displayName', 'email', 'xp', 'streak', 'collectionPoints',
+              'modules', 'quizzes', 'reviewedCards', 'listenedWords', 'visitedSites', 'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isValidId(userId) && isAdmin();
+    }
+
+    // Admins Collection
+    match /admins/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isValidId(userId)
+        && isAdmin()
+        && isValidAdminMember(incoming(), userId)
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isValidId(userId) && isAdmin();
+    }
+
+    // Admin-Authored Rich-Text Lessons
+    match /lessons/{lessonId} {
+      allow get: if isValidId(lessonId);
+      allow list: if true;
+      allow create: if isValidId(lessonId)
+        && isAdmin()
+        && isValidLessonArticle(incoming())
+        && incoming().authorId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(lessonId)
+        && isAdmin()
+        && isValidLessonArticle(incoming())
+        && incoming().authorId == existing().authorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'level', 'creoleSummary', 'bodyHtml', 'funFact',
+          'imageUrl', 'attachmentName', 'attachmentUrl', 'updatedAt'
+        ]);
+      allow delete: if isValidId(lessonId) && isAdmin();
+    }
+
+    // Admin-Authored Dictionary Entries
+    match /dictionary/{entryId} {
+      allow get: if isValidId(entryId);
+      allow list: if true;
+      allow create: if isValidId(entryId)
+        && isAdmin()
+        && isValidDictionaryEntry(incoming())
+        && incoming().authorId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(entryId)
+        && isAdmin()
+        && isValidDictionaryEntry(incoming())
+        && incoming().authorId == existing().authorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'word', 'pos', 'pronounce', 'en', 'fr', 'level', 'explanation',
+          'funFact', 'example', 'imageUrl', 'updatedAt'
+        ]);
+      allow delete: if isValidId(entryId) && isAdmin();
+    }
+
+    // Community Koudmen Posts
+    match /koudmen/{postId} {
+      allow get: if isValidId(postId);
+      allow list: if true;
+      allow create: if isValidId(postId)
+        && isVerifiedUser()
+        && isValidKoudmenPost(incoming())
+        && incoming().authorId == request.auth.uid
+        && incoming().upvotes == 0
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(postId)
+        && isVerifiedUser()
+        && isValidKoudmenPost(incoming())
+        && incoming().authorId == existing().authorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() ||
+          (
+            existing().authorId == request.auth.uid
+            && incoming().diff(existing()).affectedKeys().hasOnly(['topic', 'title', 'body', 'updatedAt'])
+          ) ||
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly(['upvotes', 'updatedAt'])
+            && incoming().upvotes == existing().upvotes + 1
+          )
+        );
+      allow delete: if isValidId(postId) && (isAdmin() || (isVerifiedUser() && existing().authorId == request.auth.uid));
+    }
+  }
+}

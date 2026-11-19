@@ -1,3 +1,4 @@
+import fs from 'fs';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -5,13 +6,19 @@ import { GoogleGenAI, Type } from '@google/genai';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
 
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '6mb' }));
 app.use(express.static(__dirname));
 app.use('/src', express.static(path.join(__dirname, 'src')));
+app.use('/uploads', express.static(UPLOADS_DIR));
+app.use('/vendor/firebase', express.static(path.join(__dirname, 'node_modules', 'firebase')));
 
 // Lazy initialization of Gemini client
 let aiClient = null;
@@ -309,6 +316,44 @@ Return strictly valid JSON with an encouragement, a specific focusArea, a recomm
   } catch (err) {
     console.error('Agentic Coach API error:', err);
     return res.status(500).json({ error: 'Failed to generate coach recommendation' });
+  }
+});
+
+// Safe local file/image upload endpoint for Admin Console (avoids >1MB Firestore limits)
+app.post('/api/upload', (req, res) => {
+  try {
+    const { filename, dataUrl } = req.body || {};
+    if (!filename || typeof filename !== 'string' || !dataUrl || typeof dataUrl !== 'string') {
+      return res.status(400).json({ error: 'filename and dataUrl are required' });
+    }
+    const match = dataUrl.match(/^data:([a-zA-Z0-9.+/-]+);base64,(.+)$/);
+    if (!match) {
+      return res.status(400).json({ error: 'Invalid base64 dataUrl' });
+    }
+    const mime = match[1];
+    const allowedMimes = [
+      'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+      'application/pdf', 'text/plain', 'audio/mpeg', 'audio/wav', 'audio/webm'
+    ];
+    if (!allowedMimes.includes(mime)) {
+      return res.status(400).json({ error: `Unsupported file type: ${mime}` });
+    }
+    const buffer = Buffer.from(match[2], 'base64');
+    if (buffer.length > 4 * 1024 * 1024) {
+      return res.status(400).json({ error: 'File exceeds 4MB upload limit' });
+    }
+    const cleanBase = path.basename(filename).replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80);
+    const savedName = `${Date.now()}_${cleanBase}`;
+    fs.writeFileSync(path.join(UPLOADS_DIR, savedName), buffer);
+    return res.json({
+      url: `/uploads/${savedName}`,
+      name: cleanBase,
+      mime,
+      size: buffer.length
+    });
+  } catch (err) {
+    console.error('Upload error:', err);
+    return res.status(500).json({ error: 'Failed to store uploaded file' });
   }
 });
 

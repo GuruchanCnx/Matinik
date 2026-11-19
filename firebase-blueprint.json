@@ -1,0 +1,115 @@
+{
+  "entities": {
+    "UserProgress": {
+      "title": "UserProgress",
+      "description": "Authenticated learner profile, XP, streak, collection points, module/quiz progress, and preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 80 },
+        "email": { "type": "string", "maxLength": 160 },
+        "role": { "type": "string", "enum": ["learner", "admin"] },
+        "xp": { "type": "integer" },
+        "streak": { "type": "integer" },
+        "collectionPoints": { "type": "integer" },
+        "modules": { "type": "object" },
+        "quizzes": { "type": "object" },
+        "reviewedCards": { "type": "array" },
+        "listenedWords": { "type": "array" },
+        "visitedSites": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "role", "xp", "streak", "collectionPoints", "createdAt", "updatedAt"]
+    },
+    "AdminMember": {
+      "title": "AdminMember",
+      "description": "Trusted administrator marker document keyed by Firebase Auth UID",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 160 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "LessonArticle": {
+      "title": "LessonArticle",
+      "description": "Admin-authored rich-text Creole micro-lesson or cultural guide with optional picture/file attachment",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 140 },
+        "level": { "type": "string", "enum": ["beginner", "intermediate", "advanced", "master"] },
+        "creoleSummary": { "type": "string", "maxLength": 400 },
+        "bodyHtml": { "type": "string", "maxLength": 40000 },
+        "funFact": { "type": "string", "maxLength": 600 },
+        "imageUrl": { "type": "string", "maxLength": 200000 },
+        "attachmentName": { "type": "string", "maxLength": 160 },
+        "attachmentUrl": { "type": "string", "maxLength": 200000 },
+        "authorId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "level", "creoleSummary", "bodyHtml", "authorId", "createdAt", "updatedAt"]
+    },
+    "DictionaryEntry": {
+      "title": "DictionaryEntry",
+      "description": "Custom Martinican Creole dictionary & flashcard term published via Admin Console",
+      "type": "object",
+      "properties": {
+        "word": { "type": "string", "maxLength": 120 },
+        "pos": { "type": "string", "maxLength": 40 },
+        "pronounce": { "type": "string", "maxLength": 120 },
+        "en": { "type": "string", "maxLength": 200 },
+        "fr": { "type": "string", "maxLength": 200 },
+        "level": { "type": "string", "enum": ["beginner", "intermediate", "advanced", "master"] },
+        "explanation": { "type": "string", "maxLength": 600 },
+        "funFact": { "type": "string", "maxLength": 400 },
+        "example": { "type": "string", "maxLength": 300 },
+        "imageUrl": { "type": "string", "maxLength": 200000 },
+        "authorId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["word", "pos", "en", "fr", "level", "authorId", "createdAt", "updatedAt"]
+    },
+    "KoudmenPost": {
+      "title": "KoudmenPost",
+      "description": "Community Koudmen question or cultural note with bounded upvoter tracking",
+      "type": "object",
+      "properties": {
+        "authorId": { "type": "string", "maxLength": 128 },
+        "authorName": { "type": "string", "maxLength": 80 },
+        "topic": { "type": "string", "enum": ["grammar", "culture", "pronunciation", "history"] },
+        "title": { "type": "string", "maxLength": 160 },
+        "body": { "type": "string", "maxLength": 2000 },
+        "upvotes": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["authorId", "authorName", "topic", "title", "body", "upvotes", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProgress" },
+      "description": "Private learner progress and profile state, readable and writable only by the owning authenticated user or an admin."
+    },
+    "/admins/{userId}": {
+      "schema": { "$ref": "#/entities/AdminMember" },
+      "description": "Trusted admin role documents; readable only by owner or admin."
+    },
+    "/lessons/{lessonId}": {
+      "schema": { "$ref": "#/entities/LessonArticle" },
+      "description": "Rich-text micro-lessons and uploaded media guides published by admins."
+    },
+    "/dictionary/{entryId}": {
+      "schema": { "$ref": "#/entities/DictionaryEntry" },
+      "description": "Extended Martinican Creole dictionary entries managed by admins."
+    },
+    "/koudmen/{postId}": {
+      "schema": { "$ref": "#/entities/KoudmenPost" },
+      "description": "Community Koudmen peer-learning posts."
+    }
+  }
+}
