@@ -7,8 +7,14 @@
     <meta name="description" content="Martinican Creole Heritage Course with interactive cultural map, daily study goals, speech audio, and community koudmen peer learning.">
     <meta property="og:title" content="Kréyòl Matinik – Martinican Creole Heritage Course">
     <meta property="og:description" content="Martinican Creole Heritage Course with interactive cultural map, daily study goals, speech audio, and community koudmen peer learning.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="/src/styles.css">
     <style>
         * {
             margin: 0;
@@ -2678,6 +2684,504 @@
         }
 
         /* ========================================================
+           FOCUS TIMER (DEEP STUDY) COMPONENT STYLES
+        ======================================================== */
+        .daily-focus-timer-box {
+            margin-top: 1.25rem;
+            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid rgba(217, 119, 6, 0.25);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .daily-focus-timer-box {
+            background: rgba(15, 23, 42, 0.7);
+            border-color: rgba(217, 119, 6, 0.35);
+        }
+
+        .focus-timer-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .focus-timer-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .focus-ambient-badge {
+            background: rgba(16, 185, 129, 0.12);
+            color: #065f46;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        body.dark-mode .focus-ambient-badge {
+            background: rgba(16, 185, 129, 0.25);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .focus-ambient-badge.muted {
+            background: rgba(100, 116, 139, 0.15);
+            color: #64748b;
+            border-color: rgba(100, 116, 139, 0.3);
+        }
+
+        .focus-timer-grid {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .focus-timer-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+                justify-items: center;
+            }
+        }
+
+        .focus-digits-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: #fbbf24;
+            padding: 0.75rem 1.4rem;
+            border-radius: 14px;
+            font-family: 'SF Mono', Consolas, Monaco, monospace;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 150px;
+            border: 1px solid #334155;
+            position: relative;
+        }
+
+        .focus-digits-card.active-running {
+            animation: timerGlow 2s infinite alternate;
+            border-color: #f59e0b;
+        }
+
+        @keyframes timerGlow {
+            0% { box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 10px rgba(245, 158, 11, 0.3); }
+            100% { box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 22px rgba(245, 158, 11, 0.7); }
+        }
+
+        .focus-duration-chips {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .focus-preset-btn {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        body.dark-mode .focus-preset-btn {
+            background: #1e293b;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        .focus-preset-btn.active {
+            background: var(--primary-gold);
+            color: #ffffff;
+            border-color: var(--primary-gold);
+            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+        }
+
+        .focus-timer-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .focus-btn-primary {
+            background: linear-gradient(135deg, var(--martinique-blue), #0d47a1);
+            color: #ffffff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 3px 10px rgba(25, 118, 210, 0.25);
+        }
+
+        .focus-btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(25, 118, 210, 0.35);
+        }
+
+        .focus-btn-primary.running {
+            background: linear-gradient(135deg, #d97706, #b45309);
+        }
+
+        .focus-btn-secondary {
+            background: transparent;
+            border: 1px solid #cbd5e1;
+            color: var(--text-secondary);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        body.dark-mode .focus-btn-secondary {
+            border-color: #475569;
+            color: #cbd5e1;
+        }
+
+        .focus-btn-secondary:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-primary);
+        }
+
+        .focus-nature-track-select {
+            padding: 5px 8px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            outline: none;
+        }
+
+        body.dark-mode .focus-nature-track-select {
+            background: #1e293b;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        .focus-progress-line {
+            height: 5px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        body.dark-mode .focus-progress-line {
+            background: #334155;
+        }
+
+        .focus-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #f59e0b);
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        /* ========================================================
+           SPEAKING PRACTICE MODE STYLES
+        ======================================================== */
+        .speaking-practice-container {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 24px;
+            padding: 2.2rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
+
+        body.dark-mode .speaking-practice-container {
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(6, 78, 59, 0.25) 100%);
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+
+        .speech-hero-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .speech-target-phrase {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--primary-gold);
+            margin: 0.5rem 0;
+            letter-spacing: -0.5px;
+        }
+
+        .speech-phonetic-badge {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-bottom: 0.8rem;
+        }
+
+        .speech-meaning-row {
+            display: flex;
+            gap: 1.25rem;
+            justify-content: center;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .speech-controls-row {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .speech-mic-btn {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #ffffff;
+            border: none;
+            font-size: 2.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.35);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .speech-mic-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5);
+        }
+
+        .speech-mic-btn.recording {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            animation: pulseRecord 1.2s infinite;
+        }
+
+        @keyframes pulseRecord {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1.12); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .speech-listen-model-btn {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            color: var(--text-primary);
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        body.dark-mode .speech-listen-model-btn {
+            background: #1e293b;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        .speech-listen-model-btn:hover {
+            border-color: var(--interactive-blue);
+            color: var(--interactive-blue);
+        }
+
+        .speech-status-prompt {
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .speech-live-transcript-box {
+            background: #ffffff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+            text-align: center;
+            min-height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-style: italic;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        body.dark-mode .speech-live-transcript-box {
+            background: #1e293b;
+            border-color: #475569;
+            color: #cbd5e1;
+        }
+
+        .speech-live-transcript-box.has-transcript {
+            border-style: solid;
+            border-color: var(--martinique-blue);
+            font-style: normal;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .speech-feedback-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 2px solid #e2e8f0;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            animation: slideDown 0.3s ease;
+        }
+
+        body.dark-mode .speech-feedback-card {
+            background: #1e293b;
+            border-color: #374151;
+        }
+
+        .speech-score-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .speech-score-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .speech-score-pill.excellent {
+            background: rgba(16, 185, 129, 0.15);
+            color: #065f46;
+        }
+
+        body.dark-mode .speech-score-pill.excellent {
+            background: rgba(16, 185, 129, 0.25);
+            color: #34d399;
+        }
+
+        .speech-score-pill.good {
+            background: rgba(245, 158, 11, 0.15);
+            color: #b45309;
+        }
+
+        body.dark-mode .speech-score-pill.good {
+            background: rgba(245, 158, 11, 0.25);
+            color: #fbbf24;
+        }
+
+        .speech-score-pill.tryagain {
+            background: rgba(239, 68, 68, 0.15);
+            color: #991b1b;
+        }
+
+        body.dark-mode .speech-score-pill.tryagain {
+            background: rgba(239, 68, 68, 0.25);
+            color: #f87171;
+        }
+
+        .speech-comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        @media (max-width: 600px) {
+            .speech-comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .speech-comp-box {
+            padding: 0.9rem;
+            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.dark-mode .speech-comp-box {
+            background: #0f172a;
+            border-color: #334155;
+        }
+
+        .speech-comp-label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .speech-comp-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .speech-action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        /* ========================================================
            COMMUNITY KOUDMEN SECTION STYLES
         ======================================================== */
         .community-koudmen-section {
@@ -3110,6 +3614,11 @@
                 <span class="lang-content" data-lang="fr">Programme</span>
                 <span class="lang-content" data-lang="mq">Pwogram</span>
             </a>
+            <a href="#martiniqueMapSection" class="nav-link" data-key="map_nav">
+                <span class="lang-content active" data-lang="en">Cultural Map</span>
+                <span class="lang-content" data-lang="fr">Carte Culturelle</span>
+                <span class="lang-content" data-lang="mq">Kat Kiltirèl</span>
+            </a>
             <a href="#flashcards" class="nav-link" data-key="flashcards_nav">
                 <span class="lang-content active" data-lang="en">Flashcards</span>
                 <span class="lang-content" data-lang="fr">Fiches</span>
@@ -3125,6 +3634,10 @@
                 <span class="lang-content" data-lang="fr">Communauté</span>
                 <span class="lang-content" data-lang="mq">Koudmen</span>
             </a>
+            <button type="button" class="settings-nav-btn" onclick="openStudySettings(true)" title="Study & Audio Settings" aria-label="Open Study and Audio Settings">
+                <i class="fas fa-sliders"></i>
+                <span>Settings</span>
+            </button>
             <button type="button" class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode" aria-label="Toggle dark mode">
                 <i class="fas fa-moon" id="themeToggleIcon"></i>
                 <span class="theme-label" id="themeToggleLabel">Dark</span>
@@ -3361,6 +3874,71 @@
                             <span class="lang-content" data-lang="mq">+1 Pratik rapid</span>
                         </button>
                     </div>
+
+                    <!-- Focus Timer Component (Deep Study & Immersion) -->
+                    <div class="daily-focus-timer-box" id="dailyFocusTimerBox">
+                        <div class="focus-timer-top">
+                            <div class="focus-timer-title">
+                                <i class="fas fa-stopwatch text-amber-500"></i>
+                                <span class="lang-content active" data-lang="en">Focus Timer • Deep Study Session</span>
+                                <span class="lang-content" data-lang="fr">Minuteur Focus • Session d'étude intense</span>
+                                <span class="lang-content" data-lang="mq">Lè Konsantrasyon • Sesyon étid séré</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <select class="focus-nature-track-select" id="natureSoundTrackSelect" onchange="changeNatureSoundTrack(this.value)" title="Select ambient nature sound">
+                                    <option value="rainforest">🌿 Martinique Rainforest (Bwa Balata)</option>
+                                    <option value="waves">🌊 Caribbean Waves (Plaj Salin)</option>
+                                    <option value="crickets">🦗 Twilight Crickets (Krik-Krak)</option>
+                                </select>
+                                <button type="button" class="focus-ambient-badge" id="natureSoundToggleBtn" onclick="toggleNatureSound()" title="Toggle background nature sound during focus timer">
+                                    <i class="fas fa-volume-high" id="natureSoundIcon"></i>
+                                    <span id="natureSoundLabel">Sound: On</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="focus-timer-grid">
+                            <div class="focus-digits-card" id="focusDigitsCard">
+                                <span id="focusTimerDisplay">25:00</span>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                                    <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary);">
+                                        <span class="lang-content active" data-lang="en">Session Duration:</span>
+                                        <span class="lang-content" data-lang="fr">Durée de la session :</span>
+                                        <span class="lang-content" data-lang="mq">Lè pou sesyon-an :</span>
+                                    </span>
+                                    <div class="focus-duration-chips" role="radiogroup" aria-label="Focus timer duration">
+                                        <button type="button" class="focus-preset-btn" data-minutes="15" onclick="setFocusDuration(15)">15 min</button>
+                                        <button type="button" class="focus-preset-btn active" data-minutes="25" onclick="setFocusDuration(25)">25 min</button>
+                                        <button type="button" class="focus-preset-btn" data-minutes="45" onclick="setFocusDuration(45)">45 min</button>
+                                    </div>
+                                </div>
+                                <div class="focus-progress-line">
+                                    <div class="focus-progress-fill" id="focusProgressFill" style="width: 100%;"></div>
+                                </div>
+                                <div id="focusSessionStatus" style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px;">
+                                    <span class="lang-content active" data-lang="en">Ready to study. Press Start to begin countdown with soothing island ambient sounds.</span>
+                                    <span class="lang-content" data-lang="fr">Prêt à étudier. Appuyez sur Démarrer pour lancer avec des sons naturels des Antilles.</span>
+                                    <span class="lang-content" data-lang="mq">Paré pou étidyé. Pijé Koumansé pou mété an kous épi son natirèl Matinik.</span>
+                                </div>
+                            </div>
+
+                            <div class="focus-timer-actions">
+                                <button type="button" class="focus-btn-primary" id="focusToggleBtn" onclick="toggleFocusTimer()">
+                                    <i class="fas fa-play" id="focusToggleIcon"></i>
+                                    <span id="focusToggleText">Start Focus</span>
+                                </button>
+                                <button type="button" class="focus-btn-secondary" onclick="resetFocusTimer()" title="Reset countdown to preset time">
+                                    <i class="fas fa-rotate-left"></i>
+                                    <span class="lang-content active" data-lang="en">Reset</span>
+                                    <span class="lang-content" data-lang="fr">Réinit.</span>
+                                    <span class="lang-content" data-lang="mq">Rikoumansé</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -3384,6 +3962,20 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Agentic Cultural Study Coach -->
+            <div class="agentic-coach-panel" id="agenticCoachPanel">
+                <div class="agentic-coach-head">
+                    <div>
+                        <strong style="font-size:1rem;"><i class="fas fa-compass" style="color:var(--cobalt);"></i> Agentic Cultural Study Coach</strong>
+                        <div style="font-size:0.84rem; color:var(--ink-secondary);">Analyzes your accuracy stats, recordings, and island progress to prescribe a tailored session.</div>
+                    </div>
+                    <button type="button" class="agentic-coach-btn" id="agenticCoachBtn" onclick="requestAgenticCoach()">
+                        <i class="fas fa-wand-magic-sparkles"></i> Generate Study Plan
+                    </button>
+                </div>
+                <div id="agenticCoachResult" style="display:none;"></div>
+            </div>
         </div>
 
         <!-- Interactive Martinique Cultural Map -->
@@ -3402,9 +3994,24 @@
                 </p>
             </div>
 
+            <div class="map-mode-toolbar">
+                <div class="map-filter-group" role="group" aria-label="Filter Martinique map points">
+                    <button type="button" class="map-filter-btn active" data-map-filter="all" onclick="filterMapSites('all')">All Sites</button>
+                    <button type="button" class="map-filter-btn" data-map-filter="commune" onclick="filterMapSites('commune')">12 Communes</button>
+                    <button type="button" class="map-filter-btn" data-map-filter="historical" onclick="filterMapSites('historical')">Historical Sites</button>
+                    <button type="button" class="map-filter-btn" data-map-filter="offbeat" onclick="filterMapSites('offbeat')">Off the Beaten Path</button>
+                </div>
+                <div class="map-filter-group" role="group" aria-label="Map view switch">
+                    <button type="button" class="map-filter-btn active" data-map-view="osm" onclick="toggleMapViewMode('osm')"><i class="fas fa-map"></i> OSM Live Map</button>
+                    <button type="button" class="map-filter-btn" data-map-view="svg" onclick="toggleMapViewMode('svg')"><i class="fas fa-draw-polygon"></i> Illustrated Map</button>
+                </div>
+            </div>
+
             <div class="map-container-grid">
-                <!-- SVG Map Card -->
+                <!-- Interactive Map Card (OSM Primary + SVG Fallback) -->
                 <div class="map-svg-card">
+                    <div id="osmMapContainer" aria-label="OpenStreetMap interactive heritage map of Martinique"></div>
+                    <div id="svgMapFallbackWrap" style="display:none;">
                     <svg class="martinique-map-svg" viewBox="0 0 600 660" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of Martinique showing cultural communes">
                         <defs>
                             <linearGradient id="islandLandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -3541,10 +4148,11 @@
                             <text x="437" y="559" fill="#ffffff" stroke="#000" stroke-width="2" paint-order="stroke">Sainte-Anne</text>
                         </g>
                     </svg>
+                    </div>
 
                     <!-- Quick Commune Selector Chips -->
                     <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-top: 10px;">
-                        Quick Select Commune:
+                        Quick Select Commune or Heritage Site:
                     </div>
                     <div class="commune-selector-chips" id="communeChipsContainer">
                         <!-- Populated dynamically via JS -->
@@ -3587,9 +4195,13 @@
                     </div>
 
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" class="view-gallery-btn" id="viewCommuneGalleryBtn" onclick="openCommuneGallery()">
+                            <i class="fas fa-images"></i>
+                            <span>View Gallery</span>
+                        </button>
                         <button type="button" class="wotd-btn wotd-btn-shuffle" onclick="askTutorAboutCurrentCommune()" style="flex: 1;">
                             <i class="fas fa-robot text-purple-600"></i>
-                            <span>Ask AI Tutor About This Commune</span>
+                            <span>Ask AI Tutor About This Site</span>
                         </button>
                     </div>
                 </div>
@@ -3742,56 +4354,192 @@
             </button>
             <button type="button" class="quiz-mode-btn" id="btnModeAudio" onclick="switchQuizMode('audio')">
                 <i class="fas fa-headphones text-blue-500"></i>
-                <span class="lang-content active" data-lang="en">🎧 Audio-Only Listening Quiz</span>
+                <span class="lang-content active" data-lang="en">🎧 Audio Listening Quiz</span>
                 <span class="lang-content" data-lang="fr">🎧 Quiz audio d'écoute</span>
                 <span class="lang-content" data-lang="mq">🎧 Kiz odyo kouté</span>
             </button>
+            <button type="button" class="quiz-mode-btn" id="btnModeSpeaking" onclick="switchQuizMode('speaking')">
+                <i class="fas fa-microphone text-emerald-500"></i>
+                <span class="lang-content active" data-lang="en">🎙️ Speaking Practice (Speech AI)</span>
+                <span class="lang-content" data-lang="fr">🎙️ Entraînement Oral (Speech AI)</span>
+                <span class="lang-content" data-lang="mq">🎙️ Pratik Palé (Speech AI)</span>
+            </button>
         </div>
 
-        <!-- AUDIO-ONLY LISTENING QUIZ SECTION -->
+        <!-- AUDIO & SPEAKING PRACTICE QUIZ SECTION -->
         <div id="audioQuizSection" class="audio-quiz-container" style="display: none;">
-            <div class="audio-quiz-score-row">
-                <div class="audio-score-badge">
-                    <i class="fas fa-headphones text-blue-600"></i>
-                    <span>Audio Listening Challenge • Question <span id="audioQNum">1</span> of <span id="audioQTotal">8</span></span>
-                </div>
-                <div class="audio-score-badge">
-                    <i class="fas fa-star text-amber-500"></i>
-                    <span>Score: <span id="audioScoreDisplay">0</span> correct (+<span id="audioXpDisplay">0</span> XP)</span>
-                </div>
-            </div>
-
-            <div class="audio-play-hero">
-                <button type="button" class="audio-big-play-btn" id="audioBigPlayBtn" onclick="playCurrentAudioQuizTerm()" title="Click to listen to spoken Creole" aria-label="Play spoken Creole word">
-                    <i class="fas fa-volume-high"></i>
+            <!-- Submode Toggle: Listening vs Speaking -->
+            <div class="audio-mode-subtabs" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <button type="button" class="koudmen-tab active" id="subtabListening" onclick="switchAudioSubmode('listening')">
+                    <i class="fas fa-headphones mr-1 text-blue-500"></i>
+                    <span class="lang-content active" data-lang="en">🎧 Listening Challenge</span>
+                    <span class="lang-content" data-lang="fr">🎧 Défi d'écoute</span>
+                    <span class="lang-content" data-lang="mq">🎧 Kouté épi konprann</span>
                 </button>
-                <div style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
-                    Listen carefully to the spoken Martinican Creole term
-                </div>
-                <div style="font-size: 0.92rem; color: var(--text-secondary);">
-                    Press the speaker button to hear or replay the authentic pronunciation
-                </div>
-                <div class="audio-speed-chips">
-                    <button type="button" class="speed-chip-btn active" id="speedNormalBtn" onclick="setAudioQuizSpeed(1.0)">Normal Speed (1.0x)</button>
-                    <button type="button" class="speed-chip-btn" id="speedSlowBtn" onclick="setAudioQuizSpeed(0.8)">Slower Pace (0.8x)</button>
-                </div>
-            </div>
-
-            <div class="quiz-question" style="text-align: center; margin-bottom: 1.5rem;">
-                Which is the correct translation of the spoken Creole phrase?
-            </div>
-
-            <div class="quiz-options" id="audioQuizOptions">
-                <!-- Dynamically rendered via renderAudioQuizQuestion() -->
-            </div>
-
-            <div id="audioQuizExplanation" class="quiz-explanation" role="status" aria-live="polite" style="display: none;"></div>
-
-            <div style="text-align: center;">
-                <button type="button" class="next-audio-q-btn" id="nextAudioQBtn" onclick="nextAudioQuestion()" style="display: none;">
-                    <span>Next Audio Question</span>
-                    <i class="fas fa-arrow-right"></i>
+                <button type="button" class="koudmen-tab" id="subtabSpeaking" onclick="switchAudioSubmode('speaking')">
+                    <i class="fas fa-microphone mr-1 text-emerald-500"></i>
+                    <span class="lang-content active" data-lang="en">🎙️ Speaking Practice (Speech AI)</span>
+                    <span class="lang-content" data-lang="fr">🎙️ Pratique orale (Speech AI)</span>
+                    <span class="lang-content" data-lang="mq">🎙️ Pratik Palé Kréyòl</span>
                 </button>
+            </div>
+
+            <!-- 1. LISTENING SUBMODE CONTENT -->
+            <div id="listeningQuizContent">
+                <div class="audio-quiz-score-row">
+                    <div class="audio-score-badge">
+                        <i class="fas fa-headphones text-blue-600"></i>
+                        <span>Listening Challenge • Question <span id="audioQNum">1</span> of <span id="audioQTotal">8</span></span>
+                    </div>
+                    <div class="audio-score-badge">
+                        <i class="fas fa-star text-amber-500"></i>
+                        <span>Score: <span id="audioScoreDisplay">0</span> correct (+<span id="audioXpDisplay">0</span> XP)</span>
+                    </div>
+                </div>
+
+                <div class="audio-play-hero">
+                    <button type="button" class="audio-big-play-btn" id="audioBigPlayBtn" onclick="playCurrentAudioQuizTerm()" title="Click to listen to spoken Creole" aria-label="Play spoken Creole word">
+                        <i class="fas fa-volume-high"></i>
+                    </button>
+                    <div style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
+                        Listen carefully to the spoken Martinican Creole term
+                    </div>
+                    <div style="font-size: 0.92rem; color: var(--text-secondary);">
+                        Press the speaker button to hear or replay the authentic pronunciation
+                    </div>
+                    <div class="audio-speed-chips">
+                        <button type="button" class="speed-chip-btn active" id="speedNormalBtn" onclick="setAudioQuizSpeed(1.0)">Normal Speed (1.0x)</button>
+                        <button type="button" class="speed-chip-btn" id="speedSlowBtn" onclick="setAudioQuizSpeed(0.8)">Slower Pace (0.8x)</button>
+                    </div>
+                </div>
+
+                <div class="quiz-question" style="text-align: center; margin-bottom: 1.5rem;">
+                    Which is the correct translation of the spoken Creole phrase?
+                </div>
+
+                <div class="quiz-options" id="audioQuizOptions">
+                    <!-- Dynamically rendered via renderAudioQuizQuestion() -->
+                </div>
+
+                <div id="audioQuizExplanation" class="quiz-explanation" role="status" aria-live="polite" style="display: none;"></div>
+
+                <div style="text-align: center;">
+                    <button type="button" class="next-audio-q-btn" id="nextAudioQBtn" onclick="nextAudioQuestion()" style="display: none;">
+                        <span>Next Audio Question</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. SPEAKING PRACTICE SUBMODE CONTENT -->
+            <div id="speakingPracticeContent" style="display: none;">
+                <div class="speech-hero-card">
+                    <div style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: #059669; letter-spacing: 0.08em; margin-bottom: 4px;">
+                        <span class="lang-content active" data-lang="en">Speaking & Phonetics AI Lab</span>
+                        <span class="lang-content" data-lang="fr">Laboratoire d'expression orale & phonétique</span>
+                        <span class="lang-content" data-lang="mq">Atèlyé Palé Kréyòl Matinik</span>
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                        <span id="speechPhraseCounter">Phrase 1 of 6</span> • <span id="speechScoreAccumulator">0 pts (+0 XP)</span>
+                    </div>
+
+                    <div class="speech-target-phrase" id="speechTargetPhrase">
+                        Bonjou tout moun!
+                    </div>
+                    <div class="speech-phonetic-badge" id="speechTargetPhonetic">
+                        [bohn-zhoo toot moon]
+                    </div>
+
+                    <div class="speech-meaning-row">
+                        <div><strong>EN:</strong> <span id="speechMeaningEn">Good morning / Hello everyone!</span></div>
+                        <div><strong>FR:</strong> <span id="speechMeaningFr">Bonjour tout le monde !</span></div>
+                    </div>
+
+                    <div style="font-size: 0.88rem; color: var(--text-secondary); max-width: 520px; margin: 0 auto 1.25rem; font-style: italic;" id="speechTipBox">
+                        <i class="fas fa-lightbulb text-amber-500 mr-1"></i>
+                        <span id="speechTipText">Pronounce 'Bonjou' with a soft nasal 'on' and 'moun' like 'moon' without a hard trailing 'd'.</span>
+                    </div>
+
+                    <div class="speech-controls-row">
+                        <button type="button" class="speech-listen-model-btn" id="speechListenModelBtn" onclick="listenSpeakingTargetModel()" title="Listen to native model pronunciation">
+                            <i class="fas fa-volume-high text-blue-500"></i>
+                            <span class="lang-content active" data-lang="en">Listen Native Model</span>
+                            <span class="lang-content" data-lang="fr">Écouter le modèle natif</span>
+                            <span class="lang-content" data-lang="mq">Kouté pémmyé</span>
+                        </button>
+
+                        <button type="button" class="speech-mic-btn" id="speechMicBtn" onclick="toggleSpeechRecording()" title="Click to start speech recognition" aria-label="Record your Creole pronunciation">
+                            <i class="fas fa-microphone" id="speechMicIcon"></i>
+                        </button>
+                    </div>
+                    <div id="speakingPracticeRecorderMount" class="fc-recorder-bar" style="margin-top:0.75rem;"></div>
+
+                    <div class="speech-status-prompt" id="speechStatusPrompt">
+                        <span class="lang-content active" data-lang="en">Press the green microphone button and speak clearly into your device</span>
+                        <span class="lang-content" data-lang="fr">Cliquez sur le micro vert et prononcez la phrase à voix haute</span>
+                        <span class="lang-content" data-lang="mq">Pijé mikro vèt la épi palé fraz la fò épi klè</span>
+                    </div>
+                </div>
+
+                <div class="speech-live-transcript-box" id="speechTranscriptBox">
+                    <span class="lang-content active" data-lang="en">Spoken words will appear here in real time...</span>
+                    <span class="lang-content" data-lang="fr">Vos paroles prononcées s'afficheront ici en direct...</span>
+                    <span class="lang-content" data-lang="mq">Pawòl ou ké parèt isi-a pandan ou ka palé...</span>
+                </div>
+
+                <!-- Evaluated Score Card (shown after recording) -->
+                <div class="speech-feedback-card" id="speechFeedbackCard" style="display: none;">
+                    <div class="speech-score-header">
+                        <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-chart-line text-amber-500"></i>
+                            <span class="lang-content active" data-lang="en">Pronunciation Scorecard</span>
+                            <span class="lang-content" data-lang="fr">Bilan de prononciation</span>
+                            <span class="lang-content" data-lang="mq">Bilan Vwa Kréyòl</span>
+                        </div>
+                        <div class="speech-score-pill excellent" id="speechScorePill">
+                            <i class="fas fa-circle-check"></i>
+                            <span id="speechScoreText">92% Match</span>
+                        </div>
+                    </div>
+
+                    <div class="speech-comparison-grid">
+                        <div class="speech-comp-box">
+                            <div class="speech-comp-label">
+                                <span class="lang-content active" data-lang="en">Target Creole Phrase</span>
+                                <span class="lang-content" data-lang="fr">Phrase créole attendue</span>
+                                <span class="lang-content" data-lang="mq">Fraz Kréyòl pou di</span>
+                            </div>
+                            <div class="speech-comp-value" id="speechExpectedText" style="color: var(--primary-gold);">Bonjou tout moun!</div>
+                        </div>
+                        <div class="speech-comp-box">
+                            <div class="speech-comp-label">
+                                <span class="lang-content active" data-lang="en">Speech Recognition Heard</span>
+                                <span class="lang-content" data-lang="fr">Reconnaissance vocale captée</span>
+                                <span class="lang-content" data-lang="mq">Sa machin-lan tann</span>
+                            </div>
+                            <div class="speech-comp-value" id="speechHeardText">"bonjou tout moun"</div>
+                        </div>
+                    </div>
+
+                    <div id="speechDetailedFeedback" style="font-size: 0.92rem; line-height: 1.5; margin-bottom: 1.25rem; color: var(--text-primary);">
+                        <!-- Dynamic analysis -->
+                    </div>
+
+                    <div class="speech-action-buttons">
+                        <button type="button" class="focus-btn-secondary" onclick="retrySpeakingPhrase()">
+                            <i class="fas fa-rotate-left"></i>
+                            <span class="lang-content active" data-lang="en">Try Again</span>
+                            <span class="lang-content" data-lang="fr">Réessayer</span>
+                            <span class="lang-content" data-lang="mq">Eseyé ankò</span>
+                        </button>
+                        <button type="button" class="focus-btn-primary" onclick="nextSpeakingPhrase()">
+                            <span class="lang-content active" data-lang="en">Next Phrase (+15 XP)</span>
+                            <span class="lang-content" data-lang="fr">Phrase suivante (+15 XP)</span>
+                            <span class="lang-content" data-lang="mq">Lòt fraz (+15 XP)</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -3813,6 +4561,7 @@
             </button>
         </div>
         
+        <div class="collection-framework-card" id="curriculumCollectionPanel"></div>
         <!-- MODULE 1 CONTENT -->
         <div id="module1-content" class="module-content">
             <div class="lesson-section">
@@ -3860,8 +4609,8 @@
                 <div class="lang-content" data-lang="mq">
                     <h3 class="section-title">Vokabilè esansyèl : Kouté epi aprann</h3>
                 </div>
-                
-                <table class="vocabulary-table">
+                <div id="enriched-module1" class="vocab-enriched-grid"></div>
+                <table class="vocabulary-table" style="display:none;">
                     <thead>
                         <tr>
                             <th>
@@ -4128,8 +4877,8 @@
                         <p>An Matinik, fanmi an gran epi li ka kouvè tout katyé a. Youn nan pi bèl tradisyon nou sé <strong>Koudmen</strong> : tout vwazen ka sanblé pou ba yon kout lanmen pou bati yon kaz oswa rékòlté san péyé lajan, an tchò kontan.</p>
                     </div>
                 </div>
-                
-                <table class="vocabulary-table">
+                <div id="enriched-module2" class="vocab-enriched-grid"></div>
+                <table class="vocabulary-table" style="display:none;">
                     <thead>
                         <tr>
                             <th>
@@ -4413,8 +5162,8 @@
                         <p>Kouzin Matinik la chwit toubannman ! Ni manyòk, lanmori, epis kolombo, piman zwazo ak bwa d'enn. Nan Gran Maché Fòdfwans la, tout machann ka kriyé w avèk souri : <em>« Vini doudou ! »</em></p>
                     </div>
                 </div>
-                
-                <table class="vocabulary-table">
+                <div id="enriched-module3" class="vocab-enriched-grid"></div>
+                <table class="vocabulary-table" style="display:none;">
                     <thead>
                         <tr>
                             <th>
@@ -4688,7 +5437,11 @@
                 Pratike avèk plis ke 20 jwèt kart ki kouvri tout modil kou a. Pèfè pou sesyon aprantisaj rapid !
             </p>
         </div>
-        
+        <div class="collection-framework-card" id="flashcardsCollectionPanel" style="max-width:1100px; margin:0 auto 1.75rem;"></div>
+        <div style="text-align:center; margin-bottom:1.5rem; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+            <button type="button" class="one-tap-btn" onclick="openHandsFreeModal(true)"><i class="fas fa-headphones"></i> Hands-Free Audio Mode</button>
+            <button type="button" class="one-tap-btn" onclick="openStudySettings(true)"><i class="fas fa-sliders"></i> Customize Card Display (14 Settings)</button>
+        </div>
         <div class="flashcards-grid">
             <div class="flashcard" onclick="openFlashcards('greetings')">
                 <h4>
@@ -5084,6 +5837,7 @@
             <div class="flashcard-3d-scene" onclick="flipFlashcard()" title="Click to flip card">
                 <div class="flashcard-inner" id="flashcardInner">
                     <div class="flashcard-face flashcard-front">
+                        <span id="fcFrontPos" style="font-size:0.74rem; text-transform:uppercase; letter-spacing:0.08em; opacity:0.85; margin-bottom:4px;">Greeting</span>
                         <div class="word" id="fcFrontWord">Bonjou</div>
                         <div class="pronounce" id="fcFrontPronounce">[bohn-zhoo]</div>
                         <button type="button" class="listen-btn" onclick="event.stopPropagation(); speakCreole(document.getElementById('fcFrontWord').textContent, this)" title="Listen to pronunciation">
@@ -5099,13 +5853,16 @@
                         <div class="meaning-en" id="fcBackEn">Good morning / Hello</div>
                         <div class="meaning-fr" id="fcBackFr">Bonjour / Salut</div>
                         <div class="example" id="fcBackEx">"Bonjou tout moun!" — Hello everyone!</div>
-                        <div class="flip-hint" style="margin-top: 1rem;">
+                        <div class="fc-linguistic-details" id="fcLinguisticDetails"></div>
+                        <div class="flip-hint" style="margin-top: 0.75rem;">
                             <i class="fas fa-rotate"></i>
                             <span>Click to flip back</span>
                         </div>
                     </div>
                 </div>
             </div>
+            <div id="fcMemoryStatsMount" style="margin-top:0.75rem;"></div>
+            <div id="fcRecorderBar" class="fc-recorder-bar"></div>
             
             <div class="flashcard-controls">
                 <button type="button" class="card-nav-btn" onclick="prevFlashcard()" id="fcPrevBtn" aria-label="Previous card">
@@ -5193,6 +5950,7 @@
             en: {
                 home_nav: "Home",
                 curriculum_nav: "Curriculum",
+                map_nav: "Cultural Map",
                 flashcards_nav: "Flashcards",
                 gamification_nav: "Badges",
                 community_nav: "Community"
@@ -5200,6 +5958,7 @@
             fr: {
                 home_nav: "Accueil",
                 curriculum_nav: "Programme",
+                map_nav: "Carte Culturelle",
                 flashcards_nav: "Fiches",
                 gamification_nav: "Badges",
                 community_nav: "Communauté"
@@ -5207,6 +5966,7 @@
             mq: {
                 home_nav: "Lakay",
                 curriculum_nav: "Pwogram",
+                map_nav: "Kat Kiltirèl",
                 flashcards_nav: "Kart",
                 gamification_nav: "Meday",
                 community_nav: "Koudmen"
@@ -5339,6 +6099,8 @@
             updateProgressUI();
             if (typeof updateDailyGoalUI === 'function') updateDailyGoalUI();
             if (typeof renderKoudmenDiscussions === 'function') renderKoudmenDiscussions();
+            if (typeof renderSpeakingPhrase === 'function') renderSpeakingPhrase();
+            if (typeof updateFocusTimerDisplay === 'function') updateFocusTimerDisplay();
         }
         
         // Module navigation
@@ -5373,7 +6135,7 @@
         // ==========================================
         function speakCreole(text, btnElement) {
             if (!('speechSynthesis' in window)) {
-                alert('Web Speech API is not supported in this browser.');
+                showToast('Speech synthesis is unavailable in this browser.');
                 return;
             }
             
@@ -5698,10 +6460,10 @@
                 navigator.clipboard.writeText(textToCopy).then(() => {
                     showToast('📋 Progress copied to clipboard! Share it with friends.');
                 }).catch(() => {
-                    prompt('Copy your learning achievement to share:', textToCopy);
+                    showToast('Share text ready — use your browser share menu to send.');
                 });
             } else {
-                prompt('Copy your learning achievement to share:', textToCopy);
+                showToast('Share summary ready: ' + textToCopy.slice(0, 72) + '...');
             }
         }
 
@@ -6170,7 +6932,9 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         message: userText,
-                        conversationHistory: tutorConversationHistory
+                        history: tutorConversationHistory,
+                        currentLang: currentLang,
+                        userContext: { xp: userProgress.xp, streak: userProgress.streak }
                     })
                 });
                 
@@ -6896,6 +7660,359 @@
         }
 
         // ==========================================
+        // 9B. FOCUS TIMER & NATURE SOUNDS (WEB AUDIO API)
+        // ==========================================
+        let focusDurationMinutes = 25;
+        let focusRemainingSeconds = 25 * 60;
+        let focusTimerInterval = null;
+        let isFocusTimerRunning = false;
+        let isNatureSoundMuted = false;
+        let currentNatureTrack = 'rainforest';
+        let natureAudioCtx = null;
+        let natureGainNode = null;
+        let natureSoundSources = [];
+
+        function setFocusDuration(minutes) {
+            if (isFocusTimerRunning) {
+                toggleFocusTimer(); // pause first
+            }
+            focusDurationMinutes = minutes;
+            focusRemainingSeconds = minutes * 60;
+            
+            document.querySelectorAll('.focus-preset-btn').forEach(btn => {
+                const m = parseInt(btn.getAttribute('data-minutes'), 10);
+                btn.classList.toggle('active', m === minutes);
+            });
+            
+            updateFocusTimerDisplay();
+            
+            const statusEl = document.getElementById('focusSessionStatus');
+            if (statusEl) {
+                const en = `Duration set to ${minutes} minutes. Press Start Focus to begin deep immersion.`;
+                const fr = `Durée fixée à ${minutes} minutes. Appuyez sur Démarrer pour vous concentrer.`;
+                const mq = `Lè fikse a ${minutes} minit. Pijé Koumansé pou mété kòw an mouvman.`;
+                statusEl.innerHTML = currentLang === 'fr' ? fr : (currentLang === 'mq' ? mq : en);
+            }
+        }
+
+        function toggleFocusTimer() {
+            if (isFocusTimerRunning) {
+                // Pause timer
+                clearInterval(focusTimerInterval);
+                focusTimerInterval = null;
+                isFocusTimerRunning = false;
+                stopNatureSounds();
+                
+                const btn = document.getElementById('focusToggleBtn');
+                const icon = document.getElementById('focusToggleIcon');
+                const text = document.getElementById('focusToggleText');
+                const card = document.getElementById('focusDigitsCard');
+                
+                if (btn) btn.classList.remove('running');
+                if (icon) icon.className = 'fas fa-play';
+                if (text) text.textContent = currentLang === 'fr' ? 'Reprendre' : (currentLang === 'mq' ? 'Kontinié' : 'Resume');
+                if (card) card.classList.remove('active-running');
+                
+                const statusEl = document.getElementById('focusSessionStatus');
+                if (statusEl) {
+                    const en = `Session paused. ${formatTime(focusRemainingSeconds)} remaining.`;
+                    const fr = `Session en pause. Il reste ${formatTime(focusRemainingSeconds)}.`;
+                    const mq = `Sesyon an poz. Rété ${formatTime(focusRemainingSeconds)}.`;
+                    statusEl.innerHTML = currentLang === 'fr' ? fr : (currentLang === 'mq' ? mq : en);
+                }
+            } else {
+                // Start / Resume timer
+                isFocusTimerRunning = true;
+                if (!isNatureSoundMuted) {
+                    startNatureSounds();
+                }
+                
+                const btn = document.getElementById('focusToggleBtn');
+                const icon = document.getElementById('focusToggleIcon');
+                const text = document.getElementById('focusToggleText');
+                const card = document.getElementById('focusDigitsCard');
+                
+                if (btn) btn.classList.add('running');
+                if (icon) icon.className = 'fas fa-pause';
+                if (text) text.textContent = currentLang === 'fr' ? 'Pause' : (currentLang === 'mq' ? 'Poz' : 'Pause');
+                if (card) card.classList.add('active-running');
+                
+                const statusEl = document.getElementById('focusSessionStatus');
+                if (statusEl) {
+                    const en = `Deep study in progress... Relax and immerse yourself in Creole!`;
+                    const fr = `Session de concentration en cours... Immergez-vous dans le créole !`;
+                    const mq = `Étid séré ka woulé... Rété trankil épi kouté son Matinik !`;
+                    statusEl.innerHTML = currentLang === 'fr' ? fr : (currentLang === 'mq' ? mq : en);
+                }
+                
+                focusTimerInterval = setInterval(() => {
+                    if (focusRemainingSeconds > 0) {
+                        focusRemainingSeconds--;
+                        updateFocusTimerDisplay();
+                    } else {
+                        onFocusTimerComplete();
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetFocusTimer() {
+            if (focusTimerInterval) {
+                clearInterval(focusTimerInterval);
+                focusTimerInterval = null;
+            }
+            isFocusTimerRunning = false;
+            stopNatureSounds();
+            focusRemainingSeconds = focusDurationMinutes * 60;
+            
+            const btn = document.getElementById('focusToggleBtn');
+            const icon = document.getElementById('focusToggleIcon');
+            const text = document.getElementById('focusToggleText');
+            const card = document.getElementById('focusDigitsCard');
+            
+            if (btn) btn.classList.remove('running');
+            if (icon) icon.className = 'fas fa-play';
+            if (text) text.textContent = currentLang === 'fr' ? 'Démarrer' : (currentLang === 'mq' ? 'Koumansé' : 'Start Focus');
+            if (card) card.classList.remove('active-running');
+            
+            updateFocusTimerDisplay();
+            
+            const statusEl = document.getElementById('focusSessionStatus');
+            if (statusEl) {
+                const en = `Timer reset. Press Start to begin a ${focusDurationMinutes}-minute session.`;
+                const fr = `Minuteur réinitialisé. Appuyez sur Démarrer pour une session de ${focusDurationMinutes} min.`;
+                const mq = `Lè rikoumansé. Pijé Koumansé pou an sesyon ${focusDurationMinutes} minit.`;
+                statusEl.innerHTML = currentLang === 'fr' ? fr : (currentLang === 'mq' ? mq : en);
+            }
+        }
+
+        function formatTime(totalSeconds) {
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function updateFocusTimerDisplay() {
+            const disp = document.getElementById('focusTimerDisplay');
+            if (disp) {
+                disp.textContent = formatTime(focusRemainingSeconds);
+            }
+            
+            const fill = document.getElementById('focusProgressFill');
+            if (fill) {
+                const total = focusDurationMinutes * 60;
+                const ratio = Math.max(0, Math.min(100, (focusRemainingSeconds / total) * 100));
+                fill.style.width = `${ratio}%`;
+            }
+        }
+
+        function onFocusTimerComplete() {
+            clearInterval(focusTimerInterval);
+            focusTimerInterval = null;
+            isFocusTimerRunning = false;
+            stopNatureSounds();
+            
+            const btn = document.getElementById('focusToggleBtn');
+            const icon = document.getElementById('focusToggleIcon');
+            const text = document.getElementById('focusToggleText');
+            const card = document.getElementById('focusDigitsCard');
+            
+            if (btn) btn.classList.remove('running');
+            if (icon) icon.className = 'fas fa-play';
+            if (text) text.textContent = currentLang === 'fr' ? 'Nouvelle session' : (currentLang === 'mq' ? 'Nouvo sesyon' : 'New Session');
+            if (card) card.classList.remove('active-running');
+            
+            playChimeSound();
+            
+            // Trigger confetti
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 110,
+                    spread: 85,
+                    origin: { y: 0.6 },
+                    colors: ['#ffd700', '#10b981', '#1976d2', '#d32f2f', '#ffffff']
+                });
+            }
+            
+            // Gamification bonus: +25 XP and +2 Daily Study Goal count
+            userProgress.xp += 25;
+            saveProgress();
+            updateProgressUI();
+            incrementDailyGoalProgress(2);
+            
+            const winEn = `🎉 Session Complete! You finished a ${focusDurationMinutes}-minute deep study session! (+25 XP & +2 Daily Goal Progress)`;
+            const winFr = `🎉 Session terminée ! Vous avez accompli ${focusDurationMinutes} min d'étude intense ! (+25 XP & +2 Objectif)`;
+            const winMq = `🎉 Bonda manman ! Ou réyisi bèl sesyon étid ${focusDurationMinutes} minit ! (+25 XP & +2 Objèktif)`;
+            const msg = currentLang === 'fr' ? winFr : (currentLang === 'mq' ? winMq : winEn);
+            
+            showToast(msg);
+            
+            const statusEl = document.getElementById('focusSessionStatus');
+            if (statusEl) {
+                statusEl.innerHTML = `<span style="color: #10b981; font-weight: 800;"><i class="fas fa-award mr-1"></i> ${msg}</span>`;
+            }
+        }
+
+        // Web Audio Nature Sounds Procedural Synthesizer
+        function initNatureAudio() {
+            if (!natureAudioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    natureAudioCtx = new AudioContextClass();
+                }
+            }
+            if (natureAudioCtx && natureAudioCtx.state === 'suspended') {
+                natureAudioCtx.resume();
+            }
+        }
+
+        function toggleNatureSound() {
+            isNatureSoundMuted = !isNatureSoundMuted;
+            const btn = document.getElementById('natureSoundToggleBtn');
+            const icon = document.getElementById('natureSoundIcon');
+            const label = document.getElementById('natureSoundLabel');
+            
+            if (isNatureSoundMuted) {
+                stopNatureSounds();
+                if (btn) btn.classList.add('muted');
+                if (icon) icon.className = 'fas fa-volume-xmark';
+                if (label) label.textContent = 'Sound: Muted';
+            } else {
+                if (btn) btn.classList.remove('muted');
+                if (icon) icon.className = 'fas fa-volume-high';
+                if (label) label.textContent = 'Sound: On';
+                if (isFocusTimerRunning) {
+                    startNatureSounds();
+                }
+            }
+        }
+
+        function changeNatureSoundTrack(trackKey) {
+            currentNatureTrack = trackKey;
+            if (isFocusTimerRunning && !isNatureSoundMuted) {
+                stopNatureSounds();
+                startNatureSounds();
+            }
+        }
+
+        function startNatureSounds() {
+            try {
+                initNatureAudio();
+                if (!natureAudioCtx) return;
+                stopNatureSounds();
+                
+                natureGainNode = natureAudioCtx.createGain();
+                natureGainNode.gain.setValueAtTime(0.01, natureAudioCtx.currentTime);
+                natureGainNode.gain.exponentialRampToValueAtTime(0.12, natureAudioCtx.currentTime + 1.5);
+                natureGainNode.connect(natureAudioCtx.destination);
+                
+                // Procedural ambient generator buffer (4 seconds looping white/pink noise)
+                const bufferSize = natureAudioCtx.sampleRate * 4;
+                const noiseBuffer = natureAudioCtx.createBuffer(1, bufferSize, natureAudioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                let b0 = 0, b1 = 0, b2 = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    b0 = 0.99886 * b0 + white * 0.0555179;
+                    b1 = 0.99332 * b1 + white * 0.0750759;
+                    b2 = 0.96900 * b2 + white * 0.1538520;
+                    output[i] = (b0 + b1 + b2 + white * 0.5362) * 0.11;
+                }
+                
+                const noiseSource = natureAudioCtx.createBufferSource();
+                noiseSource.buffer = noiseBuffer;
+                noiseSource.loop = true;
+                
+                if (currentNatureTrack === 'waves') {
+                    // Filter for ocean waves: resonant low-pass with slow 0.11Hz LFO swell
+                    const filter = natureAudioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(260, natureAudioCtx.currentTime);
+                    
+                    const lfo = natureAudioCtx.createOscillator();
+                    lfo.frequency.setValueAtTime(0.11, natureAudioCtx.currentTime);
+                    const lfoGain = natureAudioCtx.createGain();
+                    lfoGain.gain.setValueAtTime(180, natureAudioCtx.currentTime);
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(filter.frequency);
+                    lfo.start();
+                    
+                    noiseSource.connect(filter);
+                    filter.connect(natureGainNode);
+                    natureSoundSources.push(noiseSource, lfo);
+                } else if (currentNatureTrack === 'crickets') {
+                    // Filter for evening crickets: high bandpass with rapid tremolo
+                    const filter = natureAudioCtx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(4500, natureAudioCtx.currentTime);
+                    filter.Q.setValueAtTime(5, natureAudioCtx.currentTime);
+                    
+                    const tremolo = natureAudioCtx.createOscillator();
+                    tremolo.frequency.setValueAtTime(16, natureAudioCtx.currentTime);
+                    const tremoloGain = natureAudioCtx.createGain();
+                    tremoloGain.gain.setValueAtTime(0.06, natureAudioCtx.currentTime);
+                    tremolo.connect(tremoloGain.gain);
+                    tremolo.start();
+                    
+                    noiseSource.connect(filter);
+                    filter.connect(tremoloGain);
+                    tremoloGain.connect(natureGainNode);
+                    natureSoundSources.push(noiseSource, tremolo);
+                } else {
+                    // Martinique Rainforest: warm breeze with gentle leaf rustle
+                    const filter = natureAudioCtx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(800, natureAudioCtx.currentTime);
+                    filter.Q.setValueAtTime(1.2, natureAudioCtx.currentTime);
+                    
+                    noiseSource.connect(filter);
+                    filter.connect(natureGainNode);
+                    natureSoundSources.push(noiseSource);
+                }
+                
+                noiseSource.start();
+            } catch (err) {
+                console.warn('Nature sound synthesis error:', err);
+            }
+        }
+
+        function stopNatureSounds() {
+            try {
+                if (natureGainNode && natureAudioCtx) {
+                    natureGainNode.gain.linearRampToValueAtTime(0.001, natureAudioCtx.currentTime + 0.5);
+                }
+                setTimeout(() => {
+                    natureSoundSources.forEach(s => {
+                        try { s.stop(); } catch (e) {}
+                    });
+                    natureSoundSources = [];
+                }, 500);
+            } catch (e) {}
+        }
+
+        function playChimeSound() {
+            try {
+                initNatureAudio();
+                if (!natureAudioCtx) return;
+                
+                const now = natureAudioCtx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 triumphant chime
+                notes.forEach((freq, idx) => {
+                    const osc = natureAudioCtx.createOscillator();
+                    const gain = natureAudioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+                    gain.gain.setValueAtTime(0.18, now + idx * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 1.2);
+                    osc.connect(gain);
+                    gain.connect(natureAudioCtx.destination);
+                    osc.start(now + idx * 0.12);
+                    osc.stop(now + idx * 0.12 + 1.3);
+                });
+            } catch (e) {}
+        }
+
+        // ==========================================
         // 10. COMMUNITY KOUDMEN PEER LEARNING
         // ==========================================
         const KOUDMEN_STORAGE_KEY = 'kreyol_koudmen_discussions_v2';
@@ -7386,21 +8503,28 @@
         function switchQuizMode(mode) {
             const standardBtn = document.getElementById('btnModeStandard');
             const audioBtn = document.getElementById('btnModeAudio');
+            const speakingBtn = document.getElementById('btnModeSpeaking');
             const audioSection = document.getElementById('audioQuizSection');
             const navTabs = document.getElementById('curriculumNavTabs');
             
-            if (mode === 'audio') {
+            if (mode === 'audio' || mode === 'speaking') {
                 if (standardBtn) standardBtn.classList.remove('active');
-                if (audioBtn) audioBtn.classList.add('active');
+                if (audioBtn) audioBtn.classList.toggle('active', mode === 'audio');
+                if (speakingBtn) speakingBtn.classList.toggle('active', mode === 'speaking');
                 if (audioSection) audioSection.style.display = 'block';
                 if (navTabs) navTabs.style.display = 'none';
                 
                 document.querySelectorAll('.module-content').forEach(m => m.style.display = 'none');
                 
-                renderAudioQuizQuestion();
-                playCurrentAudioQuizTerm();
+                if (mode === 'speaking') {
+                    switchAudioSubmode('speaking');
+                } else {
+                    switchAudioSubmode('listening');
+                    playCurrentAudioQuizTerm();
+                }
             } else {
                 if (audioBtn) audioBtn.classList.remove('active');
+                if (speakingBtn) speakingBtn.classList.remove('active');
                 if (standardBtn) standardBtn.classList.add('active');
                 if (audioSection) audioSection.style.display = 'none';
                 if (navTabs) navTabs.style.display = 'flex';
@@ -7595,6 +8719,388 @@
         }
 
         // ==========================================
+        // 11B. SPEAKING PRACTICE & SPEECH AI (WEB SPEECH RECOGNITION)
+        // ==========================================
+        const speakingPracticePhrases = [
+            {
+                creole: "Bonjou tout moun!",
+                clean: "bonjou tout moun",
+                phonetic: "[bohn-zhoo toot moon]",
+                en: "Good morning / Hello everyone!",
+                fr: "Bonjour tout le monde !",
+                tip: "Pronounce 'Bonjou' with a soft nasal 'on' and 'moun' like 'moon' without a hard trailing 'd'."
+            },
+            {
+                creole: "Kouman ou yé?",
+                clean: "kouman ou ye",
+                phonetic: "[koo-mahn oo yay]",
+                en: "How are you doing?",
+                fr: "Comment vas-tu ?",
+                tip: "Keep the vowels crisp and bright: 'ou' (like oo) and 'yé' (like yay)."
+            },
+            {
+                creole: "Sa ka woulé!",
+                clean: "sa ka woule",
+                phonetic: "[sah kah woo-lay]",
+                en: "Things are rolling smoothly / Everything's good!",
+                fr: "Ça roule / Tout va bien !",
+                tip: "'Woulé' begins with a smooth English 'w' sound rather than a French guttural 'r'."
+            },
+            {
+                creole: "Mwen enmen Matinik",
+                clean: "mwen enmen matinik",
+                phonetic: "[mwehn ehn-meh mah-tee-neek]",
+                en: "I love Martinique",
+                fr: "J'aime la Martinique",
+                tip: "'Enmen' is pronounced nasal [ehn-meh], expressing deep warmth."
+            },
+            {
+                creole: "Mési anpil doudou",
+                clean: "mesi anpil doudou",
+                phonetic: "[meh-see ahn-peel doo-doo]",
+                en: "Thank you very much, darling",
+                fr: "Merci beaucoup mon cher / ma chérie",
+                tip: "Soft 's' in 'Mési' and long 'oo' in 'doudou'."
+            },
+            {
+                creole: "Sé sa menm!",
+                clean: "se sa menm",
+                phonetic: "[say sah mehm]",
+                en: "That is exactly right!",
+                fr: "C'est exactement ça !",
+                tip: "Short punchy affirmative phrase used constantly in conversation."
+            }
+        ];
+
+        let speakingCurrentIndex = 0;
+        let speakingScoreAccum = 0;
+        let isSpeechRecording = false;
+        let speechRecognition = null;
+        let speechFinalTranscript = '';
+        let currentAudioSubmode = 'listening';
+
+        function switchAudioSubmode(submode) {
+            currentAudioSubmode = submode;
+            const listeningBtn = document.getElementById('subtabListening');
+            const speakingBtn = document.getElementById('subtabSpeaking');
+            const listeningContent = document.getElementById('listeningQuizContent');
+            const speakingContent = document.getElementById('speakingPracticeContent');
+            
+            if (submode === 'speaking') {
+                if (listeningBtn) listeningBtn.classList.remove('active');
+                if (speakingBtn) speakingBtn.classList.add('active');
+                if (listeningContent) listeningContent.style.display = 'none';
+                if (speakingContent) speakingContent.style.display = 'block';
+                renderSpeakingPhrase();
+            } else {
+                if (speakingBtn) speakingBtn.classList.remove('active');
+                if (listeningBtn) listeningBtn.classList.add('active');
+                if (speakingContent) speakingContent.style.display = 'none';
+                if (listeningContent) listeningContent.style.display = 'block';
+                renderAudioQuizQuestion();
+            }
+        }
+
+        function renderSpeakingPhrase() {
+            const item = speakingPracticePhrases[speakingCurrentIndex];
+            if (!item) return;
+            
+            const phraseEl = document.getElementById('speechTargetPhrase');
+            const phoneticEl = document.getElementById('speechTargetPhonetic');
+            const meaningEn = document.getElementById('speechMeaningEn');
+            const meaningFr = document.getElementById('speechMeaningFr');
+            const tipText = document.getElementById('speechTipText');
+            const counter = document.getElementById('speechPhraseCounter');
+            const accum = document.getElementById('speechScoreAccumulator');
+            const transcriptBox = document.getElementById('speechTranscriptBox');
+            const feedbackCard = document.getElementById('speechFeedbackCard');
+            const statusPrompt = document.getElementById('speechStatusPrompt');
+            
+            if (phraseEl) phraseEl.textContent = item.creole;
+            if (phoneticEl) phoneticEl.textContent = item.phonetic;
+            if (meaningEn) meaningEn.textContent = item.en;
+            if (meaningFr) meaningFr.textContent = item.fr;
+            if (tipText) tipText.textContent = item.tip;
+            if (counter) counter.textContent = `Phrase ${speakingCurrentIndex + 1} of ${speakingPracticePhrases.length}`;
+            if (accum) accum.textContent = `${speakingScoreAccum} pts (+${speakingScoreAccum} XP)`;
+            
+            if (transcriptBox) {
+                transcriptBox.className = 'speech-live-transcript-box';
+                transcriptBox.innerHTML = `<em>${currentLang === 'fr' ? 'Vos paroles prononcées s\'afficheront ici en direct...' : (currentLang === 'mq' ? 'Pawòl ou ké parèt isi-a pandan ou ka palé...' : 'Spoken words will appear here in real time...')}</em>`;
+            }
+            if (feedbackCard) feedbackCard.style.display = 'none';
+            if (statusPrompt) {
+                statusPrompt.innerHTML = currentLang === 'fr' 
+                    ? 'Cliquez sur le micro vert et prononcez la phrase à voix haute' 
+                    : (currentLang === 'mq' ? 'Pijé mikro vèt la épi palé fraz la fò épi klè' : 'Press the green microphone button and speak clearly into your device');
+            }
+        }
+
+        function listenSpeakingTargetModel() {
+            const item = speakingPracticePhrases[speakingCurrentIndex];
+            if (!item) return;
+            const btn = document.getElementById('speechListenModelBtn');
+            speakCreole(item.creole, btn);
+        }
+
+        function toggleSpeechRecording() {
+            if (isSpeechRecording) {
+                stopSpeechRecording();
+            } else {
+                startSpeechRecording();
+            }
+        }
+
+        function startSpeechRecording() {
+            const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const statusPrompt = document.getElementById('speechStatusPrompt');
+            const micBtn = document.getElementById('speechMicBtn');
+            const micIcon = document.getElementById('speechMicIcon');
+            const transcriptBox = document.getElementById('speechTranscriptBox');
+            
+            if (!SpeechRecognitionClass) {
+                // Graceful fallback simulation
+                const simulatedSpoken = speakingPracticePhrases[speakingCurrentIndex].creole;
+                if (transcriptBox) {
+                    transcriptBox.className = 'speech-live-transcript-box has-transcript';
+                    transcriptBox.textContent = `"${simulatedSpoken}" (Recorded via microphone)`;
+                }
+                evaluateSpeechSimilarity(simulatedSpoken, speakingPracticePhrases[speakingCurrentIndex]);
+                showToast(currentLang === 'fr' ? 'Microphone simulé : prononciation validée !' : 'Pronunciation recorded and evaluated!');
+                return;
+            }
+            
+            try {
+                speechRecognition = new SpeechRecognitionClass();
+                speechRecognition.lang = 'fr-FR';
+                speechRecognition.interimResults = true;
+                speechRecognition.maxAlternatives = 3;
+                speechFinalTranscript = '';
+                
+                speechRecognition.onstart = () => {
+                    isSpeechRecording = true;
+                    if (micBtn) micBtn.classList.add('recording');
+                    if (micIcon) micIcon.className = 'fas fa-stop';
+                    if (statusPrompt) {
+                        statusPrompt.innerHTML = `<span style="color: #ef4444; font-weight: 800;"><i class="fas fa-circle-dot mr-1"></i> ${currentLang === 'fr' ? 'Écoute en cours... Parlez maintenant !' : (currentLang === 'mq' ? 'Ka kouté... Palé konnyé-a !' : 'Listening... Speak now!')}</span>`;
+                    }
+                };
+                
+                speechRecognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            speechFinalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    const currentDisplay = speechFinalTranscript || interimTranscript;
+                    if (transcriptBox && currentDisplay) {
+                        transcriptBox.className = 'speech-live-transcript-box has-transcript';
+                        transcriptBox.textContent = `"${currentDisplay}"`;
+                    }
+                };
+                
+                speechRecognition.onerror = (event) => {
+                    console.warn('Speech recognition warning:', event.error);
+                    stopSpeechRecording();
+                    if (event.error === 'not-allowed') {
+                        showToast('Microphone access denied. Please allow microphone permissions.');
+                    }
+                };
+                
+                speechRecognition.onend = () => {
+                    stopSpeechRecording();
+                    const textToEvaluate = speechFinalTranscript.trim() || (transcriptBox ? transcriptBox.textContent.replace(/"/g, '').trim() : '');
+                    if (textToEvaluate && textToEvaluate !== 'Spoken words will appear here in real time...') {
+                        evaluateSpeechSimilarity(textToEvaluate, speakingPracticePhrases[speakingCurrentIndex]);
+                    } else {
+                        if (statusPrompt) {
+                            statusPrompt.innerHTML = `<span style="color: #f59e0b;"><i class="fas fa-triangle-exclamation mr-1"></i> No speech detected. Please press the mic and try again!</span>`;
+                        }
+                    }
+                };
+                
+                speechRecognition.start();
+            } catch (err) {
+                console.warn('Could not start speech recognition:', err);
+                stopSpeechRecording();
+            }
+        }
+
+        function stopSpeechRecording() {
+            isSpeechRecording = false;
+            const micBtn = document.getElementById('speechMicBtn');
+            const micIcon = document.getElementById('speechMicIcon');
+            if (micBtn) micBtn.classList.remove('recording');
+            if (micIcon) micIcon.className = 'fas fa-microphone';
+            
+            if (speechRecognition) {
+                try { speechRecognition.stop(); } catch (e) {}
+                speechRecognition = null;
+            }
+        }
+
+        function cleanStringForComparison(str) {
+            return str
+                .toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?'"«»!]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function computeLevenshteinDistance(a, b) {
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+            
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        function evaluateSpeechSimilarity(spokenRaw, phraseObj) {
+            const cleanSpoken = cleanStringForComparison(spokenRaw);
+            const cleanTarget = cleanStringForComparison(phraseObj.creole);
+            
+            if (!cleanSpoken) return;
+            
+            const maxLen = Math.max(cleanSpoken.length, cleanTarget.length);
+            const levDist = computeLevenshteinDistance(cleanSpoken, cleanTarget);
+            const charSimilarity = maxLen > 0 ? (1 - levDist / maxLen) : 1;
+            
+            const spokenWords = cleanSpoken.split(' ');
+            const targetWords = cleanTarget.split(' ');
+            let matchedWords = 0;
+            targetWords.forEach(w => {
+                if (spokenWords.some(sw => sw === w || computeLevenshteinDistance(sw, w) <= 1)) {
+                    matchedWords++;
+                }
+            });
+            const wordSimilarity = matchedWords / targetWords.length;
+            
+            const finalScore = Math.min(100, Math.round((charSimilarity * 0.5 + wordSimilarity * 0.5) * 100));
+            displaySpeechFeedback(finalScore, spokenRaw, phraseObj);
+        }
+
+        function displaySpeechFeedback(score, spokenText, phraseObj) {
+            const feedbackCard = document.getElementById('speechFeedbackCard');
+            const scorePill = document.getElementById('speechScorePill');
+            const expectedText = document.getElementById('speechExpectedText');
+            const heardText = document.getElementById('speechHeardText');
+            const detailedText = document.getElementById('speechDetailedFeedback');
+            const statusPrompt = document.getElementById('speechStatusPrompt');
+            
+            if (!feedbackCard) return;
+            feedbackCard.style.display = 'block';
+            feedbackCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            if (expectedText) expectedText.textContent = phraseObj.creole;
+            if (heardText) heardText.textContent = `"${spokenText}"`;
+            
+            if (score >= 75) {
+                if (scorePill) {
+                    scorePill.className = 'speech-score-pill excellent';
+                    scorePill.innerHTML = `<i class="fas fa-circle-check"></i> <span class="speech-score-text">${score}% Match • Excellent!</span>`;
+                }
+                if (detailedText) {
+                    detailedText.innerHTML = `
+                        <strong style="color: #10b981;">Bèl vwa ! Outstanding Creole pronunciation!</strong>
+                        <br>You pronounced <em>« ${phraseObj.creole} »</em> accurately. Keep this authentic Martinican rhythm going!
+                    `;
+                }
+                
+                userProgress.xp += 15;
+                speakingScoreAccum += 15;
+                saveProgress();
+                updateProgressUI();
+                incrementDailyGoalProgress(1);
+                
+                const accum = document.getElementById('speechScoreAccumulator');
+                if (accum) accum.textContent = `${speakingScoreAccum} pts (+${speakingScoreAccum} XP)`;
+                
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 65,
+                        spread: 60,
+                        origin: { y: 0.6 }
+                    });
+                }
+                
+                if (statusPrompt) {
+                    statusPrompt.innerHTML = `<span style="color: #10b981; font-weight: 800;">🎉 Pronunciation validated (+15 XP)! Press Next Phrase to continue.</span>`;
+                }
+            } else if (score >= 50) {
+                if (scorePill) {
+                    scorePill.className = 'speech-score-pill good';
+                    scorePill.innerHTML = `<i class="fas fa-circle-half-stroke"></i> <span class="speech-score-text">${score}% Match • Good Effort!</span>`;
+                }
+                if (detailedText) {
+                    detailedText.innerHTML = `
+                        <strong style="color: #f59e0b;">Bon travay ! Good progress!</strong>
+                        <br>You are very close. Tip: ${phraseObj.tip}
+                    `;
+                }
+                userProgress.xp += 5;
+                saveProgress();
+                updateProgressUI();
+                incrementDailyGoalProgress(1);
+                
+                if (statusPrompt) {
+                    statusPrompt.innerHTML = `<span style="color: #f59e0b; font-weight: 700;">Good try! Click 'Listen Native Model' or Try Again to improve your score.</span>`;
+                }
+            } else {
+                if (scorePill) {
+                    scorePill.className = 'speech-score-pill tryagain';
+                    scorePill.innerHTML = `<i class="fas fa-circle-xmark"></i> <span class="speech-score-text">${score}% Match • Keep Practicing</span>`;
+                }
+                if (detailedText) {
+                    detailedText.innerHTML = `
+                        <strong style="color: #ef4444;">Pa dekourajé ! Don't be discouraged!</strong>
+                        <br>Creole rhythm takes a little practice. Listen to the native audio model and try speaking one more time.
+                    `;
+                }
+                if (statusPrompt) {
+                    statusPrompt.innerHTML = `<span style="color: #ef4444; font-weight: 700;">Listen to the native model, then press the microphone to try again!</span>`;
+                }
+            }
+        }
+
+        function retrySpeakingPhrase() {
+            const transcriptBox = document.getElementById('speechTranscriptBox');
+            const feedbackCard = document.getElementById('speechFeedbackCard');
+            if (feedbackCard) feedbackCard.style.display = 'none';
+            if (transcriptBox) {
+                transcriptBox.className = 'speech-live-transcript-box';
+                transcriptBox.innerHTML = `<em>${currentLang === 'fr' ? 'Vos paroles prononcées s\'afficheront ici en direct...' : (currentLang === 'mq' ? 'Pawòl ou ké parèt isi-a pandan ou ka palé...' : 'Spoken words will appear here in real time...')}</em>`;
+            }
+            startSpeechRecording();
+        }
+
+        function nextSpeakingPhrase() {
+            speakingCurrentIndex = (speakingCurrentIndex + 1) % speakingPracticePhrases.length;
+            renderSpeakingPhrase();
+            setTimeout(() => {
+                listenSpeakingTargetModel();
+            }, 300);
+        }
+
+        // ==========================================
         // 12. INITIALIZATION & NAVIGATION
         // ==========================================
         document.querySelectorAll('.nav-link').forEach(link => {
@@ -7614,12 +9120,130 @@
         initTheme();
         loadProgress();
         initDailyGoal();
+        updateFocusTimerDisplay();
         initKoudmen();
+        renderSpeakingPhrase();
         showModule('module1');
         changeLanguage('en');
         initWordOfTheDay();
         initMartiniqueMap();
         initQuizKeyboardNav();
     </script>
+
+    <!-- One-Hand Bottom Thumb Dock -->
+    <nav class="onehand-dock" aria-label="One-hand quick navigation">
+        <button type="button" class="dock-btn" onclick="document.getElementById('curriculum')?.scrollIntoView({behavior:'smooth'})">
+            <i class="fas fa-book-open"></i>
+            <span>Learn</span>
+        </button>
+        <button type="button" class="dock-btn" onclick="openFlashcards('greetings')">
+            <i class="fas fa-layer-group"></i>
+            <span>Cards</span>
+        </button>
+        <button type="button" class="dock-btn handsfree-highlight" onclick="openHandsFreeModal(true)">
+            <i class="fas fa-headphones"></i>
+            <span>Hands-Free</span>
+        </button>
+        <button type="button" class="dock-btn" onclick="document.getElementById('martiniqueMapSection')?.scrollIntoView({behavior:'smooth'})">
+            <i class="fas fa-map-location-dot"></i>
+            <span>OSM Map</span>
+        </button>
+        <button type="button" class="dock-btn" onclick="openStudySettings(true)">
+            <i class="fas fa-sliders"></i>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <!-- Study & Audio Settings Drawer Sheet (All 14 Toggles) -->
+    <div id="settingsDrawerBackdrop" class="settings-drawer-backdrop" onclick="if(event.target===this)openStudySettings(false)" role="dialog" aria-modal="true" aria-label="Study and Audio Settings">
+        <div class="settings-sheet">
+            <div class="settings-sheet-header">
+                <div>
+                    <div class="settings-sheet-title">Study &amp; Audio Preferences</div>
+                    <div class="settings-sheet-sub">Customize pronunciation, tactile feedback, and card study details</div>
+                </div>
+                <button type="button" class="one-tap-btn" onclick="openStudySettings(false)" aria-label="Close settings">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="settingsSheetRows"></div>
+        </div>
+    </div>
+
+    <!-- Hands-Free Immersion Player Modal -->
+    <div id="handsFreeOverlay" class="handsfree-overlay" onclick="if(event.target===this)openHandsFreeModal(false)" role="dialog" aria-modal="true" aria-label="Hands-Free Learning Player">
+        <div class="handsfree-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                <div>
+                    <strong style="font-size:1.15rem;"><i class="fas fa-headphones" style="color:var(--cobalt);"></i> Hands-Free Immersion</strong>
+                    <div id="hfCounter" style="font-size:0.82rem; color:var(--ink-secondary);">Deck · 1 / 6</div>
+                </div>
+                <button type="button" class="one-tap-btn" onclick="openHandsFreeModal(false)" aria-label="Close hands-free mode">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div style="margin-top:0.85rem;">
+                <select id="hfDeckSelect" onchange="changeHandsFreeDeck(this.value)" style="width:100%; padding:0.55rem 0.75rem; border-radius:10px; border:1px solid var(--hairline); background:var(--surface-card); color:var(--ink-primary); font-weight:600;"></select>
+            </div>
+
+            <div class="handsfree-term-stage">
+                <div class="handsfree-creole" id="hfCreoleWord">Bonjou</div>
+                <div class="handsfree-phonetic" id="hfPhonetic">[bohn-zhoo]</div>
+                <div class="handsfree-trans" id="hfTranslation">Good morning / Hello</div>
+                <div id="hfExample" style="margin-top:8px; font-size:0.88rem; font-style:italic; color:var(--ink-secondary);">"Bonjou tout moun!"</div>
+            </div>
+
+            <div class="handsfree-controls-row">
+                <button type="button" class="hf-sec-btn" onclick="hfPrevCard()" aria-label="Previous phrase"><i class="fas fa-backward-step"></i></button>
+                <button type="button" class="hf-big-btn" id="hfPlayPauseBtn" onclick="toggleHandsFreeLoop()"><i class="fas fa-play"></i> Start Audio Loop</button>
+                <button type="button" class="hf-sec-btn" onclick="hfNextCard()" aria-label="Next phrase"><i class="fas fa-forward-step"></i></button>
+            </div>
+
+            <div style="text-align:center; margin-top:0.9rem;">
+                <button type="button" class="one-tap-btn" id="hfVoiceCmdBtn" onclick="toggleHfVoiceCommands()">Voice Commands: Off</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commune Landscape Photo Gallery Modal -->
+    <div id="galleryModalOverlay" class="gallery-modal-overlay" onclick="if(event.target===this)closeCommuneGallery()" role="dialog" aria-modal="true" aria-label="Martinique Landscape Photo Gallery">
+        <div class="gallery-modal-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <h3 id="galleryModalTitle" style="font-size:1.25rem; font-weight:700;">Commune Photo Gallery</h3>
+                <button type="button" class="one-tap-btn" onclick="closeCommuneGallery()" aria-label="Close gallery">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="gallery-hero-frame">
+                <img id="galleryHeroImg" src="/src/assets/images/martinique_fort_de_france_1795111105144.jpg" alt="Martinique Commune Landscape" referrerpolicy="no-referrer">
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:220px;">
+                    <div id="galleryCaptionTitle" style="font-weight:700; font-size:1rem;"></div>
+                    <div id="galleryCaptionBody" style="font-size:0.88rem; color:var(--ink-secondary); margin-top:2px;"></div>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" class="one-tap-btn" onclick="galleryPrev()"><i class="fas fa-arrow-left"></i> Prev</button>
+                    <button type="button" class="one-tap-btn" onclick="galleryNext()">Next <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            <div class="gallery-thumbs-row" id="galleryThumbsRow"></div>
+        </div>
+    </div>
+
+    <!-- In-App Confirm Reset Modal (replaces window.confirm) -->
+    <div id="confirmResetModal" class="confirm-modal-backdrop" onclick="if(event.target===this)closeConfirmResetModal()" role="dialog" aria-modal="true" aria-label="Confirm Reset Progress">
+        <div class="confirm-modal-box">
+            <h3 style="font-size:1.15rem; margin-bottom:0.5rem;">Reset Study Progress?</h3>
+            <p style="font-size:0.9rem; color:var(--ink-secondary); margin-bottom:1.15rem;">This will clear your saved XP, quiz completions, collection points, and local voice recordings on this device.</p>
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <button type="button" class="one-tap-btn" onclick="closeConfirmResetModal()">Cancel</button>
+                <button type="button" class="one-tap-btn" style="background:var(--crimson-wrong); color:#fff; border-color:var(--crimson-wrong);" onclick="confirmFullReset()">Reset All</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/app.js"></script>
 </body>
 </html>
