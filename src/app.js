@@ -3,7 +3,6 @@ import { LEARNING_PATH_MILESTONES } from './data/culturalData.js';
 import { MAP_LOCATIONS } from './data/mapData.js';
 import { ARTWORKS, FLASHCARD_DECKS, MICRO_LESSONS } from './data/vocab.js';
 import {
-  checkIsAdmin,
   createDictionaryEntry,
   createKoudmenPost,
   createLessonArticle,
@@ -12,14 +11,17 @@ import {
   deleteDictionaryEntry,
   deleteLessonArticle,
   deleteMapLocation,
+  deleteVocabSet,
   fetchRandomProverbFromFirestore,
   initFirebase,
   loadUserProgressFromCloud,
   observeAuth,
   resendVerificationEmail,
   resetUserPassword,
+  saveVocabSet,
   seedCuratedMapLocations,
   seedCuratedProverbs,
+  seedCuratedVocabSets,
   signInWithApple,
   signInWithEmail,
   signInWithGoogle,
@@ -30,8 +32,11 @@ import {
   subscribeLessons,
   subscribeMapLocations,
   subscribeProverbs,
+  subscribeVocabSets,
   syncUserProgressToCloud,
-  upvoteKoudmenPost
+  updateLessonArticle,
+  upvoteKoudmenPost,
+  verifyAdminAccess
 } from './firebase.js';
 import {
   captureSpokenPhrase,
@@ -55,6 +60,7 @@ import {
 import {
   getActiveFlashcardList,
   getMergedDictionaryEntries,
+  getMergedFlashcardDecks,
   renderDictionarySection,
   renderFlashcardDecksGrid,
   renderFlashcardModal,
@@ -66,6 +72,10 @@ import {
   renderHeroWeatherChip,
   renderLearningPathSection
 } from './views/learningPathAndCulture.js';
+import {
+  getTotalAcquiredWordsCount,
+  renderLearningInsightsCard
+} from './views/learningInsightsChart.js';
 import {
   destroyLeafletMap,
   getMergedMapLocations,
@@ -79,6 +89,7 @@ import {
   renderProgressDashboard,
   renderSettingsDrawer
 } from './views/progressAndAdmin.js';
+import { renderAdminStudioWorkspace } from './views/adminStudioView.js';
 
 const STORAGE_KEYS = {
   PROGRESS: 'kreyol_matinik_student_progress_v2',
@@ -86,6 +97,7 @@ const STORAGE_KEYS = {
   COLLECTION: 'kreyol_collection_state_v1',
   RECORD_META: 'kreyol_recordings_meta_v1',
   DAILY_GOAL: 'kreyol_daily_study_goal_v1',
+  ACTIVITY_LOG: 'kreyol_daily_activity_log_v1',
   THEME: 'kreyol_matinik_theme',
   KOUDMEN_LOCAL: 'kreyol_koudmen_local_v3',
   UPVOTED: 'kreyol_koudmen_upvoted_v3'
@@ -144,6 +156,7 @@ function writeJson(key, val) {
 const savedProg = readJson(STORAGE_KEYS.PROGRESS, {});
 const savedGoal = readJson(STORAGE_KEYS.DAILY_GOAL, {});
 const savedColl = readJson(STORAGE_KEYS.COLLECTION, {});
+const savedActivityLog = readJson(STORAGE_KEYS.ACTIVITY_LOG, {});
 
 const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
 
@@ -151,6 +164,15 @@ const ctx = {
   strings: UI_STRINGS,
   user: null,
   isAdmin: false,
+  rbac: {
+    authorized: false,
+    role: 'guest',
+    emailVerified: false,
+    uid: '',
+    email: '',
+    source: 'none',
+    reason: 'Sign in with a verified administrator account.'
+  },
   settings: { ...DEFAULT_SETTINGS, ...readJson(STORAGE_KEYS.SETTINGS, {}) },
   progress: {
     modules: { module1: false, module2: false, module3: false, ...(savedProg.modules || {}) },
@@ -179,6 +201,7 @@ const ctx = {
     visitedSites: Array.isArray(savedColl.visitedSites) ? savedColl.visitedSites : [],
     termStats: savedColl.termStats && typeof savedColl.termStats === 'object' ? savedColl.termStats : {}
   },
+  activityLog: savedActivityLog && typeof savedActivityLog === 'object' ? savedActivityLog : {},
   dailyGoal: {
     target: Number(savedGoal.target || 10),
     completedToday: savedGoal.lastDate === todayIso() ? Number(savedGoal.completedToday || 0) : 0,
@@ -199,11 +222,13 @@ const ctx = {
     dictionary: [],
     koudmen: [],
     mapLocations: [],
-    proverbs: []
+    proverbs: [],
+    vocabSets: []
   },
   state: {
     lang: 'en',
     isDark: false,
+    activeView: 'learner',
     mobileMenuOpen: false,
     topbarSearch: '',
     wotdIdx: dayOfYear % 12,
@@ -254,7 +279,13 @@ const ctx = {
     tutorLoading: false,
     lastCoachData: null,
     streakJustIgnited: false,
+    insightsRange: 7,
     tourStep: 0,
+    adminTab: 'vocab',
+    adminSearch: '',
+    adminVocabDraft: null,
+    adminSiteDraft: null,
+    adminLessonDraft: null,
     adminImageUrl: '',
     adminFileUrl: '',
     adminFileName: '',
@@ -309,7 +340,45 @@ function checkDailyStreak() {
   }
 }
 
+let lastUserInteractionAt = Date.now();
+let studyHeartbeatId = null;
+
+function recordActiveStudySeconds(sec = 0) {
+  const today = todayIso();
+  const prev = ctx.activityLog[today] && typeof ctx.activityLog[today] === 'object'
+    ? ctx.activityLog[today]
+    : { activeSeconds: 0, wordsCount: 0 };
+  const nextSec = Math.min(28800, Math.max(0, Number(prev.activeSeconds || 0) + Number(sec || 0)));
+  ctx.activityLog[today] = {
+    activeSeconds: nextSec,
+    wordsCount: Math.max(Number(prev.wordsCount || 0), getTotalAcquiredWordsCount(ctx))
+  };
+  const cutoffIso = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
+  Object.keys(ctx.activityLog).forEach((k) => {
+    if (k < cutoffIso) delete ctx.activityLog[k];
+  });
+  writeJson(STORAGE_KEYS.ACTIVITY_LOG, ctx.activityLog);
+}
+
+function startStudyHeartbeat() {
+  if (typeof window === 'undefined' || studyHeartbeatId) return;
+  const markActive = () => { lastUserInteractionAt = Date.now(); };
+  ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach((evt) => {
+    window.addEventListener(evt, markActive, { passive: true });
+  });
+  studyHeartbeatId = setInterval(() => {
+    if (document.hidden) return;
+    if (Date.now() - lastUserInteractionAt > 90000) return;
+    recordActiveStudySeconds(15);
+    if (ctx.state.activeView === 'learner' && ctx.state.openAccordions.has('acc-progress')) {
+      const mount = document.getElementById('learningInsightsMount');
+      if (mount) renderLearningInsightsCard(mount, ctx);
+    }
+  }, 15000);
+}
+
 function saveProgress() {
+  recordActiveStudySeconds(0);
   writeJson(STORAGE_KEYS.PROGRESS, ctx.progress);
   writeJson(STORAGE_KEYS.COLLECTION, ctx.collection);
   writeJson(STORAGE_KEYS.DAILY_GOAL, ctx.dailyGoal);
@@ -358,6 +427,43 @@ ctx.actions = {
   notify,
   fireConfetti,
   jumpToAccordion: (accId) => jumpToAccordion(accId),
+  setAppView: (viewName) => {
+    const target = viewName === 'admin' ? 'admin' : 'learner';
+    ctx.state.activeView = target;
+    const learnerEl = document.getElementById('learnerMainView');
+    const adminEl = document.getElementById('adminStudioMount');
+    const dockEl = document.querySelector('.km-onehand-dock');
+    const navAdminBtn = document.getElementById('navAdminStudioBtn');
+    if (learnerEl) learnerEl.hidden = target === 'admin';
+    if (adminEl) {
+      adminEl.hidden = target !== 'admin';
+      if (target === 'admin') {
+        renderAdminStudioWorkspace(adminEl, ctx);
+      }
+    }
+    if (dockEl) dockEl.style.display = target === 'admin' ? 'none' : '';
+    if (navAdminBtn) navAdminBtn.classList.toggle('active', target === 'admin');
+    window.scrollTo({ top: 0, behavior: ctx.settings.reduceMotion ? 'auto' : 'smooth' });
+  },
+  reverifyAdminRbac: async () => {
+    const verdict = await verifyAdminAccess(ctx.user);
+    ctx.rbac = verdict;
+    ctx.isAdmin = Boolean(verdict.authorized);
+    renderAdminStudio(document.getElementById('adminMount'), ctx);
+    if (ctx.state.activeView === 'admin') {
+      renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+    }
+    notify(verdict.authorized ? 'Admin RBAC verified.' : verdict.reason || 'Admin clearance unavailable.');
+    return verdict;
+  },
+  resendVerification: async () => {
+    try {
+      await resendVerificationEmail();
+      notify('Verification email sent — check your inbox, then tap Re-verify RBAC.');
+    } catch (err) {
+      notify(err.message || 'Could not send verification email.');
+    }
+  },
   playSfx: (type) => {
     triggerHaptic(ctx.settings.vibration, type === 'right' ? 20 : 12);
     playSfx(ctx.settings, type);
@@ -417,6 +523,7 @@ ctx.actions = {
     const clean = String(word || '').trim().toLowerCase();
     if (!clean) return;
     checkDailyStreak();
+    recordActiveStudySeconds(10);
     if (!ctx.progress.listenedWords.includes(clean)) {
       ctx.progress.listenedWords.push(clean);
       ctx.progress.xp += 10;
@@ -510,6 +617,7 @@ ctx.actions = {
   },
   gradeFlashcardTerm: (termId, outcome) => {
     const st = getTermStats(termId);
+    recordActiveStudySeconds(12);
     if (outcome === 'right') {
       st.right += 1;
       st.memory = Math.min(100, st.memory + 20);
@@ -553,7 +661,8 @@ ctx.actions = {
     }
   },
   openFlashcards: (deckKey = 'greetings') => {
-    ctx.state.fcDeckKey = deckKey && (deckKey === '__smart__' || FLASHCARD_DECKS[deckKey]) ? deckKey : 'greetings';
+    const allDecks = getMergedFlashcardDecks(ctx);
+    ctx.state.fcDeckKey = deckKey && (deckKey === '__smart__' || allDecks[deckKey]) ? deckKey : 'greetings';
     ctx.state.fcIndex = 0;
     ctx.state.fcFlipped = false;
     ctx.state.fcSwipeFeedback = null;
@@ -584,7 +693,8 @@ ctx.actions = {
     }
   },
   speakHandsFreeCurrent: () => {
-    const deck = FLASHCARD_DECKS[ctx.state.hfDeckKey] || FLASHCARD_DECKS.greetings;
+    const allDecks = getMergedFlashcardDecks(ctx);
+    const deck = allDecks[ctx.state.hfDeckKey] || allDecks.greetings || FLASHCARD_DECKS.greetings;
     const card = deck.cards[ctx.state.hfIndex % deck.cards.length];
     const trans = ctx.state.lang === 'fr' ? card.fr : card.en;
     speakTermSequence(card.word, trans, {
@@ -864,40 +974,84 @@ ctx.actions = {
       ctx.state.adminFileUrl = '';
       ctx.state.adminFileName = '';
       ctx.state.adminUploadLabel = '';
+      ctx.state.adminLessonDraft = null;
       notify('Lesson published to Firestore!');
+      if (ctx.state.activeView === 'admin') {
+        renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+      }
     } catch (err) {
       notify(`Could not publish lesson: ${err.message}`);
+    }
+  },
+  adminUpdateLesson: async (lessonId, lessonData) => {
+    try {
+      await updateLessonArticle(lessonId, lessonData, ctx.user);
+      ctx.state.adminLessonDraft = null;
+      notify('Learning module updated in Firestore!');
+      if (ctx.state.activeView === 'admin') {
+        renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+      }
+    } catch (err) {
+      notify(`Could not update module: ${err.message}`);
     }
   },
   adminCreateDictEntry: async (entryData) => {
     try {
       await createDictionaryEntry(entryData, ctx.user);
       notify(`Added "${entryData.word}" to live dictionary!`);
+      if (ctx.state.activeView === 'admin') {
+        renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+      }
     } catch (err) {
       notify(`Could not add entry: ${err.message}`);
     }
   },
   adminDeleteLesson: async (id) => {
-    await deleteLessonArticle(id);
-    notify('Lesson deleted.');
+    try {
+      await deleteLessonArticle(id, ctx.user);
+      notify('Lesson deleted.');
+      if (ctx.state.activeView === 'admin') {
+        renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+      }
+    } catch (err) {
+      notify(`Delete denied: ${err.message}`);
+    }
   },
   adminDeleteDictEntry: async (id) => {
-    await deleteDictionaryEntry(id);
-    notify('Dictionary entry removed.');
+    try {
+      await deleteDictionaryEntry(id, ctx.user);
+      notify('Dictionary entry removed.');
+    } catch (err) {
+      notify(`Delete denied: ${err.message}`);
+    }
   },
   adminCreateMapLocation: async (locData) => {
     try {
       const createdId = await createMapLocation(locData, ctx.user);
       ctx.state.adminImageUrl = '';
-      if (createdId) ctx.state.selectedSiteId = createdId;
-      notify(`Published map marker "${locData.name}" to Firestore!`);
+      if (createdId) {
+        ctx.state.selectedSiteId = createdId;
+        if (ctx.state.adminSiteDraft) ctx.state.adminSiteDraft.id = createdId;
+      }
+      notify(`Saved cultural site "${locData.name}" to Firestore!`);
+      if (ctx.state.activeView === 'admin') {
+        renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+      }
     } catch (err) {
-      notify(`Could not publish map marker: ${err.message}`);
+      notify(`Could not save cultural site: ${err.message}`);
     }
   },
   adminDeleteMapLocation: async (id) => {
-    await deleteMapLocation(id);
-    notify('Cloud map marker removed.');
+    try {
+      await deleteMapLocation(id, ctx.user);
+      if (ctx.state.adminSiteDraft?.id === id) ctx.state.adminSiteDraft = null;
+      notify('Cloud map marker removed.');
+      if (ctx.state.activeView === 'admin') {
+        renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+      }
+    } catch (err) {
+      notify(`Delete denied: ${err.message}`);
+    }
   },
   adminSeedMapLocations: async () => {
     try {
@@ -906,6 +1060,48 @@ ctx.actions = {
       notify(`Synced ${count} Martinique heritage sites to Firestore!`);
     } catch (err) {
       notify(`Map seed failed: ${err.message}`);
+    }
+  },
+  adminSaveVocabSet: async (setData) => {
+    try {
+      const savedId = await saveVocabSet(setData, ctx.user);
+      if (ctx.state.adminVocabDraft) ctx.state.adminVocabDraft.id = savedId;
+      notify(`Saved vocabulary set "${setData.title}" to Firestore!`);
+      renderFlashcardDecksGrid(document.getElementById('flashcardsDecksMount'), ctx);
+      renderLearningPathSection(document.getElementById('learningPathMount'), ctx);
+      renderDictionarySection(document.getElementById('dictionaryMount'), ctx);
+      if (ctx.state.activeView === 'admin') {
+        renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+      }
+    } catch (err) {
+      notify(`Could not save vocabulary set: ${err.message}`);
+    }
+  },
+  adminDeleteVocabSet: async (setId) => {
+    try {
+      await deleteVocabSet(setId, ctx.user);
+      if (ctx.state.adminVocabDraft?.id === setId) ctx.state.adminVocabDraft = null;
+      notify('Cloud vocabulary set deleted.');
+      renderFlashcardDecksGrid(document.getElementById('flashcardsDecksMount'), ctx);
+      renderLearningPathSection(document.getElementById('learningPathMount'), ctx);
+      renderDictionarySection(document.getElementById('dictionaryMount'), ctx);
+      if (ctx.state.activeView === 'admin') {
+        renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+      }
+    } catch (err) {
+      notify(`Delete denied: ${err.message}`);
+    }
+  },
+  adminSeedVocabSets: async () => {
+    try {
+      notify('Syncing curated vocabulary decks to Firestore...');
+      const count = await seedCuratedVocabSets(FLASHCARD_DECKS, LEARNING_PATH_MILESTONES, ctx.user);
+      notify(`Synced ${count} vocabulary sets to Firestore!`);
+      if (ctx.state.activeView === 'admin') {
+        renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+      }
+    } catch (err) {
+      notify(`Vocabulary seed failed: ${err.message}`);
     }
   },
   refreshDailyAffirmation: async (excludeId = '') => {
@@ -938,6 +1134,9 @@ ctx.actions = {
       ctx.state.dailyAffirmation = { id, ...data, isCloud: true };
       renderDailyAffirmationWidget(document.getElementById('dailyAffirmationMount'), ctx);
       notify(`Published proverb "${data.creole}" to Firestore!`);
+      if (ctx.state.activeView === 'admin') {
+        renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+      }
     } catch (err) {
       notify(`Could not publish proverb: ${err.message}`);
     }
@@ -978,6 +1177,9 @@ function applyBodyClasses() {
 }
 
 function jumpToAccordion(accId) {
+  if (ctx.state.activeView === 'admin') {
+    ctx.actions.setAppView('learner');
+  }
   ctx.state.openAccordions.clear();
   ctx.state.openAccordions.add(accId);
   syncAccordionDom();
@@ -1060,7 +1262,7 @@ function renderAppShell() {
               <i class="fas fa-download"></i>
               <span class="km-tool-label">Install</span>
             </button>
-            <button type="button" class="km-nav-tool-btn" data-jump="acc-admin" title="${escapeHtml(t.btnAdmin)}">
+            <button type="button" class="km-nav-tool-btn ${ctx.state.activeView === 'admin' ? 'active' : ''}" id="navAdminStudioBtn" title="${escapeHtml(t.btnAdmin)}">
               <i class="fas fa-pen-to-square"></i>
               <span class="km-tool-label">${escapeHtml(t.btnAdmin)}</span>
             </button>
@@ -1085,6 +1287,7 @@ function renderAppShell() {
         <span>Offline mode active — cached Creole vocabulary, curriculum tables, and proverbs remain ready.</span>
       </div>
 
+      <div id="learnerMainView" ${ctx.state.activeView === 'admin' ? 'hidden' : ''}>
       <!-- ENGAGING EDITORIAL HERO WALL: PICTURE BANNER MOVED TO TOP + EDITORIAL & WORD OF THE DAY -->
       <section class="km-card km-hero-section km-hero-wall">
         <div class="km-hero-visual km-hero-top-banner">
@@ -1293,6 +1496,10 @@ function renderAppShell() {
         </button>
         <div class="km-accordion-body" id="adminMount"></div>
       </section>
+      </div>
+
+      <!-- DEDICATED ADMIN STUDIO VIEW (FIREBASE AUTH RBAC PROTECTED) -->
+      <div id="adminStudioMount" ${ctx.state.activeView === 'admin' ? '' : 'hidden'}></div>
 
       <footer class="km-meta-line" style="text-align:center; padding:0.75rem 0;">
         Kréyòl Matinik · ${escapeHtml(t.footerRights)} · <a href="https://www.patrimoines-martinique.org/" target="_blank" rel="noopener noreferrer" style="color:var(--cobalt);">patrimoines-martinique.org</a>
@@ -1300,7 +1507,7 @@ function renderAppShell() {
     </main>
 
     <!-- One-Hand Bottom Thumb Dock -->
-    <nav class="km-onehand-dock no-print" aria-label="One-hand quick navigation">
+    <nav class="km-onehand-dock no-print" aria-label="One-hand quick navigation" ${ctx.state.activeView === 'admin' ? 'style="display:none;"' : ''}>
       <button type="button" class="km-dock-btn" data-jump="acc-path"><i class="fas fa-route"></i><span>Path</span></button>
       <button type="button" class="km-dock-btn" data-jump="acc-curriculum"><i class="fas fa-seedling"></i><span>${escapeHtml(t.navLearn)}</span></button>
       <button type="button" class="km-dock-btn" id="dockCardsBtn"><i class="fas fa-layer-group"></i><span>${escapeHtml(t.navCards)}</span></button>
@@ -1387,6 +1594,9 @@ function renderAllViews() {
   renderMartiniqueMapSection(document.getElementById('mapMount'), ctx);
   renderCommunityAndInstitutions(document.getElementById('koudmenMount'), ctx);
   renderAdminStudio(document.getElementById('adminMount'), ctx);
+  if (ctx.state.activeView === 'admin') {
+    renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+  }
   renderTutorDrawer();
 }
 
@@ -1926,6 +2136,10 @@ function wireGlobalShellEvents() {
   });
 
   // Modals & Drawers
+  document.getElementById('navAdminStudioBtn')?.addEventListener('click', () => {
+    closeMobileMenu();
+    ctx.actions.setAppView(ctx.state.activeView === 'admin' ? 'learner' : 'admin');
+  });
   document.getElementById('navCardsBtn')?.addEventListener('click', () => { closeMobileMenu(); ctx.actions.openFlashcards('greetings'); });
   document.getElementById('heroCardsBtn')?.addEventListener('click', () => ctx.actions.openFlashcards('greetings'));
   document.getElementById('step2CardsBtn')?.addEventListener('click', () => ctx.actions.openFlashcards('greetings'));
@@ -1981,8 +2195,10 @@ function wireGlobalShellEvents() {
     ctx.state.streakJustIgnited = false;
     ctx.state.selectedPathId = 'path-1';
     ctx.collection = { points: 0, flashcardPoints: 0, lessonPoints: 0, mapPoints: 0, visitedSites: [], termStats: {} };
+    ctx.activityLog = {};
     ctx.recordedMeta = {};
     writeJson(STORAGE_KEYS.RECORD_META, {});
+    writeJson(STORAGE_KEYS.ACTIVITY_LOG, {});
     await clearAllVoiceRecordings();
     saveProgress();
     ctx.actions.openResetModal(false);
@@ -2056,8 +2272,10 @@ async function bootstrap() {
     const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     ctx.state.isDark = savedTheme ? savedTheme === 'dark' : sysDark;
     checkDailyStreak();
+    recordActiveStudySeconds(0);
     applyBodyClasses();
     renderAppShell();
+    startStudyHeartbeat();
     onTermAudioStateChange(syncAudioPlayerBarsDom);
   } catch (renderErr) {
     console.error('UI initialization fallback:', renderErr);
@@ -2130,11 +2348,17 @@ async function bootstrap() {
         ctx.cloud.lessons = items;
         renderLevelsAndLessons(document.getElementById('levelsMount'), ctx);
         renderAdminStudio(document.getElementById('adminMount'), ctx);
+        if (ctx.state.activeView === 'admin') {
+          renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+        }
       });
       subscribeDictionary((items) => {
         ctx.cloud.dictionary = items;
         renderDictionarySection(document.getElementById('dictionaryMount'), ctx);
         renderAdminStudio(document.getElementById('adminMount'), ctx);
+        if (ctx.state.activeView === 'admin') {
+          renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+        }
       });
       subscribeKoudmen((items) => {
         ctx.cloud.koudmen = items;
@@ -2144,10 +2368,25 @@ async function bootstrap() {
         ctx.cloud.mapLocations = items;
         refreshDynamicMapMarkers(ctx);
         renderAdminStudio(document.getElementById('adminMount'), ctx);
+        if (ctx.state.activeView === 'admin') {
+          renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+        }
+      });
+      subscribeVocabSets((items) => {
+        ctx.cloud.vocabSets = items;
+        renderFlashcardDecksGrid(document.getElementById('flashcardsDecksMount'), ctx);
+        renderLearningPathSection(document.getElementById('learningPathMount'), ctx);
+        renderDictionarySection(document.getElementById('dictionaryMount'), ctx);
+        if (ctx.state.activeView === 'admin') {
+          renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+        }
       });
       subscribeProverbs((items) => {
         ctx.cloud.proverbs = items;
         renderAdminStudio(document.getElementById('adminMount'), ctx);
+        if (ctx.state.activeView === 'admin') {
+          renderAdminStudioWorkspace(document.getElementById('adminStudioMount'), ctx);
+        }
         if ((!ctx.state.dailyAffirmation || !ctx.state.dailyAffirmation.isCloud) && items.length) {
           ctx.state.dailyAffirmation = items[Math.floor(Math.random() * items.length)];
           renderDailyAffirmationWidget(document.getElementById('dailyAffirmationMount'), ctx);
@@ -2164,7 +2403,18 @@ async function bootstrap() {
     }
     observeAuth(async (user) => {
       ctx.user = user || null;
-      ctx.isAdmin = user ? await checkIsAdmin(user) : false;
+      ctx.rbac = user
+        ? await verifyAdminAccess(user)
+        : {
+            authorized: false,
+            role: 'guest',
+            emailVerified: false,
+            uid: '',
+            email: '',
+            source: 'none',
+            reason: 'Sign in with a verified administrator account.'
+          };
+      ctx.isAdmin = Boolean(ctx.rbac.authorized);
       if (user?.emailVerified) {
         const cloudProg = await loadUserProgressFromCloud(user).catch(() => null);
         if (cloudProg) {

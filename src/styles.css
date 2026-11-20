@@ -2299,3 +2299,330 @@ body.reduce-motion *::after {
     display: block !important;
   }
 }
+
+/* =========================================================
+   D3 LEARNING INSIGHTS CARD & ADMIN STUDIO WORKSPACE
+   ========================================================= */
+.km-nav-tool-btn.active {
+  background: var(--cobalt-soft);
+  border-color: var(--cobalt);
+  color: var(--cobalt);
+}
+
+.km-insights-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.78rem;
+}
+
+.km-insights-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.km-insights-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+@media (max-width: 720px) {
+  .km-insights-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.km-insight-kpi {
+  background: var(--surface-solid);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  padding: 0.62rem 0.78rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.km-insight-kpi strong {
+  font-size: 1.04rem;
+}
+
+.km-insights-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.km-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.km-legend-swatch {
+  width: 18px;
+  height: 3px;
+  border-radius: 99px;
+  display: inline-block;
+}
+
+.km-legend-swatch--vocab {
+  background: var(--cobalt);
+}
+
+.km-legend-swatch--time {
+  background: repeating-linear-gradient(
+    to right,
+    var(--emerald) 0,
+    var(--emerald) 5px,
+    transparent 5px,
+    transparent 8px
+  );
+}
+
+.km-insights-chart-wrap {
+  position: relative;
+  width: 100%;
+  background: var(--surface-solid);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 0.55rem 0.45rem 0.35rem;
+}
+
+.km-insights-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.km-insights-tooltip {
+  position: absolute;
+  top: 10px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: var(--surface-solid);
+  border: 1px solid var(--hairline-strong);
+  box-shadow: var(--shadow-card);
+  border-radius: 10px;
+  padding: 0.45rem 0.68rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+/* Admin Studio Workspace View */
+.km-admin-studio-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.km-admin-topbar {
+  padding: 1.15rem 1.3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.km-admin-breadcrumb-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.km-admin-heading {
+  font-size: clamp(1.28rem, 2.3vw, 1.7rem);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}
+
+.km-rbac-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  font-weight: 600;
+}
+
+.km-rbac-line.is-ok {
+  color: var(--emerald);
+}
+
+.km-rbac-line.is-warn {
+  color: var(--crimson);
+}
+
+.km-admin-top-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.km-rbac-gate {
+  padding: 1.55rem;
+}
+
+.km-rbac-checklist {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface-subtle);
+  overflow: hidden;
+}
+
+.km-rbac-check-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 0.86rem;
+}
+
+.km-rbac-check-row:last-child {
+  border-bottom: none;
+}
+
+.km-admin-kpi-row {
+  margin-top: 0;
+}
+
+.km-admin-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.km-admin-body {
+  padding: 1.2rem;
+}
+
+.km-admin-split {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .km-admin-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.km-admin-form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.72rem;
+  background: var(--surface-subtle);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.km-admin-list-col {
+  min-width: 0;
+}
+
+.km-admin-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.km-admin-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .km-admin-grid-2,
+  .km-admin-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.km-admin-cards-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.km-admin-card-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.km-admin-card-row {
+  background: var(--surface-solid);
+  border: 1px solid var(--hairline);
+  border-radius: 11px;
+  padding: 0.65rem;
+}
+
+.km-admin-table-wrap {
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  overflow-x: auto;
+  background: var(--surface-solid);
+  max-height: 540px;
+  overflow-y: auto;
+}
+
+.km-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.km-admin-table th,
+.km-admin-table td {
+  padding: 0.65rem 0.78rem;
+  text-align: left;
+  border-bottom: 1px solid var(--hairline);
+  vertical-align: middle;
+}
+
+.km-admin-table th {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+  background: var(--surface-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.km-admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.km-admin-empty {
+  padding: 1.25rem;
+  border: 1px dashed var(--hairline-strong);
+  border-radius: 12px;
+  text-align: center;
+  color: var(--ink-secondary);
+  font-size: 0.88rem;
+}
+

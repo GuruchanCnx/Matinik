@@ -15,10 +15,32 @@ import {
 } from './curriculumAndQuiz.js';
 import { getMilestoneForDeck, getUnlockedVocabularyDecks } from './learningPathAndCulture.js';
 
+export function getMergedFlashcardDecks(ctx) {
+  const merged = {};
+  Object.entries(FLASHCARD_DECKS).forEach(([k, d]) => {
+    merged[k] = { ...d, id: k, isCloud: false };
+  });
+  (ctx?.cloud?.vocabSets || []).forEach((vs) => {
+    if (!vs?.id || !Array.isArray(vs.cards) || !vs.cards.length) return;
+    const prev = merged[vs.id];
+    merged[vs.id] = {
+      id: vs.id,
+      title: vs.title || prev?.title || vs.id,
+      level: vs.level || prev?.level || 'beginner',
+      unlockStep: Number(vs.unlockStep || 1),
+      image: sanitizeSafeUrl(vs.imageUrl) || prev?.image || ARTWORKS.dictionary,
+      cards: vs.cards,
+      isCloud: true
+    };
+  });
+  return merged;
+}
+
 export function renderFlashcardDecksGrid(container, ctx) {
   if (!container) return;
   const dueCount = ctx.actions.getSmartReviewCount();
-  const entries = Object.entries(FLASHCARD_DECKS);
+  const mergedDecks = getMergedFlashcardDecks(ctx);
+  const entries = Object.entries(mergedDecks);
   const unlockedSet = getUnlockedVocabularyDecks(ctx);
 
   container.innerHTML = `
@@ -37,7 +59,7 @@ export function renderFlashcardDecksGrid(container, ctx) {
     <div class="km-vocab-grid">
       ${entries.map(([key, deck]) => {
         const isUnlocked = unlockedSet.has(key);
-        const milestone = getMilestoneForDeck(key);
+        const milestone = getMilestoneForDeck(key, deck);
         return `
           <article class="km-vocab-card ${isUnlocked ? '' : 'is-deck-locked'}" style="padding:0; overflow:hidden; ${isUnlocked ? '' : 'opacity:0.86;'}">
             <img src="${escapeHtml(sanitizeSafeUrl(deck.image) || ARTWORKS.dictionary)}" alt="${escapeHtml(deck.title)}" referrerpolicy="no-referrer" style="width:100%; height:124px; object-fit:cover; ${isUnlocked ? '' : 'filter:grayscale(0.35);'}">
@@ -116,20 +138,21 @@ export function getMergedDictionaryEntries(ctx) {
     })
   );
 
-  Object.entries(FLASHCARD_DECKS).forEach(([dkKey, dk]) => {
+  Object.entries(getMergedFlashcardDecks(ctx)).forEach(([dkKey, dk]) => {
     dk.cards.forEach((c, idx) =>
       add({
         id: `dict-${dkKey}-${idx}`,
         word: c.word,
-        pos: c.pos,
-        pronounce: c.pronounce,
+        pos: c.pos || 'Phrase',
+        pronounce: c.pronounce || '',
         en: c.en,
         fr: c.fr,
         level: c.level || dk.level || 'beginner',
-        explanation: c.explanation || c.definition,
+        explanation: c.explanation || c.definition || '',
         funFact: c.funFact || '',
-        example: c.ex,
-        image: c.image || dk.image || ARTWORKS.dictionary
+        example: c.ex || '',
+        image: c.image || dk.image || ARTWORKS.dictionary,
+        isAdmin: Boolean(dk.isCloud)
       })
     );
   });
@@ -237,9 +260,10 @@ export function renderDictionarySection(container, ctx) {
 // FLASHCARD MODAL (SWIPE, SPEAK-ALONG, EXPLANATIONS, VOICE)
 // =========================================================
 export function getActiveFlashcardList(ctx) {
+  const mergedDecks = getMergedFlashcardDecks(ctx);
   if (ctx.state.fcDeckKey === '__smart__') {
     const dueCards = [];
-    Object.entries(FLASHCARD_DECKS).forEach(([dKey, deck]) => {
+    Object.entries(mergedDecks).forEach(([dKey, deck]) => {
       deck.cards.forEach((card, i) => {
         const tid = `fc-${dKey}-${i}`;
         const st = ctx.actions.getTermStats(tid);
@@ -250,7 +274,7 @@ export function getActiveFlashcardList(ctx) {
     });
     return dueCards.slice(0, 20);
   }
-  const deck = FLASHCARD_DECKS[ctx.state.fcDeckKey] || FLASHCARD_DECKS.greetings;
+  const deck = mergedDecks[ctx.state.fcDeckKey] || mergedDecks.greetings || FLASHCARD_DECKS.greetings;
   return deck.cards.map((card, i) => ({
     ...card,
     _deckTitle: deck.title,
@@ -289,9 +313,9 @@ export function renderFlashcardModal(backdrop, ctx) {
       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:0.65rem;">
         <select id="fcDeckSelect" class="km-select" style="flex:1; min-width:180px;">
           <option value="__smart__" ${ctx.state.fcDeckKey === '__smart__' ? 'selected' : ''}>Smart Spaced Review Queue</option>
-          ${Object.entries(FLASHCARD_DECKS).map(([k, d]) => {
+          ${Object.entries(getMergedFlashcardDecks(ctx)).map(([k, d]) => {
             const isUnl = getUnlockedVocabularyDecks(ctx).has(k);
-            const ms = getMilestoneForDeck(k);
+            const ms = getMilestoneForDeck(k, d);
             return `<option value="${escapeHtml(k)}" ${ctx.state.fcDeckKey === k ? 'selected' : ''} ${isUnl ? '' : 'disabled'}>${isUnl ? '' : '🔒 '}${escapeHtml(d.title)} (${d.cards.length})${isUnl ? '' : ` — Stage ${ms.step}`}</option>`;
           }).join('')}
         </select>
@@ -535,7 +559,8 @@ export function renderFlashcardModal(backdrop, ctx) {
 // =========================================================
 export function renderHandsFreeModal(backdrop, ctx) {
   if (!backdrop) return;
-  const deck = FLASHCARD_DECKS[ctx.state.hfDeckKey] || FLASHCARD_DECKS.greetings;
+  const mergedDecks = getMergedFlashcardDecks(ctx);
+  const deck = mergedDecks[ctx.state.hfDeckKey] || mergedDecks.greetings || FLASHCARD_DECKS.greetings;
   const cards = deck.cards;
   if (ctx.state.hfIndex >= cards.length) ctx.state.hfIndex = 0;
   const card = cards[ctx.state.hfIndex];
@@ -553,7 +578,7 @@ export function renderHandsFreeModal(backdrop, ctx) {
       </div>
 
       <select id="hfDeckSelect" class="km-select" style="margin-top:0.85rem;">
-        ${Object.entries(FLASHCARD_DECKS).map(([k, d]) => `<option value="${escapeHtml(k)}" ${ctx.state.hfDeckKey === k ? 'selected' : ''}>${escapeHtml(d.title)}</option>`).join('')}
+        ${Object.entries(mergedDecks).map(([k, d]) => `<option value="${escapeHtml(k)}" ${ctx.state.hfDeckKey === k ? 'selected' : ''}>${escapeHtml(d.title)}</option>`).join('')}
       </select>
 
       <div class="km-subpanel" style="text-align:center; margin:0.95rem 0; padding:1.4rem;">

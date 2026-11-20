@@ -189,17 +189,75 @@ export async function signOutUser() {
   await signOut(auth);
 }
 
-export async function checkIsAdmin(user) {
-  if (!user || !user.emailVerified) return false;
-  if (user.email === 'banheruka@gmail.com') return true;
-  if (!db) return false;
-  const path = `admins/${user.uid}`;
-  try {
-    const snap = await getDoc(doc(db, 'admins', user.uid));
-    return snap.exists();
-  } catch (err) {
-    return false;
+export async function verifyAdminAccess(user) {
+  const base = {
+    authorized: false,
+    role: user ? 'learner' : 'guest',
+    emailVerified: Boolean(user?.emailVerified),
+    uid: user?.uid || '',
+    email: user?.email || '',
+    source: 'none',
+    checkedAt: Date.now(),
+    reason: ''
+  };
+  if (!user) {
+    return { ...base, reason: 'No active Firebase Auth session.' };
   }
+  if (!user.emailVerified) {
+    return { ...base, reason: 'Email verification is required before Admin Studio access.' };
+  }
+  try {
+    if (typeof user.getIdTokenResult === 'function') {
+      await user.getIdTokenResult(false);
+    }
+  } catch (_err) {
+    // Ignore transient offline token refresh failures; rules still enforce token validity
+  }
+  if (user.email === 'banheruka@gmail.com') {
+    return {
+      ...base,
+      authorized: true,
+      role: 'admin',
+      source: 'verified-owner-email',
+      reason: 'Verified primary heritage administrator.'
+    };
+  }
+  if (!db) {
+    return { ...base, reason: 'Firestore database handle unavailable.' };
+  }
+  try {
+    let snap = null;
+    try {
+      snap = await getDocFromServer(doc(db, 'admins', user.uid));
+    } catch (_offlineErr) {
+      snap = await getDoc(doc(db, 'admins', user.uid));
+    }
+    if (snap && snap.exists()) {
+      return {
+        ...base,
+        authorized: true,
+        role: 'admin',
+        source: 'admins-collection',
+        reason: 'Verified against Firestore /admins registry.'
+      };
+    }
+    return { ...base, reason: 'Signed-in account does not hold Admin RBAC clearance.' };
+  } catch (err) {
+    return { ...base, reason: err?.message || 'RBAC verification denied.' };
+  }
+}
+
+export async function checkIsAdmin(user) {
+  const verdict = await verifyAdminAccess(user);
+  return verdict.authorized;
+}
+
+async function assertVerifiedAdmin(user) {
+  const verdict = await verifyAdminAccess(user);
+  if (!verdict.authorized) {
+    throw new Error(verdict.reason || 'Admin privileges required.');
+  }
+  return verdict;
 }
 
 export async function loadUserProgressFromCloud(user) {
@@ -290,7 +348,8 @@ export function subscribeLessons(onData) {
 }
 
 export async function createLessonArticle(data, user) {
-  if (!db || !user) throw new Error('Authentication required');
+  if (!db) throw new Error('Firestore not initialized');
+  await assertVerifiedAdmin(user);
   const path = 'lessons';
   try {
     const payload = {
@@ -313,8 +372,33 @@ export async function createLessonArticle(data, user) {
   }
 }
 
-export async function deleteLessonArticle(lessonId) {
+export async function updateLessonArticle(lessonId, data, user) {
+  if (!db) throw new Error('Firestore not initialized');
+  await assertVerifiedAdmin(user);
+  const id = sanitizeLocationSlug(lessonId) || String(lessonId || '').trim();
+  const path = `lessons/${id}`;
+  try {
+    const payload = {
+      title: String(data.title || '').trim().slice(0, 140),
+      level: ['beginner', 'intermediate', 'advanced', 'master'].includes(data.level) ? data.level : 'beginner',
+      creoleSummary: String(data.creoleSummary || '').trim().slice(0, 400),
+      bodyHtml: String(data.bodyHtml || '').trim().slice(0, 40000),
+      funFact: String(data.funFact || '').trim().slice(0, 600),
+      imageUrl: String(data.imageUrl || '').trim().slice(0, 200000),
+      attachmentName: String(data.attachmentName || '').trim().slice(0, 160),
+      attachmentUrl: String(data.attachmentUrl || '').trim().slice(0, 200000),
+      updatedAt: serverTimestamp()
+    };
+    await updateDoc(doc(db, 'lessons', id), payload);
+    return id;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+export async function deleteLessonArticle(lessonId, user = null) {
   if (!db) return;
+  await assertVerifiedAdmin(user || auth?.currentUser);
   const path = `lessons/${lessonId}`;
   try {
     await deleteDoc(doc(db, 'lessons', lessonId));
@@ -336,7 +420,9 @@ export function subscribeDictionary(onData) {
 }
 
 export async function createDictionaryEntry(data, user) {
-  if (!db || !user) throw new Error('Authentication required');
+  if (!db) throw new Error('Firestore not initialized');
+  await assertVerifiedAdmin(user || auth?.currentUser);
+  const actor = user || auth?.currentUser;
   const path = 'dictionary';
   try {
     const payload = {
@@ -350,7 +436,7 @@ export async function createDictionaryEntry(data, user) {
       funFact: String(data.funFact || '').trim().slice(0, 400),
       example: String(data.example || '').trim().slice(0, 300),
       imageUrl: String(data.imageUrl || '').trim().slice(0, 200000),
-      authorId: user.uid,
+      authorId: actor.uid,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
@@ -361,8 +447,9 @@ export async function createDictionaryEntry(data, user) {
   }
 }
 
-export async function deleteDictionaryEntry(entryId) {
+export async function deleteDictionaryEntry(entryId, user = null) {
   if (!db) return;
+  await assertVerifiedAdmin(user || auth?.currentUser);
   const path = `dictionary/${entryId}`;
   try {
     await deleteDoc(doc(db, 'dictionary', entryId));
@@ -454,7 +541,8 @@ export function subscribeMapLocations(onData) {
 }
 
 export async function createMapLocation(data, user) {
-  if (!db || !user) throw new Error('Authentication required');
+  if (!db) throw new Error('Firestore not initialized');
+  await assertVerifiedAdmin(user);
   const id = sanitizeLocationSlug(data.id || data.name);
   const path = `mapLocations/${id}`;
   const allowedCats = ['commune', 'historical', 'offbeat'];
@@ -464,8 +552,9 @@ export async function createMapLocation(data, user) {
     if (!Number.isFinite(lat) || lat < -90 || lat > 90) throw new Error('Valid latitude (-90 to 90) is required');
     if (!Number.isFinite(lng) || lng < -180 || lng > 180) throw new Error('Valid longitude (-180 to 180) is required');
 
-    const payload = {
-      id,
+    const docRef = doc(db, 'mapLocations', id);
+    const existingSnap = await getDoc(docRef).catch(() => null);
+    const editableFields = {
       name: String(data.name || '').trim().slice(0, 140),
       creoleName: String(data.creoleName || data.name || '').trim().slice(0, 180),
       category: allowedCats.includes(data.category) ? data.category : 'historical',
@@ -477,19 +566,28 @@ export async function createMapLocation(data, user) {
       tradition: String(data.tradition || '').trim().slice(0, 800),
       proverb: String(data.proverb || '').trim().slice(0, 400),
       imageUrl: String(data.imageUrl || '').trim().slice(0, 200000),
-      authorId: user.uid,
-      createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
-    await setDoc(doc(db, 'mapLocations', id), payload);
+
+    if (existingSnap && existingSnap.exists()) {
+      await updateDoc(docRef, editableFields);
+    } else {
+      await setDoc(docRef, {
+        id,
+        ...editableFields,
+        authorId: user.uid,
+        createdAt: serverTimestamp()
+      });
+    }
     return id;
   } catch (error) {
-    handleFirestoreError(error, OperationType.CREATE, path);
+    handleFirestoreError(error, OperationType.WRITE, path);
   }
 }
 
-export async function deleteMapLocation(locationId) {
+export async function deleteMapLocation(locationId, user = null) {
   if (!db) return;
+  await assertVerifiedAdmin(user || auth?.currentUser);
   const path = `mapLocations/${locationId}`;
   try {
     await deleteDoc(doc(db, 'mapLocations', locationId));
@@ -499,7 +597,9 @@ export async function deleteMapLocation(locationId) {
 }
 
 export async function seedCuratedMapLocations(locationsMap, user) {
-  if (!db || !user) throw new Error('Admin sign-in required');
+  if (!db) throw new Error('Firestore not initialized');
+  await assertVerifiedAdmin(user || auth?.currentUser);
+  const actor = user || auth?.currentUser;
   const entries = Object.values(locationsMap || {});
   let synced = 0;
   for (const loc of entries) {
@@ -517,7 +617,7 @@ export async function seedCuratedMapLocations(locationsMap, user) {
       tradition: String(loc.tradition || '').trim().slice(0, 800),
       proverb: String(loc.proverb || '').trim().slice(0, 400),
       imageUrl: String(loc.gallery?.[0]?.src || '').trim().slice(0, 200000),
-      authorId: user.uid,
+      authorId: actor.uid,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
@@ -559,7 +659,9 @@ export function subscribeProverbs(onData) {
 }
 
 export async function createProverbEntry(data, user) {
-  if (!db || !user) throw new Error('Authentication required');
+  if (!db) throw new Error('Firestore not initialized');
+  await assertVerifiedAdmin(user || auth?.currentUser);
+  const actor = user || auth?.currentUser;
   const id = sanitizeLocationSlug(data.id || data.creole);
   const path = `proverbs/${id}`;
   try {
@@ -570,7 +672,7 @@ export async function createProverbEntry(data, user) {
       fr: String(data.fr || '').trim().slice(0, 360),
       meaning: String(data.meaning || '').trim().slice(0, 600),
       origin: String(data.origin || 'Martinican Oral Heritage').trim().slice(0, 140),
-      authorId: user.uid,
+      authorId: actor.uid,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
@@ -582,7 +684,9 @@ export async function createProverbEntry(data, user) {
 }
 
 export async function seedCuratedProverbs(proverbsList, user) {
-  if (!db || !user) throw new Error('Admin sign-in required');
+  if (!db) throw new Error('Firestore not initialized');
+  await assertVerifiedAdmin(user || auth?.currentUser);
+  const actor = user || auth?.currentUser;
   let synced = 0;
   for (const p of (proverbsList || [])) {
     const id = sanitizeLocationSlug(p.id || p.creole);
@@ -594,7 +698,7 @@ export async function seedCuratedProverbs(proverbsList, user) {
         fr: String(p.fr || '').trim().slice(0, 360),
         meaning: String(p.meaning || '').trim().slice(0, 600),
         origin: String(p.origin || 'Martinican Oral Heritage').trim().slice(0, 140),
-        authorId: user.uid,
+        authorId: actor.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
@@ -605,5 +709,129 @@ export async function seedCuratedProverbs(proverbsList, user) {
   }
   return synced;
 }
+
+export function subscribeVocabSets(onData) {
+  if (!db) return () => {};
+  const path = 'vocabSets';
+  const q = query(collection(db, path), orderBy('createdAt', 'desc'), limit(60));
+  return onSnapshot(q, (snap) => {
+    const items = snap.docs.map((d) => ({ id: d.id, ...d.data(), isCloud: true }));
+    onData(items);
+  }, (error) => {
+    handleFirestoreError(error, OperationType.LIST, path);
+  });
+}
+
+function normalizeVocabCards(rawCards) {
+  if (!Array.isArray(rawCards)) return [];
+  return rawCards
+    .map((c) => {
+      const word = String(c?.word || '').trim().slice(0, 120);
+      const en = String(c?.en || '').trim().slice(0, 200);
+      const fr = String(c?.fr || c?.en || '').trim().slice(0, 200);
+      if (!word || !en || !fr) return null;
+      return {
+        word,
+        pronounce: String(c?.pronounce || '').trim().slice(0, 120),
+        pos: String(c?.pos || 'Phrase').trim().slice(0, 40),
+        en,
+        fr,
+        ex: String(c?.ex || '').trim().slice(0, 300),
+        definition: String(c?.definition || '').trim().slice(0, 400),
+        funFact: String(c?.funFact || '').trim().slice(0, 400)
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 30);
+}
+
+export async function saveVocabSet(data, user) {
+  if (!db) throw new Error('Firestore not initialized');
+  await assertVerifiedAdmin(user);
+  const id = sanitizeLocationSlug(data.id || data.title).slice(0, 64);
+  const path = `vocabSets/${id}`;
+  try {
+    const cards = normalizeVocabCards(data.cards);
+    if (!cards.length) {
+      throw new Error('Add at least one valid vocabulary card (Creole word, English, and French).');
+    }
+    const unlockStep = Math.max(1, Math.min(6, Math.round(Number(data.unlockStep || 1))));
+    const editableFields = {
+      title: String(data.title || '').trim().slice(0, 140),
+      level: ['beginner', 'intermediate', 'advanced', 'master'].includes(data.level) ? data.level : 'beginner',
+      unlockStep,
+      imageUrl: String(data.imageUrl || '').trim().slice(0, 200000),
+      cards,
+      cardCount: cards.length,
+      updatedAt: serverTimestamp()
+    };
+    const docRef = doc(db, 'vocabSets', id);
+    const existingSnap = await getDoc(docRef).catch(() => null);
+    if (existingSnap && existingSnap.exists()) {
+      await updateDoc(docRef, editableFields);
+    } else {
+      await setDoc(docRef, {
+        id,
+        ...editableFields,
+        authorId: user.uid,
+        createdAt: serverTimestamp()
+      });
+    }
+    return id;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+export async function deleteVocabSet(setId, user) {
+  if (!db) return;
+  await assertVerifiedAdmin(user);
+  const path = `vocabSets/${setId}`;
+  try {
+    await deleteDoc(doc(db, 'vocabSets', setId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
+  }
+}
+
+export async function seedCuratedVocabSets(decksObj, milestones, user) {
+  if (!db) throw new Error('Firestore not initialized');
+  await assertVerifiedAdmin(user);
+  let synced = 0;
+  for (const [key, deck] of Object.entries(decksObj || {})) {
+    const ms = (milestones || []).find((m) => Array.isArray(m.unlocksDecks) && m.unlocksDecks.includes(key));
+    const cards = normalizeVocabCards(deck.cards);
+    if (!cards.length) continue;
+    const id = sanitizeLocationSlug(key).slice(0, 64);
+    try {
+      const docRef = doc(db, 'vocabSets', id);
+      const existingSnap = await getDoc(docRef).catch(() => null);
+      const editable = {
+        title: String(deck.title || key).trim().slice(0, 140),
+        level: ['beginner', 'intermediate', 'advanced', 'master'].includes(deck.level) ? deck.level : 'beginner',
+        unlockStep: ms ? Math.max(1, Math.min(6, Number(ms.step))) : 1,
+        imageUrl: String(deck.image || '').trim().slice(0, 200000),
+        cards,
+        cardCount: cards.length,
+        updatedAt: serverTimestamp()
+      };
+      if (existingSnap && existingSnap.exists()) {
+        await updateDoc(docRef, editable);
+      } else {
+        await setDoc(docRef, {
+          id,
+          ...editable,
+          authorId: user.uid,
+          createdAt: serverTimestamp()
+        });
+      }
+      synced += 1;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `vocabSets/${id}`);
+    }
+  }
+  return synced;
+}
+
 
 

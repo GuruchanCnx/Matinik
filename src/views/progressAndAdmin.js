@@ -6,6 +6,7 @@ import {
   speakTermSequence
 } from '../services/audioEngine.js';
 import { escapeHtml } from './curriculumAndQuiz.js';
+import { renderLearningInsightsCard } from './learningInsightsChart.js';
 
 function formatClock(sec) {
   const s = Math.max(0, Number(sec || 0));
@@ -152,6 +153,8 @@ export function renderProgressDashboard(container, ctx) {
         `).join('')}
       </div>
     </section>
+
+    <div id="learningInsightsMount" style="margin-top:1rem;"></div>
 
     <div class="km-goal-focus-grid">
       <!-- Daily Study Goal -->
@@ -340,6 +343,9 @@ export function renderProgressDashboard(container, ctx) {
       </div>
     </div>
   `;
+
+  // Render D3.js Learning Insights card
+  renderLearningInsightsCard(container.querySelector('#learningInsightsMount'), ctx);
 
   // Wire dashboard controls
   container.querySelector('#streakModuleShortcutBtn')?.addEventListener('click', () => {
@@ -586,18 +592,33 @@ export function renderAdminStudio(container, ctx) {
   if (!ctx.isAdmin) {
     container.innerHTML = `
       <div class="km-subpanel">
-        <strong>Admin Content Studio</strong>
-        <p style="font-size:0.88rem; color:var(--ink-secondary); margin-top:0.35rem;">
-          Authorized educators (verified admins such as <code>banheruka@gmail.com</code>) can author rich-text Creole micro-lessons with images/study PDFs and publish live dictionary entries synced to Firestore.
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <strong>Admin Content Studio · Firebase Auth RBAC</strong>
+          <button type="button" class="km-btn km-btn-sm km-btn-primary" id="accOpenAdminWorkspaceBtn">
+            <i class="fas fa-arrow-up-right-from-square"></i> Open Full Admin Studio View
+          </button>
+        </div>
+        <p style="font-size:0.88rem; color:var(--ink-secondary); margin-top:0.45rem;">
+          Authorized educators (verified admins in Firestore <code>/admins/{uid}</code> or <code>banheruka@gmail.com</code>) can manage vocabulary sets, cultural map sites, learning modules, and live dictionary entries inside the dedicated Admin Studio view.
         </p>
-        ${!ctx.user ? `<button type="button" class="km-btn km-btn-sm km-btn-primary" id="adminSignInPromptBtn" style="margin-top:0.65rem;">Sign In as Admin</button>` : '<div class="km-meta-line" style="margin-top:0.5rem;">Signed-in account does not hold Admin privileges.</div>'}
+        ${!ctx.user ? `<button type="button" class="km-btn km-btn-sm km-btn-primary" id="adminSignInPromptBtn" style="margin-top:0.65rem;">Sign In as Admin</button>` : `<div class="km-meta-line" style="margin-top:0.5rem;">${escapeHtml(ctx.rbac?.reason || 'Signed-in account does not hold Admin privileges.')}</div>`}
       </div>
     `;
     container.querySelector('#adminSignInPromptBtn')?.addEventListener('click', () => ctx.actions.openAuthModal(true));
+    container.querySelector('#accOpenAdminWorkspaceBtn')?.addEventListener('click', () => ctx.actions.setAppView('admin'));
     return;
   }
 
   container.innerHTML = `
+    <div class="km-subpanel" style="margin-bottom:0.95rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <div>
+        <strong style="font-size:0.98rem;">Dedicated Admin Studio View Ready</strong>
+        <div class="km-meta-line">Manage Vocabulary Sets, Martinique Cultural Sites &amp; Learning Modules with Firebase RBAC</div>
+      </div>
+      <button type="button" class="km-btn km-btn-sm km-btn-primary" id="accOpenAdminWorkspaceBtn">
+        <i class="fas fa-sliders"></i> Open Full Admin Studio View
+      </button>
+    </div>
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:1rem;">
       <!-- Publish Rich-Text Lesson -->
       <form id="adminLessonForm" class="km-subpanel" style="display:flex; flex-direction:column; gap:0.65rem;">
@@ -858,4 +879,5 @@ export function renderAdminStudio(container, ctx) {
   container.querySelectorAll('[data-del-maploc]').forEach((b) => {
     b.addEventListener('click', () => ctx.actions.adminDeleteMapLocation(b.getAttribute('data-del-maploc')));
   });
+  container.querySelector('#accOpenAdminWorkspaceBtn')?.addEventListener('click', () => ctx.actions.setAppView('admin'));
 }

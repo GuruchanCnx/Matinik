@@ -41,16 +41,28 @@ export function getMilestoneStatus(milestone, completedSet) {
 export function getUnlockedVocabularyDecks(ctx) {
   const completedSet = getCompletedMilestoneIds(ctx);
   const unlocked = new Set();
+  const unlockedSteps = new Set();
   LEARNING_PATH_MILESTONES.forEach((m) => {
     const status = getMilestoneStatus(m, completedSet);
     if (status === 'completed' || status === 'unlocked') {
+      unlockedSteps.add(Number(m.step));
       m.unlocksDecks.forEach((dk) => unlocked.add(dk));
+    }
+  });
+  (ctx?.cloud?.vocabSets || []).forEach((vs) => {
+    const step = Number(vs?.unlockStep || 1);
+    if (vs?.id && (step <= 1 || unlockedSteps.has(step))) {
+      unlocked.add(vs.id);
     }
   });
   return unlocked;
 }
 
-export function getMilestoneForDeck(deckKey) {
+export function getMilestoneForDeck(deckKey, deckObj = null) {
+  if (deckObj && deckObj.unlockStep) {
+    const stepMatch = LEARNING_PATH_MILESTONES.find((m) => Number(m.step) === Number(deckObj.unlockStep));
+    if (stepMatch) return stepMatch;
+  }
   return LEARNING_PATH_MILESTONES.find((m) => m.unlocksDecks.includes(deckKey)) || LEARNING_PATH_MILESTONES[0];
 }
 
@@ -61,6 +73,10 @@ export function renderLearningPathSection(container, ctx) {
   if (!container) return;
   const completedSet = getCompletedMilestoneIds(ctx);
   const unlockedDecks = getUnlockedVocabularyDecks(ctx);
+  const totalDeckKeys = new Set([
+    ...Object.keys(FLASHCARD_DECKS),
+    ...(ctx?.cloud?.vocabSets || []).map((v) => v.id).filter(Boolean)
+  ]);
 
   // Determine currently selected milestone (default to first non-completed unlocked node)
   let selectedId = ctx.state.selectedPathId;
@@ -79,7 +95,7 @@ export function renderLearningPathSection(container, ctx) {
   container.innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-bottom:0.85rem;">
       <div>
-        <div class="km-meta-line km-mono">${totalCompleted} / ${LEARNING_PATH_MILESTONES.length} Milestones Mastered · ${unlockedDecks.size} / ${Object.keys(FLASHCARD_DECKS).length} Vocabulary Decks Unlocked</div>
+        <div class="km-meta-line km-mono">${totalCompleted} / ${LEARNING_PATH_MILESTONES.length} Milestones Mastered · ${unlockedDecks.size} / ${totalDeckKeys.size} Vocabulary Decks Unlocked</div>
         <div class="km-progress-track" style="height:8px; width:min(360px, 100%); margin-top:0.35rem;">
           <div class="km-progress-fill" style="width:${pct}%;"></div>
         </div>

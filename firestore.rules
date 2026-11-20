@@ -333,5 +333,61 @@ service cloud.firestore {
         ]);
       allow delete: if isValidId(proverbId) && isAdmin();
     }
+
+    function isValidVocabCard(card) {
+      return card is map
+        && card.keys().hasAll(['word', 'en', 'fr'])
+        && card.keys().hasOnly(['word', 'pronounce', 'pos', 'en', 'fr', 'ex', 'definition', 'funFact'])
+        && card.word is string && card.word.size() >= 1 && card.word.size() <= 120
+        && card.en is string && card.en.size() >= 1 && card.en.size() <= 200
+        && card.fr is string && card.fr.size() >= 1 && card.fr.size() <= 200
+        && (!('pronounce' in card) || (card.pronounce is string && card.pronounce.size() <= 120))
+        && (!('pos' in card) || (card.pos is string && card.pos.size() <= 40))
+        && (!('ex' in card) || (card.ex is string && card.ex.size() <= 300))
+        && (!('definition' in card) || (card.definition is string && card.definition.size() <= 400))
+        && (!('funFact' in card) || (card.funFact is string && card.funFact.size() <= 400));
+    }
+
+    function isValidVocabSet(data, setId) {
+      return data.keys().hasAll(['id', 'title', 'level', 'unlockStep', 'cards', 'cardCount', 'authorId', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly([
+          'id', 'title', 'level', 'unlockStep', 'imageUrl', 'cards', 'cardCount',
+          'authorId', 'createdAt', 'updatedAt'
+        ])
+        && data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id == setId
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 140
+        && data.level is string && data.level.size() <= 24 && data.level in ['beginner', 'intermediate', 'advanced', 'master']
+        && data.unlockStep is int && data.unlockStep >= 1 && data.unlockStep <= 6
+        && (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 200000))
+        && data.cards is list && data.cards.size() >= 1 && data.cards.size() <= 30
+        && isValidVocabCard(data.cards[0])
+        && isValidVocabCard(data.cards[data.cards.size() - 1])
+        && data.cardCount is int && data.cardCount == data.cards.size()
+        && data.authorId is string && data.authorId.size() <= 128
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Dynamic Vocabulary Sets & Flashcard Decks
+    match /vocabSets/{setId} {
+      allow get: if isValidId(setId);
+      allow list: if true;
+      allow create: if isValidId(setId)
+        && isAdmin()
+        && isValidVocabSet(incoming(), setId)
+        && incoming().authorId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(setId)
+        && isAdmin()
+        && isValidVocabSet(incoming(), setId)
+        && incoming().authorId == existing().authorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'level', 'unlockStep', 'imageUrl', 'cards', 'cardCount', 'updatedAt'
+        ]);
+      allow delete: if isValidId(setId) && isAdmin();
+    }
   }
 }

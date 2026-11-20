@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'kreyol-matinik-v1';
+const CACHE_VERSION = 'kreyol-matinik-v2';
 const CORE_SHELL_ASSETS = [
   '/',
   '/index.html',
@@ -6,6 +6,7 @@ const CORE_SHELL_ASSETS = [
   '/src/styles.css',
   '/src/app.js',
   '/src/firebase.js',
+  '/src/vendor/d3/d3.min.js',
   '/src/data/vocab.js',
   '/src/data/curriculum.js',
   '/src/data/culturalData.js',
@@ -14,8 +15,10 @@ const CORE_SHELL_ASSETS = [
   '/src/views/curriculumAndQuiz.js',
   '/src/views/flashcardsAndDictionary.js',
   '/src/views/learningPathAndCulture.js',
+  '/src/views/learningInsightsChart.js',
   '/src/views/mapAndKoudmen.js',
   '/src/views/progressAndAdmin.js',
+  '/src/views/adminStudioView.js',
   '/public/icons/icon-192.png',
   '/public/icons/icon-512.png',
   '/public/icons/apple-touch-icon.png',
