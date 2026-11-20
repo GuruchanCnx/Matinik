@@ -1,7 +1,8 @@
 import { DEFAULT_KOUDMEN_THREADS, HERITAGE_INSTITUTIONS } from '../data/curriculum.js';
 import { IMG_RAINFOREST, MAP_LOCATIONS } from '../data/mapData.js';
+import { sanitizeSafeUrl } from '../firebase.js';
 import { speakTermSequence } from '../services/audioEngine.js';
-import { escapeHtml } from './curriculumAndQuiz.js';
+import { escapeHtml, sanitizeRichHtml } from './curriculumAndQuiz.js';
 
 let leafletMapInstance = null;
 let leafletMarkersLayer = null;
@@ -13,8 +14,9 @@ export function getMergedMapLocations(ctx) {
   cloudItems.forEach((doc) => {
     if (!doc || !doc.id) return;
     const baseline = merged[doc.id];
-    const gallery = doc.imageUrl
-      ? [{ src: doc.imageUrl, title: doc.name, caption: doc.region || 'Martinique Heritage Site' }, ...(baseline?.gallery || [])]
+    const safeImg = sanitizeSafeUrl(doc.imageUrl);
+    const gallery = safeImg
+      ? [{ src: safeImg, title: doc.name, caption: doc.region || 'Martinique Heritage Site' }, ...(baseline?.gallery || [])]
       : (baseline?.gallery || [{ src: IMG_RAINFOREST, title: doc.name, caption: doc.region || 'Martinique Heritage' }]);
     merged[doc.id] = {
       id: doc.id,
@@ -58,7 +60,7 @@ function buildMarkerIcon(loc, isSelected) {
 
 function buildMarkerPopupHtml(loc) {
   const meta = getCategoryMeta(loc.category);
-  const thumb = loc.gallery?.[0]?.src || '';
+  const thumb = sanitizeSafeUrl(loc.gallery?.[0]?.src || '');
   const excerpt = loc.fact.length > 125 ? `${loc.fact.slice(0, 122)}...` : loc.fact;
   const sourceNote = loc.isCloud ? ' · Firestore Live' : '';
   return `
@@ -377,7 +379,7 @@ export function renderGalleryModal(backdrop, ctx) {
         <button type="button" class="km-btn km-btn-sm" id="galCloseBtn" aria-label="Close gallery"><i class="fas fa-times"></i></button>
       </div>
 
-      <img src="${escapeHtml(current.src)}" alt="${escapeHtml(current.title)}" referrerpolicy="no-referrer"
+      <img src="${escapeHtml(sanitizeSafeUrl(current.src) || IMG_RAINFOREST)}" alt="${escapeHtml(current.title)}" referrerpolicy="no-referrer"
         style="width:100%; height:310px; object-fit:cover; object-position:${escapeHtml(current.crop || '50% 50%')}; border-radius:14px; border:1px solid var(--hairline);">
 
       <div style="margin-top:0.75rem;">
@@ -391,7 +393,7 @@ export function renderGalleryModal(backdrop, ctx) {
           ${thumbItems.map((g, offset) => {
             const realIdx = thumbSliceStart + offset;
             return `
-              <img src="${escapeHtml(g.src)}" alt="${escapeHtml(g.title)}" referrerpolicy="no-referrer" data-gal-thumb="${realIdx}"
+              <img src="${escapeHtml(sanitizeSafeUrl(g.src) || IMG_RAINFOREST)}" alt="${escapeHtml(g.title)}" referrerpolicy="no-referrer" data-gal-thumb="${realIdx}"
                 style="width:48px; height:36px; object-fit:cover; object-position:${escapeHtml(g.crop || '50% 50%')}; border-radius:7px; cursor:pointer; border:2px solid ${realIdx === idx ? 'var(--cobalt)' : 'transparent'};">
             `;
           }).join('')}
@@ -496,7 +498,7 @@ export function renderCommunityAndInstitutions(container, ctx) {
             ${(post.answers || []).map((ans) => `
               <div style="background:var(--surface-subtle); padding:0.65rem 0.78rem; border-radius:10px; font-size:0.84rem; margin-top:4px;">
                 <div class="km-meta-line" style="color:var(--emerald);">${escapeHtml(ans.author)}</div>
-                <div style="margin-top:2px;">${ans.text}</div>
+                <div style="margin-top:2px;">${sanitizeRichHtml(ans.text)}</div>
               </div>
             `).join('')}
           </article>
@@ -513,7 +515,7 @@ export function renderCommunityAndInstitutions(container, ctx) {
             <div class="km-meta-line"><i class="fas ${inst.icon}" style="color:var(--emerald);"></i> ${escapeHtml(inst.creoleTag)}</div>
             <strong style="font-size:0.98rem;">${escapeHtml(inst.name)}</strong>
             <p style="font-size:0.83rem; color:var(--ink-secondary); flex:1;">${escapeHtml(inst.description)}</p>
-            <a href="${escapeHtml(inst.url)}" target="_blank" rel="noopener noreferrer" class="km-btn km-btn-sm" style="margin-top:4px;">
+            <a href="${escapeHtml(sanitizeSafeUrl(inst.url, { allowDataImages: false }))}" target="_blank" rel="noopener noreferrer" class="km-btn km-btn-sm" style="margin-top:4px;">
               <i class="fas fa-arrow-up-right-from-square"></i> ${escapeHtml(inst.domainLabel)}
             </a>
           </article>

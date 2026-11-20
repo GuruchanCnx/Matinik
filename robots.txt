@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /firebase-applet-config.json
+
+Sitemap: https://matinik.vercel.app/sitemap.xml

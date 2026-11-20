@@ -30,16 +30,135 @@ function ensureUploadsDir() {
   }
 }
 
+function readFirebaseConfig() {
+  try {
+    const cfgPath = path.join(STATIC_ROOT, 'firebase-applet-config.json');
+    if (fs.existsSync(cfgPath)) {
+      return JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+    }
+  } catch (err) {
+    console.warn('Could not read firebase-applet-config.json:', err.message);
+  }
+  return null;
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.disable('x-powered-by');
 app.use(express.json({ limit: '6mb' }));
-app.use(express.static(STATIC_ROOT));
-app.use('/src', express.static(path.join(STATIC_ROOT, 'src')));
-app.use('/uploads', express.static(UPLOADS_DIR));
-app.use('/vendor/firebase', express.static(path.join(STATIC_ROOT, 'node_modules', 'firebase')));
 
-// Lazy initialization of Gemini client (avoids top-level cold-start crashes if key or native deps are absent)
+// Security headers (preserving iframe preview support cleanly)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), geolocation=()');
+  res.setHeader('X-DNS-Prefetch-Control', 'off');
+  next();
+});
+
+// Simple sliding-window in-memory rate limiter for API write/AI endpoints
+const rateBuckets = new Map();
+function createRateLimiter(maxRequests, windowMs) {
+  return (req, res, next) => {
+    const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
+    const key = `${req.path}:${ip}`;
+    const now = Date.now();
+    const bucket = rateBuckets.get(key);
+    if (!bucket || now - bucket.start > windowMs) {
+      rateBuckets.set(key, { count: 1, start: now });
+      return next();
+    }
+    bucket.count += 1;
+    if (bucket.count > maxRequests) {
+      return res.status(429).json({ error: 'Too many requests. Please pause briefly and try again.' });
+    }
+    return next();
+  };
+}
+
+// Explicit allowlisted static file serving (never expose server source, dotfiles, lockfiles, rules, or configs)
+app.get(['/', '/index.html'], (req, res) => {
+  const indexPath = path.join(STATIC_ROOT, 'index.html');
+  if (!fs.existsSync(indexPath)) return res.status(404).send('Application entry not found');
+  return res.sendFile(indexPath);
+});
+
+app.get('/sw.js', (req, res) => {
+  const swPath = path.join(STATIC_ROOT, 'sw.js');
+  if (!fs.existsSync(swPath)) return res.status(404).send('Service worker not found');
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Service-Worker-Allowed', '/');
+  return res.sendFile(swPath);
+});
+
+app.get('/manifest.webmanifest', (req, res) => {
+  const manifestPath = path.join(STATIC_ROOT, 'manifest.webmanifest');
+  if (!fs.existsSync(manifestPath)) return res.status(404).send('Manifest not found');
+  res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+  return res.sendFile(manifestPath);
+});
+
+app.get('/robots.txt', (req, res) => {
+  const robotsPath = path.join(STATIC_ROOT, 'robots.txt');
+  if (!fs.existsSync(robotsPath)) return res.status(404).send('robots.txt not found');
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  return res.sendFile(robotsPath);
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  const sitemapPath = path.join(STATIC_ROOT, 'sitemap.xml');
+  if (!fs.existsSync(sitemapPath)) return res.status(404).send('sitemap.xml not found');
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  return res.sendFile(sitemapPath);
+});
+
+app.get('/firebase-applet-config.json', (req, res) => {
+  const cfgPath = path.join(STATIC_ROOT, 'firebase-applet-config.json');
+  if (!fs.existsSync(cfgPath)) return res.status(404).json({ error: 'Config unavailable' });
+  res.setHeader('Cache-Control', 'no-store');
+  return res.sendFile(cfgPath);
+});
+
+app.get('/favicon.ico', (req, res) => {
+  const iconPng = path.join(STATIC_ROOT, 'public', 'icons', 'icon-192.png');
+  if (fs.existsSync(iconPng)) {
+    res.setHeader('Content-Type', 'image/png');
+    return res.sendFile(iconPng);
+  }
+  return res.status(204).end();
+});
+
+app.use('/src', express.static(path.join(STATIC_ROOT, 'src'), { dotfiles: 'deny' }));
+app.use('/public', express.static(path.join(STATIC_ROOT, 'public'), { dotfiles: 'deny' }));
+app.use('/uploads', express.static(UPLOADS_DIR, {
+  dotfiles: 'deny',
+  setHeaders: (res, filePath) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    const ext = path.extname(filePath).toLowerCase();
+    if (!['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext)) {
+      res.setHeader('Content-Disposition', 'attachment');
+    }
+  }
+}));
+app.use('/vendor/firebase', express.static(path.join(STATIC_ROOT, 'node_modules', 'firebase'), { dotfiles: 'deny' }));
+
+// Block accidental exposure of dotfiles, rules, server scripts, or build configs
+const FORBIDDEN_PATHS = new Set([
+  '/server.js', '/package.json', '/package-lock.json', '/bun.lock',
+  '/firestore.rules', '/firebase-blueprint.json', '/eslint.config.mjs',
+  '/security_spec.md', '/vercel.json', '/metadata.json'
+]);
+app.use((req, res, next) => {
+  const lowerPath = req.path.toLowerCase();
+  if (lowerPath.startsWith('/.') || FORBIDDEN_PATHS.has(lowerPath) || lowerPath.startsWith('/api/index')) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  return next();
+});
+
+// Lazy initialization of Gemini client
 let aiClient = null;
 let cachedGenAiType = null;
 async function getAIClient() {
@@ -61,6 +180,87 @@ async function getAIClient() {
     console.warn('Gemini SDK lazy load skipped:', err.message);
     return null;
   }
+}
+
+async function verifyVerifiedAdminBearer(req) {
+  const authHeader = String(req.headers.authorization || '');
+  if (!authHeader.startsWith('Bearer ')) {
+    return { ok: false, status: 401, error: 'Missing Authorization Bearer token' };
+  }
+  const idToken = authHeader.slice(7).trim();
+  if (!idToken || idToken.length > 4096) {
+    return { ok: false, status: 401, error: 'Invalid Bearer token' };
+  }
+  const cfg = readFirebaseConfig();
+  if (!cfg?.apiKey || !cfg?.projectId) {
+    return { ok: false, status: 503, error: 'Firebase configuration unavailable' };
+  }
+  try {
+    const lookupResp = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(cfg.apiKey)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken })
+    });
+    if (!lookupResp.ok) {
+      return { ok: false, status: 401, error: 'Invalid or expired Firebase ID token' };
+    }
+    const lookupJson = await lookupResp.json();
+    const user = lookupJson?.users?.[0];
+    if (!user || !user.localId) {
+      return { ok: false, status: 401, error: 'Unauthenticated user' };
+    }
+    if (!user.emailVerified) {
+      return { ok: false, status: 403, error: 'Verified email required for admin uploads' };
+    }
+    if (user.email === 'banheruka@gmail.com') {
+      return { ok: true, uid: user.localId, email: user.email };
+    }
+    const dbId = cfg.firestoreDatabaseId || '(default)';
+    const adminDocUrl = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(cfg.projectId)}/databases/${encodeURIComponent(dbId)}/documents/admins/${encodeURIComponent(user.localId)}`;
+    const adminResp = await fetch(adminDocUrl, {
+      headers: { Authorization: `Bearer ${idToken}` }
+    });
+    if (!adminResp.ok) {
+      return { ok: false, status: 403, error: 'Admin privileges required to upload studio files' };
+    }
+    return { ok: true, uid: user.localId, email: user.email || '' };
+  } catch (err) {
+    console.warn('Auth verification error:', err.message);
+    return { ok: false, status: 503, error: 'Could not verify authentication token' };
+  }
+}
+
+function verifyMagicBytes(mime, buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 4) return false;
+  if (mime === 'image/jpeg') {
+    return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  }
+  if (mime === 'image/png') {
+    return buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
+  }
+  if (mime === 'image/gif') {
+    const hdr = buffer.slice(0, 6).toString('ascii');
+    return hdr === 'GIF87a' || hdr === 'GIF89a';
+  }
+  if (mime === 'image/webp') {
+    return buffer.length >= 12 && buffer.slice(0, 4).toString('ascii') === 'RIFF' && buffer.slice(8, 12).toString('ascii') === 'WEBP';
+  }
+  if (mime === 'application/pdf') {
+    return buffer.slice(0, 5).toString('ascii') === '%PDF-';
+  }
+  if (mime === 'audio/wav') {
+    return buffer.length >= 12 && buffer.slice(0, 4).toString('ascii') === 'RIFF' && buffer.slice(8, 12).toString('ascii') === 'WAVE';
+  }
+  if (mime === 'audio/webm') {
+    return buffer[0] === 0x1a && buffer[1] === 0x45 && buffer[2] === 0xdf && buffer[3] === 0xa3;
+  }
+  if (mime === 'audio/mpeg') {
+    return buffer.slice(0, 3).toString('ascii') === 'ID3' || (buffer[0] === 0xff && (buffer[1] & 0xe0) === 0xe0);
+  }
+  if (mime === 'text/plain') {
+    return !buffer.includes(0);
+  }
+  return false;
 }
 
 app.get('/api/health', (req, res) => {
@@ -86,7 +286,7 @@ const VALID_DECK_KEYS = [
 ];
 
 // Agentic AI Tutor endpoint for Martinican Creole
-app.post('/api/tutor', async (req, res) => {
+app.post('/api/tutor', createRateLimiter(30, 60_000), async (req, res) => {
   try {
     const {
       message,
@@ -99,10 +299,21 @@ app.post('/api/tutor', async (req, res) => {
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Message is required' });
     }
+    const cleanMessage = message.trim().slice(0, 1200);
+    if (!cleanMessage) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
 
-    const recentHistory = Array.isArray(history) && history.length
+    const rawHistory = Array.isArray(history) && history.length
       ? history
       : (Array.isArray(conversationHistory) ? conversationHistory : []);
+    const recentHistory = rawHistory
+      .slice(-6)
+      .filter((h) => h && typeof h === 'object')
+      .map((h) => ({
+        role: h.role === 'assistant' ? 'assistant' : 'user',
+        content: String(h.content || '').slice(0, 800)
+      }));
 
     const aiBundle = await getAIClient();
     if (aiBundle) {
@@ -115,7 +326,7 @@ app.post('/api/tutor', async (req, res) => {
             : 'English';
 
         const learnerSummary = userContext && typeof userContext.xp === 'number'
-          ? `Learner snapshot: ${userContext.xp} XP, ${userContext.collectionPoints || 0} Collection Points, Streak: ${userContext.streak || 1} day(s), Recordings saved: ${userContext.recordedCount || 0}.`
+          ? `Learner snapshot: ${Math.max(0, Math.min(1000000, Math.round(userContext.xp)))} XP, ${Math.max(0, Math.min(1000000, Math.round(Number(userContext.collectionPoints || 0))))} Collection Points, Streak: ${Math.max(1, Math.min(10000, Math.round(Number(userContext.streak || 1))))} day(s), Recordings saved: ${Math.max(0, Math.min(5000, Math.round(Number(userContext.recordedCount || 0))))}.`
           : '';
 
         const systemInstruction = `You are "Man Mayotte", an expert, warm, and encouraging cultural ambassador and language tutor specializing strictly in authentic Martinican Creole (Kréyòl Matinik, GEREC orthography).
@@ -126,7 +337,7 @@ Key guidelines:
 4. Highlight Martinican oral heritage, bèlè, koudmen solidarity, or historical geography when helpful.
 ${learnerSummary}`;
 
-        const prompt = `User query: "${message}"\n\nRecent conversation context: ${JSON.stringify(recentHistory.slice(-4))}`;
+        const prompt = `User query: "${cleanMessage}"\n\nRecent conversation context: ${JSON.stringify(recentHistory)}`;
 
         const response = await withTimeout(ai.models.generateContent({
           model: 'gemini-4-hydrogen',
@@ -142,7 +353,7 @@ ${learnerSummary}`;
     }
 
     // Curated Martinican heritage fallback responses when GEMINI_API_KEY is not configured
-    const lower = message.toLowerCase();
+    const lower = cleanMessage.toLowerCase();
     let reply = '';
 
     if (lower.includes('bonjou') || lower.includes('hello') || lower.includes('greet') || lower.includes('bonjour')) {
@@ -179,22 +390,25 @@ ${learnerSummary}`;
 });
 
 // Agentic Cultural Study Coach endpoint (Adaptive Recommendations & Mini Challenge)
-app.post('/api/agentic-coach', async (req, res) => {
+app.post('/api/agentic-coach', createRateLimiter(20, 60_000), async (req, res) => {
   try {
     const { currentLang = 'en', stats = {} } = req.body || {};
-    const xp = Number(stats.xp || 0);
-    const collectionPoints = Number(stats.collectionPoints || 0);
-    const rightCount = Number(stats.rightCount || 0);
-    const almostCount = Number(stats.almostCount || 0);
-    const wrongCount = Number(stats.wrongCount || 0);
-    const recordedCount = Number(stats.recordedCount || 0);
-    const visitedCommunes = Array.isArray(stats.visitedCommunes) ? stats.visitedCommunes : [];
+    const safeLang = ['en', 'fr', 'mq'].includes(currentLang) ? currentLang : 'en';
+    const xp = Math.max(0, Math.min(1000000, Math.round(Number(stats.xp || 0))));
+    const collectionPoints = Math.max(0, Math.min(1000000, Math.round(Number(stats.collectionPoints || 0))));
+    const rightCount = Math.max(0, Math.min(50000, Math.round(Number(stats.rightCount || 0))));
+    const almostCount = Math.max(0, Math.min(50000, Math.round(Number(stats.almostCount || 0))));
+    const wrongCount = Math.max(0, Math.min(50000, Math.round(Number(stats.wrongCount || 0))));
+    const recordedCount = Math.max(0, Math.min(5000, Math.round(Number(stats.recordedCount || 0))));
+    const visitedCommunes = Array.isArray(stats.visitedCommunes)
+      ? stats.visitedCommunes.filter((v) => typeof v === 'string').slice(0, 40).map((s) => s.slice(0, 80))
+      : [];
 
     const aiBundle = await getAIClient();
     if (aiBundle) {
       const { ai, Type } = aiBundle;
       try {
-        const langLabel = currentLang === 'fr' ? 'French' : currentLang === 'mq' ? 'Martinican Creole' : 'English';
+        const langLabel = safeLang === 'fr' ? 'French' : safeLang === 'mq' ? 'Martinican Creole' : 'English';
         const coachPrompt = `You are an adaptive Martinican Creole (Kréyòl Matinik, GEREC orthography) heritage study coach.
 Analyze this learner's telemetry and prescribe a personalized, culturally rooted next study step in ${langLabel}:
 - XP: ${xp}
@@ -258,13 +472,13 @@ Return strictly valid JSON with an encouragement, a specific focusArea, a recomm
     let miniChallenge = {
       creole: "Kouman ou yé jòdi-a?",
       phonetic: "[koo-mahn oo yay zhoh-dee-ah]",
-      prompt: currentLang === 'fr'
+      prompt: safeLang === 'fr'
         ? "Que veut dire « Kouman ou yé jòdi-a ? » en français ?"
-        : currentLang === 'mq'
+        : safeLang === 'mq'
           ? "Ki sans « Kouman ou yé jòdi-a ? » ni ?"
           : "What does « Kouman ou yé jòdi-a? » mean?",
-      answer: currentLang === 'fr' ? "Comment vas-tu aujourd'hui ?" : "How are you doing today?",
-      options: currentLang === 'fr'
+      answer: safeLang === 'fr' ? "Comment vas-tu aujourd'hui ?" : "How are you doing today?",
+      options: safeLang === 'fr'
         ? ["Comment vas-tu aujourd'hui ?", "Où habites-tu maintenant ?", "À demain matin !", "Merci beaucoup mon ami"]
         : ["How are you doing today?", "Where do you live now?", "See you tomorrow morning!", "Thank you very much my friend"]
     };
@@ -272,12 +486,12 @@ Return strictly valid JSON with an encouragement, a specific focusArea, a recomm
     if (wrongCount > rightCount && (rightCount + wrongCount) > 0) {
       recommendedDeck = 'verbs';
       recommendedModule = 'module1';
-      focusArea = currentLang === 'fr' ? 'Consolidation des verbes & particules (ka / té)' : 'Core Verb Markers (ka / té / ké) Review';
+      focusArea = safeLang === 'fr' ? 'Consolidation des verbes & particules (ka / té)' : 'Core Verb Markers (ka / té / ké) Review';
       culturalInsight = 'Martinican Creole verbs never conjugate by endings — mastering "ka" (ongoing), "té" (past), and "ké" (future) unlocks hundreds of sentences instantly.';
       miniChallenge = {
         creole: "Mwen ka palé Kréyòl Matinik",
         phonetic: "[mwehn kah pah-lay kray-ohl mah-tee-neek]",
-        prompt: currentLang === 'fr'
+        prompt: safeLang === 'fr'
           ? "Quelle particule indique une action en cours ?"
           : "Which particle signals an ongoing present action?",
         answer: "ka",
@@ -286,56 +500,56 @@ Return strictly valid JSON with an encouragement, a specific focusArea, a recomm
     } else if (recordedCount < 2) {
       recommendedDeck = 'expressions';
       recommendedModule = 'module2';
-      focusArea = currentLang === 'fr' ? 'Pratique orale & Auto-enregistrement' : 'Oral Pronunciation & Voice Self-Check';
+      focusArea = safeLang === 'fr' ? 'Pratique orale & Auto-enregistrement' : 'Oral Pronunciation & Voice Self-Check';
       culturalInsight = 'Kréyòl is an oral treasury first! Record yourself saying "Doudou" or "Koudmen" locally to compare your cadence against Martinican rhythm.';
       miniChallenge = {
         creole: "Nou ansanm pou fè an koudmen!",
         phonetic: "[noo ahn-sahnm poo feh ahn kood-mehn]",
-        prompt: currentLang === 'fr'
+        prompt: safeLang === 'fr'
           ? "Que désigne un « koudmen » dans les mornes martiniquais ?"
           : "What does « an koudmen » mean in rural Martinique?",
-        answer: currentLang === 'fr' ? "Une entraide collective solidaire" : "Collective neighborly mutual aid",
-        options: currentLang === 'fr'
+        answer: safeLang === 'fr' ? "Une entraide collective solidaire" : "Collective neighborly mutual aid",
+        options: safeLang === 'fr'
           ? ["Une entraide collective solidaire", "Un tambour traditionnel du nord", "Un fruit tropical sucré", "Une barque de pêcheurs"]
           : ["Collective neighborly mutual aid", "A traditional northern drum", "A sweet tropical fruit", "A fisherman's canoe"]
       };
     } else if (visitedCommunes.length < 3) {
       recommendedDeck = 'history';
       recommendedModule = 'module3';
-      focusArea = currentLang === 'fr' ? 'Patrimoine des communes & lieux historiques' : 'Cultural Geography & Hidden Heritage Sites';
+      focusArea = safeLang === 'fr' ? 'Patrimoine des communes & lieux historiques' : 'Cultural Geography & Hidden Heritage Sites';
       culturalInsight = 'Explore Cap 110 in Le Diamant, the Cachot de Cyparis in Saint-Pierre, and Château Dubuc on the Caravelle peninsula on the interactive OSM map.';
       miniChallenge = {
         creole: "Dèyè mòn, toujou ni mòn",
         phonetic: "[deh-yeh mohn too-zhoo nee mohn]",
-        prompt: currentLang === 'fr'
+        prompt: safeLang === 'fr'
           ? "Que signifie ce proverbe célèbre de Martinique ?"
           : "What wisdom does this classic Martinican proverb express?",
-        answer: currentLang === 'fr' ? "La persévérance face aux épreuves" : "Perseverance beyond every obstacle",
-        options: currentLang === 'fr'
+        answer: safeLang === 'fr' ? "La persévérance face aux épreuves" : "Perseverance beyond every obstacle",
+        options: safeLang === 'fr'
           ? ["La persévérance face aux épreuves", "Il faut cuisiner le soir", "La mer est toujours calme", "Ne jamais voyager seul"]
           : ["Perseverance beyond every obstacle", "Always cook dinner at dusk", "The ocean is always calm", "Never travel by boat"]
       };
     } else if (xp >= 100) {
       recommendedDeck = 'proverbs';
       recommendedModule = 'module3';
-      focusArea = currentLang === 'fr' ? 'Pawòl Matinik & Proverbes créoles' : 'Pawòl Matinik — Heritage Proverbs';
+      focusArea = safeLang === 'fr' ? 'Pawòl Matinik & Proverbes créoles' : 'Pawòl Matinik — Heritage Proverbs';
       culturalInsight = 'Your steady practice is paying off! Traditional proverbs (pawòl) preserve centuries of oral philosophy from the mornes and coastal villages.';
       miniChallenge = {
         creole: "Sé kouto sèl ki sav sa ki an tchè jiromon",
         phonetic: "[say koo-toh sehl kee sahv sah kee ahn tcheh zhee-roh-mohn]",
-        prompt: currentLang === 'fr'
+        prompt: safeLang === 'fr'
           ? "Que veut dire ce proverbe créole ?"
           : "What is the deeper meaning of this proverb?",
-        answer: currentLang === 'fr' ? "Seul l'intéressé connaît ses vrais sentiments" : "Only you truly know what is inside your heart",
-        options: currentLang === 'fr'
+        answer: safeLang === 'fr' ? "Seul l'intéressé connaît ses vrais sentiments" : "Only you truly know what is inside your heart",
+        options: safeLang === 'fr'
           ? ["Seul l'intéressé connaît ses vrais sentiments", "Il faut aiguiser son couteau chaque jour", "Les giraumons poussent en saison sèche", "Tout le monde aime la soupe au marché"]
           : ["Only you truly know what is inside your heart", "Always sharpen your kitchen knife", "Pumpkins only grow in dry season", "Everyone loves market soup"]
       };
     }
 
-    const encouragement = currentLang === 'fr'
+    const encouragement = safeLang === 'fr'
       ? `Bèl travay ! Avec ${xp} XP et ${collectionPoints} Points de Collection, vous faites vivre le Kréyòl Matinik.`
-      : currentLang === 'mq'
+      : safeLang === 'mq'
         ? `Fòs épi kouraj ! Épi ${xp} XP épi ${collectionPoints} Pwen Kòlèksyon, ou ka fè Kréyòl Matinik vivan !`
         : `Great momentum! With ${xp} XP and ${collectionPoints} Collection Points, you are actively keeping Kréyòl Matinik alive.`;
 
@@ -356,18 +570,23 @@ Return strictly valid JSON with an encouragement, a specific focusArea, a recomm
   }
 });
 
-// Safe local file/image upload endpoint for Admin Console (avoids >1MB Firestore limits)
-app.post('/api/upload', (req, res) => {
+// Authenticated, magic-byte-verified upload endpoint for Admin Studio
+app.post('/api/upload', createRateLimiter(20, 60_000), async (req, res) => {
   try {
+    const authCheck = await verifyVerifiedAdminBearer(req);
+    if (!authCheck.ok) {
+      return res.status(authCheck.status).json({ error: authCheck.error });
+    }
+
     const { filename, dataUrl } = req.body || {};
     if (!filename || typeof filename !== 'string' || !dataUrl || typeof dataUrl !== 'string') {
       return res.status(400).json({ error: 'filename and dataUrl are required' });
     }
-    const match = dataUrl.match(/^data:([a-zA-Z0-9.+/-]+);base64,(.+)$/);
+    const match = dataUrl.match(/^data:([a-zA-Z0-9.+/-]+);base64,([A-Za-z0-9+/=]+)$/);
     if (!match) {
       return res.status(400).json({ error: 'Invalid base64 dataUrl' });
     }
-    const mime = match[1];
+    const mime = match[1].toLowerCase();
     const allowedMimes = [
       'image/jpeg', 'image/png', 'image/webp', 'image/gif',
       'application/pdf', 'text/plain', 'audio/mpeg', 'audio/wav', 'audio/webm'
@@ -379,7 +598,10 @@ app.post('/api/upload', (req, res) => {
     if (buffer.length > 4 * 1024 * 1024) {
       return res.status(400).json({ error: 'File exceeds 4MB upload limit' });
     }
-    const cleanBase = path.basename(filename).replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80);
+    if (!verifyMagicBytes(mime, buffer)) {
+      return res.status(400).json({ error: 'File contents do not match declared file format' });
+    }
+    const cleanBase = path.basename(filename).replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80) || 'upload';
     if (IS_SERVERLESS && dataUrl.length <= 190000) {
       return res.json({
         url: dataUrl,
@@ -426,4 +648,3 @@ if (!IS_SERVERLESS) {
 }
 
 export default app;
-

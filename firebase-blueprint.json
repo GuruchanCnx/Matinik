@@ -111,6 +111,23 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "name", "creoleName", "category", "region", "lat", "lng", "fact", "authorId", "createdAt", "updatedAt"]
+    },
+    "ProverbAffirmation": {
+      "title": "ProverbAffirmation",
+      "description": "Martinican Creole daily affirmation and ancestral proverb stored in Firestore for the hero wall",
+      "type": "object",
+      "properties": {
+        "creole": { "type": "string", "maxLength": 320 },
+        "phonetic": { "type": "string", "maxLength": 320 },
+        "en": { "type": "string", "maxLength": 360 },
+        "fr": { "type": "string", "maxLength": 360 },
+        "meaning": { "type": "string", "maxLength": 600 },
+        "origin": { "type": "string", "maxLength": 140 },
+        "authorId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["creole", "en", "fr", "authorId", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
@@ -137,6 +154,10 @@
     "/mapLocations/{locationId}": {
       "schema": { "$ref": "#/entities/MapLocation" },
       "description": "Dynamic Leaflet OSM markers for communes, historical sites, and off-the-beaten-path heritage points."
+    },
+    "/proverbs/{proverbId}": {
+      "schema": { "$ref": "#/entities/ProverbAffirmation" },
+      "description": "Cultural Martinican Creole proverbs and daily affirmations surfaced randomly on the hero wall."
     }
   }
 }

@@ -30,6 +30,10 @@ export const UI_STRINGS = {
     btnAskTutor: 'Man Mayotte Tutor',
     btnAdmin: 'Admin Studio',
     wotdLabel: 'Pawòl Jòdi-a · Word of the Day',
+    affirmationLabel: 'Daily Affirmation in Kréyòl',
+    copyAffirmationBtn: 'Copy to Clipboard',
+    copiedAffirmationBtn: 'Copied!',
+    newAffirmationBtn: 'New Proverb',
     progressHeading: 'Daily Habit & Heritage Progress',
     goalTitle: 'Daily Study Goal',
     focusTitle: 'Deep Focus Timer & Island Nature Audio',
@@ -74,6 +78,10 @@ export const UI_STRINGS = {
     btnAskTutor: 'Tutrice Man Mayotte',
     btnAdmin: 'Studio Admin',
     wotdLabel: 'Pawòl Jòdi-a · Mot du Jour',
+    affirmationLabel: 'Affirmation du Jour en Kréyòl',
+    copyAffirmationBtn: 'Copier',
+    copiedAffirmationBtn: 'Copié !',
+    newAffirmationBtn: 'Autre Proverbe',
     progressHeading: 'Suivi Quotidien & Progression',
     goalTitle: 'Objectif d’Étude Quotidien',
     focusTitle: 'Minuteur Focus & Sons de Nature',
@@ -118,6 +126,10 @@ export const UI_STRINGS = {
     btnAskTutor: 'Man Mayotte IA',
     btnAdmin: 'Èspas Admin',
     wotdLabel: 'Pawòl Jòdi-a · Mo Matinik',
+    affirmationLabel: 'Pawòl Fòs an Kréyòl Jòdi-a',
+    copyAffirmationBtn: 'Kopyé Pawòl-la',
+    copiedAffirmationBtn: 'Kopyé !',
+    newAffirmationBtn: 'Lòt Pawòl',
     progressHeading: 'Pwogré épi Travay Jòdi-a',
     goalTitle: 'Objèktif Étid Chak Jou',
     focusTitle: 'Kwonò Focus & Son Lanati',
@@ -597,3 +609,97 @@ export const DEFAULT_KOUDMEN_THREADS = [
     ]
   }
 ];
+
+export const DAILY_AFFIRMATION_PROVERBS = [
+  {
+    id: 'prov-deye-mon',
+    creole: 'Dèyè mòn, toujou ni mòn.',
+    phonetic: '[deh-yeh mohn too-zhoo nee mohn]',
+    en: 'Beyond every mountain, there is always another mountain.',
+    fr: 'Derrière la colline, il y a toujours une autre colline.',
+    meaning: 'Resilience & perseverance: meet every milestone in life and study with patient courage.',
+    origin: 'Classical Martinican Highland Proverb'
+  },
+  {
+    id: 'prov-ti-hach',
+    creole: 'Ti hach ka bat gwo bwa.',
+    phonetic: '[tee ahsh kah baht gwoh bwah]',
+    en: 'A small axe fells even the largest mahogany tree.',
+    fr: 'La petite hache abat les grands arbres.',
+    meaning: 'Five minutes of daily Creole practice compounds into lasting fluency.',
+    origin: 'Kréyòl Oral Wisdom · Morne Rouge'
+  },
+  {
+    id: 'prov-yonn-a-lot',
+    creole: 'Sé yonn ki ka édé lòt.',
+    phonetic: '[say yohn kee kah ay-day loht]',
+    en: 'It is by helping one another that everyone stands tall.',
+    fr: 'C’est en s’entraidant les uns les autres que l’on avance.',
+    meaning: 'The living heartbeat of Koudmen — intergenerational solidarity across Martinique.',
+    origin: 'Koudmen Solidarity Maxim'
+  },
+  {
+    id: 'prov-lanmen-lave',
+    creole: 'An sel dwèt pa ka manjé kalalou.',
+    phonetic: '[ahn sehl dweht pah kah mahn-zhay kah-lah-loo]',
+    en: 'A single finger cannot eat okra stew alone.',
+    fr: 'Un seul doigt ne peut pas manger le calalou.',
+    meaning: 'Community, dialogue, and shared tables multiply what we achieve together.',
+    origin: 'Traditional Antillean Oral Heritage'
+  },
+  {
+    id: 'prov-dlo-kouri',
+    creole: 'Dlo ka kouri anba fèy.',
+    phonetic: '[dloh kah koo-ree ahn-bah fehy]',
+    en: 'Quiet water flows steadily beneath the leaves.',
+    fr: 'L’eau coule doucement sous les feuilles.',
+    meaning: 'Stay calm, grounded, and observant — quiet progress carries deep strength.',
+    origin: 'Rainforest Proverb · Fonds-Saint-Denis'
+  },
+  {
+    id: 'prov-ti-bren',
+    creole: 'Piti piti, zozo ka fè nich li.',
+    phonetic: '[pee-tee pee-tee zoh-zoh kah feh neesh lee]',
+    en: 'Little by little, the bird weaves its nest.',
+    fr: 'Petit à petit, l’oiseau fait son nid.',
+    meaning: 'Celebrate every small word learned today; mastery is built twig by twig.',
+    origin: 'Martinican Household Saying'
+  },
+  {
+    id: 'prov-pawol-tje',
+    creole: 'Pawòl ka volé, mé tjè ka tjenbé.',
+    phonetic: '[pah-wohl kah voh-lay may tcheh kah tyehn-bay]',
+    en: 'Spoken words take flight, yet the heart remembers kindness.',
+    fr: 'Les paroles s’envolent, mais le cœur garde la bienveillance.',
+    meaning: 'Speak Creole warmly and with respect ("respè") wherever you travel.',
+    origin: 'Sainte-Marie Bèlè Tradition'
+  },
+  {
+    id: 'prov-soley-matinik',
+    creole: 'Chak jou ki ka lévé ka poté limyè’y.',
+    phonetic: '[shahk zhoo kee kah lay-vay kah poh-tay lee-myeh-ee]',
+    en: 'Every dawning day brings its own clear light.',
+    fr: 'Chaque jour qui se lève apporte sa propre lumière.',
+    meaning: 'Begin each morning refreshed, grateful, and ready to learn anew.',
+    origin: 'Caribbean Dawn Affirmation'
+  },
+  {
+    id: 'prov-lanme-kalm',
+    creole: 'Apwé lapli, sé bèl tan ki ka vini.',
+    phonetic: '[ah-pway lah-plee say behl tahn kee kah vee-nee]',
+    en: 'After the rain squall, clear sunshine always returns.',
+    fr: 'Après la pluie vient toujours le beau temps.',
+    meaning: 'Hope and calm patience after passing tropical showers or challenges.',
+    origin: 'Coastal Fisherfolk Proverb · Le Vauclin'
+  },
+  {
+    id: 'prov-rasin-pyebwa',
+    creole: 'Pyébwa pa ka bliyé rasin li.',
+    phonetic: '[pyay-bwah pah kah blee-yay rah-seen lee]',
+    en: 'The tree never forgets its roots.',
+    fr: 'L’arbre n’oublie jamais ses racines.',
+    meaning: 'Preserving Kréyòl Matinik honors elders and keeps cultural identity radiant.',
+    origin: 'Archives Orales de Martinique'
+  }
+];
+

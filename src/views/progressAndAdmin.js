@@ -711,6 +711,27 @@ export function renderAdminStudio(container, ctx) {
         </div>
         <button type="submit" class="km-btn km-btn-emerald"><i class="fas fa-location-dot"></i> Publish Live OSM Marker to Firestore</button>
       </form>
+
+      <!-- Publish Cultural Proverb / Affirmation to Firestore -->
+      <form id="adminProverbForm" class="km-subpanel" style="display:flex; flex-direction:column; gap:0.6rem; grid-column:1 / -1;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <strong style="font-size:1rem;"><i class="fas fa-quote-left" style="color:var(--cobalt);"></i> Daily Creole Affirmations &amp; Proverbs (${(ctx.cloud.proverbs || []).length} Cloud)</strong>
+          <button type="button" class="km-btn km-btn-sm" id="adminSeedProverbsBtn">
+            <i class="fas fa-cloud-arrow-up"></i> Sync 10 Heritage Proverbs to Firestore
+          </button>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:6px;">
+          <input type="text" id="apCreole" class="km-input" placeholder="Creole Proverb *" required>
+          <input type="text" id="apPhonetic" class="km-input" placeholder="Phonetics [deh-yeh mohn...]">
+          <input type="text" id="apEn" class="km-input" placeholder="English meaning *" required>
+          <input type="text" id="apFr" class="km-input" placeholder="French meaning *" required>
+        </div>
+        <div style="display:grid; grid-template-columns:2fr 1fr; gap:6px;">
+          <input type="text" id="apMeaning" class="km-input" placeholder="Cultural wisdom reflection...">
+          <input type="text" id="apOrigin" class="km-input" placeholder="Origin (e.g. Morne Rouge)">
+        </div>
+        <button type="submit" class="km-btn km-btn-primary"><i class="fas fa-sparkles"></i> Publish Proverb to Firestore</button>
+      </form>
     </div>
   `;
 
@@ -731,9 +752,17 @@ export function renderAdminStudio(container, ctx) {
     const reader = new FileReader();
     reader.onload = async () => {
       try {
+        const idToken = ctx.user?.getIdToken ? await ctx.user.getIdToken() : '';
+        if (!idToken) {
+          ctx.actions.notify('Sign in as a verified admin before uploading files.');
+          return;
+        }
         const res = await fetch('/api/upload', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${idToken}`
+          },
           body: JSON.stringify({ filename: file.name, dataUrl: reader.result })
         });
         const data = await res.json();
@@ -802,6 +831,22 @@ export function renderAdminStudio(container, ctx) {
 
   container.querySelector('#adminSeedMapBtn')?.addEventListener('click', () => {
     ctx.actions.adminSeedMapLocations();
+  });
+
+  container.querySelector('#adminProverbForm')?.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    await ctx.actions.adminCreateProverb({
+      creole: container.querySelector('#apCreole')?.value,
+      phonetic: container.querySelector('#apPhonetic')?.value,
+      en: container.querySelector('#apEn')?.value,
+      fr: container.querySelector('#apFr')?.value,
+      meaning: container.querySelector('#apMeaning')?.value,
+      origin: container.querySelector('#apOrigin')?.value
+    });
+  });
+
+  container.querySelector('#adminSeedProverbsBtn')?.addEventListener('click', () => {
+    ctx.actions.adminSeedProverbs();
   });
 
   container.querySelectorAll('[data-del-lesson]').forEach((b) => {

@@ -19,7 +19,7 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/((?!src/|public/|api/|vendor/|uploads/|firebase-applet-config\\.json|favicon\\.ico).*)",
+      "source": "/((?!src/|public/|api/|vendor/|uploads/|firebase-applet-config\\.json|sw\\.js|manifest\\.webmanifest|sitemap\\.xml|robots\\.txt|favicon\\.ico).*)",
       "destination": "/index.html"
     }
   ]

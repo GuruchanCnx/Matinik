@@ -16,6 +16,7 @@ import {
   getFirestore,
   doc,
   getDoc,
+  getDocs,
   getDocFromServer,
   setDoc,
   addDoc,
@@ -28,6 +29,27 @@ import {
   onSnapshot,
   serverTimestamp
 } from 'firebase/firestore';
+
+export function sanitizeSafeUrl(rawUrl, options = {}) {
+  const { allowDataImages = true, allowDataDocs = false } = options;
+  const val = String(rawUrl || '').trim();
+  if (!val) return '';
+  if (val.startsWith('./') || val.startsWith('/')) {
+    if (val.startsWith('//')) return '';
+    return val;
+  }
+  const lower = val.toLowerCase();
+  if (lower.startsWith('https://') || lower.startsWith('http://')) {
+    return val;
+  }
+  if (allowDataImages && /^data:image\/(jpeg|jpg|png|webp|gif);base64,[a-z0-9+/=]+$/i.test(val)) {
+    return val;
+  }
+  if (allowDataDocs && /^data:(application\/pdf|text\/plain|audio\/mpeg|audio\/wav|audio\/webm);base64,[a-z0-9+/=]+$/i.test(val)) {
+    return val;
+  }
+  return '';
+}
 
 export const OperationType = {
   CREATE: 'create',
@@ -508,4 +530,80 @@ export async function seedCuratedMapLocations(locationsMap, user) {
   }
   return synced;
 }
+
+export async function fetchRandomProverbFromFirestore() {
+  if (!db) return null;
+  const path = 'proverbs';
+  try {
+    const q = query(collection(db, path), limit(50));
+    const snap = await getDocs(q);
+    if (snap.empty) return null;
+    const docs = snap.docs.map((d) => ({ id: d.id, ...d.data(), isCloud: true }));
+    return docs[Math.floor(Math.random() * docs.length)] || null;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, path);
+    return null;
+  }
+}
+
+export function subscribeProverbs(onData) {
+  if (!db) return () => {};
+  const path = 'proverbs';
+  const q = query(collection(db, path), orderBy('createdAt', 'desc'), limit(50));
+  return onSnapshot(q, (snap) => {
+    const items = snap.docs.map((d) => ({ id: d.id, ...d.data(), isCloud: true }));
+    onData(items);
+  }, (error) => {
+    handleFirestoreError(error, OperationType.LIST, path);
+  });
+}
+
+export async function createProverbEntry(data, user) {
+  if (!db || !user) throw new Error('Authentication required');
+  const id = sanitizeLocationSlug(data.id || data.creole);
+  const path = `proverbs/${id}`;
+  try {
+    const payload = {
+      creole: String(data.creole || '').trim().slice(0, 320),
+      phonetic: String(data.phonetic || '').trim().slice(0, 320),
+      en: String(data.en || '').trim().slice(0, 360),
+      fr: String(data.fr || '').trim().slice(0, 360),
+      meaning: String(data.meaning || '').trim().slice(0, 600),
+      origin: String(data.origin || 'Martinican Oral Heritage').trim().slice(0, 140),
+      authorId: user.uid,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+    await setDoc(doc(db, 'proverbs', id), payload);
+    return id;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, path);
+  }
+}
+
+export async function seedCuratedProverbs(proverbsList, user) {
+  if (!db || !user) throw new Error('Admin sign-in required');
+  let synced = 0;
+  for (const p of (proverbsList || [])) {
+    const id = sanitizeLocationSlug(p.id || p.creole);
+    try {
+      await setDoc(doc(db, 'proverbs', id), {
+        creole: String(p.creole || '').trim().slice(0, 320),
+        phonetic: String(p.phonetic || '').trim().slice(0, 320),
+        en: String(p.en || '').trim().slice(0, 360),
+        fr: String(p.fr || '').trim().slice(0, 360),
+        meaning: String(p.meaning || '').trim().slice(0, 600),
+        origin: String(p.origin || 'Martinican Oral Heritage').trim().slice(0, 140),
+        authorId: user.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      synced += 1;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `proverbs/${id}`);
+    }
+  }
+  return synced;
+}
+
 

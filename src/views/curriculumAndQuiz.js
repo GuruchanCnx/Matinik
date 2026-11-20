@@ -1,9 +1,11 @@
 import {
   AUDIO_QUIZ_BANK,
+  DAILY_AFFIRMATION_PROVERBS,
   HERITAGE_MODULES,
   SPEAKING_PRACTICE_PHRASES,
   WORD_OF_THE_DAY_LIST
 } from '../data/curriculum.js';
+import { sanitizeSafeUrl } from '../firebase.js';
 import {
   CURRICULUM_TERMS,
   FLASHCARD_DECKS,
@@ -38,15 +40,28 @@ export function sanitizeRichHtml(rawHtml) {
   const doc = parser.parseFromString(`<div>${rawHtml || ''}</div>`, 'text/html');
   const root = doc.body.firstElementChild;
   if (!root) return '';
-  root.querySelectorAll('script,style,iframe,object,embed,link').forEach((el) => el.remove());
+  root.querySelectorAll('script,style,iframe,object,embed,link,base,meta,form,input,textarea,button,svg,math').forEach((el) => el.remove());
   root.querySelectorAll('*').forEach((el) => {
     [...el.attributes].forEach((attr) => {
       const n = attr.name.toLowerCase();
       const v = attr.value.toLowerCase().trim();
-      if (n.startsWith('on') || (v.startsWith('javascript:') && (n === 'href' || n === 'src'))) {
+      if (n.startsWith('on') || n === 'srcdoc' || n === 'formaction' || n === 'xlink:href') {
         el.removeAttribute(attr.name);
+        return;
+      }
+      if (n === 'href' || n === 'src') {
+        const clean = sanitizeSafeUrl(attr.value, { allowDataImages: n === 'src', allowDataDocs: false });
+        if (!clean || v.startsWith('javascript:') || v.startsWith('vbscript:') || v.startsWith('data:text/html') || v.startsWith('data:image/svg')) {
+          el.removeAttribute(attr.name);
+        } else {
+          el.setAttribute(attr.name, clean);
+        }
       }
     });
+    if (el.tagName === 'A') {
+      el.setAttribute('rel', 'noopener noreferrer');
+      el.setAttribute('target', '_blank');
+    }
   });
   return root.innerHTML;
 }
@@ -220,6 +235,109 @@ export function renderWordOfTheDayWidget(container, ctx) {
   });
 }
 
+function copyTextWithFallback(text) {
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text).then(() => true).catch(() => legacyCopy(text));
+  }
+  return Promise.resolve(legacyCopy(text));
+}
+
+function legacyCopy(text) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (_e) {
+    return false;
+  }
+}
+
+export function renderDailyAffirmationWidget(container, ctx) {
+  if (!container) return;
+  const lang = ctx.state.lang || 'en';
+  const t = ctx.strings[lang] || ctx.strings.en;
+  const pool = (ctx.cloud?.proverbs && ctx.cloud.proverbs.length)
+    ? ctx.cloud.proverbs
+    : DAILY_AFFIRMATION_PROVERBS;
+
+  if (!ctx.state.dailyAffirmation) {
+    ctx.state.dailyAffirmation = pool[Math.floor(Math.random() * pool.length)];
+  }
+  const item = ctx.state.dailyAffirmation || DAILY_AFFIRMATION_PROVERBS[0];
+  const translation = lang === 'fr' ? (item.fr || item.en) : (item.en || item.fr);
+  const sourceBadge = item.isCloud ? 'Firestore Live' : 'Heritage Archive';
+
+  container.innerHTML = `
+    <div class="km-affirmation-box" id="dailyAffirmationCard" aria-label="Daily Affirmation in Kréyòl">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+        <span class="km-meta-line km-affirmation-eyebrow">
+          <i class="fas fa-sparkles" aria-hidden="true"></i> ${escapeHtml(t.affirmationLabel)}
+        </span>
+        <span class="km-meta-line km-mono">${escapeHtml(sourceBadge)}</span>
+      </div>
+
+      <blockquote class="km-affirmation-quote" id="dailyAffirmationText">« ${escapeHtml(item.creole)} »</blockquote>
+      ${item.phonetic ? `<div class="km-meta-line km-mono">${escapeHtml(item.phonetic)}</div>` : ''}
+      <div class="km-affirmation-trans">${escapeHtml(translation)}</div>
+      ${item.meaning ? `<div class="km-affirmation-meaning">${escapeHtml(item.meaning)}${item.origin ? ` — <em>${escapeHtml(item.origin)}</em>` : ''}</div>` : ''}
+
+      <div class="km-affirmation-actions">
+        <button type="button" class="km-btn km-btn-sm km-btn-primary" id="affirmationCopyBtn" aria-label="${escapeHtml(t.copyAffirmationBtn)}">
+          <i class="fas fa-copy"></i> <span>${escapeHtml(t.copyAffirmationBtn)}</span>
+        </button>
+        <button type="button" class="km-btn km-btn-sm" id="affirmationListenBtn" aria-label="Listen to Creole proverb">
+          <i class="fas fa-volume-up"></i> Listen
+        </button>
+        <button type="button" class="km-btn km-btn-sm" id="affirmationShuffleBtn" title="${escapeHtml(t.newAffirmationBtn)}">
+          <i class="fas fa-shuffle"></i> <span>${escapeHtml(t.newAffirmationBtn)}</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  container.querySelector('#affirmationCopyBtn')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    const payload = `« ${item.creole} » (${translation}) — Kréyòl Matinik`;
+    const ok = await copyTextWithFallback(payload);
+    if (ok) {
+      btn.classList.add('km-btn-emerald');
+      btn.innerHTML = `<i class="fas fa-check"></i> <span>${escapeHtml(t.copiedAffirmationBtn || 'Copied!')}</span>`;
+      ctx.actions.notify('Creole affirmation copied to clipboard!');
+      setTimeout(() => {
+        if (document.body.contains(btn)) {
+          btn.classList.remove('km-btn-emerald');
+          btn.innerHTML = `<i class="fas fa-copy"></i> <span>${escapeHtml(t.copyAffirmationBtn)}</span>`;
+        }
+      }, 2100);
+    } else {
+      ctx.actions.notify('Copy permission blocked — select the proverb text to copy.');
+    }
+  });
+
+  container.querySelector('#affirmationListenBtn')?.addEventListener('click', (e) => {
+    speakTermSequence(item.creole, translation, {
+      settings: ctx.settings,
+      lang: ctx.state.lang,
+      btnEl: e.currentTarget,
+      onListened: ctx.actions.registerWordListened
+    });
+  });
+
+  container.querySelector('#affirmationShuffleBtn')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    await ctx.actions.refreshDailyAffirmation(item.id);
+    if (document.body.contains(btn)) btn.disabled = false;
+  });
+}
+
 export function renderLevelsAndLessons(container, ctx) {
   if (!container) return;
   const xp = Number(ctx.progress.xp || 0);
@@ -284,7 +402,7 @@ export function renderLevelsAndLessons(container, ctx) {
     <div class="km-vocab-grid">
       ${mergedLessons.map((ls) => `
         <article class="km-vocab-card">
-          ${ls.imageUrl ? `<img src="${escapeHtml(ls.imageUrl)}" alt="${escapeHtml(ls.title)}" referrerpolicy="no-referrer" style="width:100%; height:136px; object-fit:cover; border-radius:10px;">` : ''}
+      ${ls.imageUrl && sanitizeSafeUrl(ls.imageUrl) ? `<img src="${escapeHtml(sanitizeSafeUrl(ls.imageUrl))}" alt="${escapeHtml(ls.title)}" referrerpolicy="no-referrer" style="width:100%; height:136px; object-fit:cover; border-radius:10px;">` : ''}
           <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
             <span class="km-meta-line">${escapeHtml(ls.level)} · ${escapeHtml(ls.duration)}</span>
             <button type="button" class="km-btn km-btn-sm" data-ls-listen="${escapeHtml(ls.practiceTerm || ls.creoleHook)}">
@@ -295,7 +413,7 @@ export function renderLevelsAndLessons(container, ctx) {
           <div style="font-weight:700; color:var(--cobalt); font-size:0.9rem;">« ${escapeHtml(ls.creoleHook)} »</div>
           <div style="font-size:0.85rem; color:var(--ink-secondary);">${ls.explanationHtml || escapeHtml(ls.explanation)}</div>
           ${ls.funFact ? `<div style="font-size:0.8rem; color:var(--ink-primary); background:var(--cobalt-soft); padding:0.5rem 0.7rem; border-radius:9px;"><strong>Cultural Note:</strong> ${escapeHtml(ls.funFact)}</div>` : ''}
-          ${ls.attachmentUrl ? `<a href="${escapeHtml(ls.attachmentUrl)}" download="${escapeHtml(ls.attachmentName || 'study-guide')}" class="km-btn km-btn-sm"><i class="fas fa-paperclip"></i> Download ${escapeHtml(ls.attachmentName || 'File')}</a>` : ''}
+          ${ls.attachmentUrl && sanitizeSafeUrl(ls.attachmentUrl, { allowDataImages: true, allowDataDocs: true }) ? `<a href="${escapeHtml(sanitizeSafeUrl(ls.attachmentUrl, { allowDataImages: true, allowDataDocs: true }))}" download="${escapeHtml(ls.attachmentName || 'study-guide')}" rel="noopener noreferrer" class="km-btn km-btn-sm"><i class="fas fa-paperclip"></i> Download ${escapeHtml(ls.attachmentName || 'File')}</a>` : ''}
           <button type="button" class="km-btn km-btn-sm km-btn-primary" data-open-deck="${escapeHtml(ls.deck || 'greetings')}">
             <i class="fas fa-clone"></i> Study Matching Deck
           </button>
@@ -307,7 +425,7 @@ export function renderLevelsAndLessons(container, ctx) {
     <div class="km-vocab-grid">
       ${FUN_FACTS_CATALOG.map((ff) => `
         <article class="km-vocab-card" style="padding:0; overflow:hidden;">
-          <img src="${escapeHtml(ff.image)}" alt="${escapeHtml(ff.title)}" referrerpolicy="no-referrer" style="width:100%; height:135px; object-fit:cover;">
+          <img src="${escapeHtml(sanitizeSafeUrl(ff.image))}" alt="${escapeHtml(ff.title)}" referrerpolicy="no-referrer" style="width:100%; height:135px; object-fit:cover;">
           <div style="padding:0.9rem; display:flex; flex-direction:column; gap:0.35rem;">
             <strong>${ff.icon} ${escapeHtml(ff.title)}</strong>
             <div style="font-size:0.84rem; font-weight:700; color:var(--cobalt);">${escapeHtml(ff.creole)}</div>
@@ -397,7 +515,7 @@ export function renderCurriculumAndOralLabs(container, ctx) {
         <div style="background:var(--surface-subtle); padding:0.75rem 0.9rem; border-radius:10px; font-size:0.86rem;">
           <strong>${escapeHtml(modObj.grammarTitle)}:</strong>
           <ul style="margin:0.35rem 0 0 1.2rem;">
-            ${modObj.grammarNotes.map((n) => `<li>${n}</li>`).join('')}
+            ${modObj.grammarNotes.map((n) => `<li>${sanitizeRichHtml(n)}</li>`).join('')}
           </ul>
         </div>
       </div>
@@ -499,7 +617,7 @@ export function renderCurriculumAndOralLabs(container, ctx) {
           fb.style.display = 'block';
           fb.style.background = 'var(--emerald-soft)';
           fb.style.color = 'var(--ink-primary)';
-          fb.innerHTML = q.explanationCorrect;
+          fb.innerHTML = sanitizeRichHtml(q.explanationCorrect);
         }
       } else {
         optEl.classList.add('incorrect');
@@ -511,7 +629,7 @@ export function renderCurriculumAndOralLabs(container, ctx) {
           fb.style.display = 'block';
           fb.style.background = 'var(--crimson-soft)';
           fb.style.color = 'var(--ink-primary)';
-          fb.innerHTML = q.explanationWrong;
+          fb.innerHTML = sanitizeRichHtml(q.explanationWrong);
         }
       }
     });

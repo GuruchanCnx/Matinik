@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="kmGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#047857"/>
+      <stop offset="55%" stop-color="#0f766e"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="kmGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#kmGrad)"/>
+  <circle cx="256" cy="256" r="168" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="8"/>
+  <path d="M168 356 C178 242 254 152 362 132 C344 228 286 306 198 336 Z" fill="#ffffff"/>
+  <path d="M198 336 C244 268 298 208 350 144" stroke="#047857" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <circle cx="348" cy="144" r="18" fill="url(#kmGold)"/>
+</svg>

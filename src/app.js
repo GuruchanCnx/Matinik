@@ -1,4 +1,4 @@
-import { HERO_BANNER_IMAGE, HERITAGE_MODULES, UI_STRINGS } from './data/curriculum.js';
+import { DAILY_AFFIRMATION_PROVERBS, HERO_BANNER_IMAGE, HERITAGE_MODULES, UI_STRINGS } from './data/curriculum.js';
 import { LEARNING_PATH_MILESTONES } from './data/culturalData.js';
 import { MAP_LOCATIONS } from './data/mapData.js';
 import { ARTWORKS, FLASHCARD_DECKS, MICRO_LESSONS } from './data/vocab.js';
@@ -8,15 +8,18 @@ import {
   createKoudmenPost,
   createLessonArticle,
   createMapLocation,
+  createProverbEntry,
   deleteDictionaryEntry,
   deleteLessonArticle,
   deleteMapLocation,
+  fetchRandomProverbFromFirestore,
   initFirebase,
   loadUserProgressFromCloud,
   observeAuth,
   resendVerificationEmail,
   resetUserPassword,
   seedCuratedMapLocations,
+  seedCuratedProverbs,
   signInWithApple,
   signInWithEmail,
   signInWithGoogle,
@@ -26,6 +29,7 @@ import {
   subscribeKoudmen,
   subscribeLessons,
   subscribeMapLocations,
+  subscribeProverbs,
   syncUserProgressToCloud,
   upvoteKoudmenPost
 } from './firebase.js';
@@ -43,6 +47,7 @@ import {
 import {
   escapeHtml,
   renderCurriculumAndOralLabs,
+  renderDailyAffirmationWidget,
   renderLevelsAndLessons,
   renderWordOfTheDayWidget,
   syncAudioPlayerBarsDom
@@ -193,7 +198,8 @@ const ctx = {
     lessons: [],
     dictionary: [],
     koudmen: [],
-    mapLocations: []
+    mapLocations: [],
+    proverbs: []
   },
   state: {
     lang: 'en',
@@ -201,6 +207,9 @@ const ctx = {
     mobileMenuOpen: false,
     topbarSearch: '',
     wotdIdx: dayOfYear % 12,
+    dailyAffirmation: null,
+    deferredInstallPrompt: null,
+    isOffline: typeof navigator !== 'undefined' ? !navigator.onLine : false,
     openAccordions: new Set(['acc-path', 'acc-curriculum', 'acc-progress']),
     selectedPathId: 'path-1',
     cultureTab: 'culinary',
@@ -898,12 +907,70 @@ ctx.actions = {
     } catch (err) {
       notify(`Map seed failed: ${err.message}`);
     }
+  },
+  refreshDailyAffirmation: async (excludeId = '') => {
+    let picked = null;
+    try {
+      if (navigator.onLine !== false) {
+        const cloudRandom = await fetchRandomProverbFromFirestore();
+        if (cloudRandom && (cloudRandom.id !== excludeId || (ctx.cloud.proverbs || []).length <= 1)) {
+          picked = cloudRandom;
+        }
+      }
+    } catch (_err) {
+      // Fall back smoothly to local pool if offline or network blocked
+    }
+    if (!picked) {
+      const pool = (ctx.cloud.proverbs && ctx.cloud.proverbs.length)
+        ? ctx.cloud.proverbs
+        : DAILY_AFFIRMATION_PROVERBS;
+      const candidates = pool.length > 1 && excludeId
+        ? pool.filter((p) => p.id !== excludeId)
+        : pool;
+      picked = candidates[Math.floor(Math.random() * candidates.length)] || DAILY_AFFIRMATION_PROVERBS[0];
+    }
+    ctx.state.dailyAffirmation = picked;
+    renderDailyAffirmationWidget(document.getElementById('dailyAffirmationMount'), ctx);
+  },
+  adminCreateProverb: async (data) => {
+    try {
+      const id = await createProverbEntry(data, ctx.user);
+      ctx.state.dailyAffirmation = { id, ...data, isCloud: true };
+      renderDailyAffirmationWidget(document.getElementById('dailyAffirmationMount'), ctx);
+      notify(`Published proverb "${data.creole}" to Firestore!`);
+    } catch (err) {
+      notify(`Could not publish proverb: ${err.message}`);
+    }
+  },
+  adminSeedProverbs: async () => {
+    try {
+      notify('Syncing heritage proverbs to Firestore...');
+      const count = await seedCuratedProverbs(DAILY_AFFIRMATION_PROVERBS, ctx.user);
+      notify(`Synced ${count} Creole proverbs to Firestore!`);
+    } catch (err) {
+      notify(`Proverb sync failed: ${err.message}`);
+    }
   }
 };
 
 // =========================================================
 // SHELL RENDERING & ACCORDION CONTROLLER
 // =========================================================
+function isIosSafariNotStandalone() {
+  if (typeof navigator === 'undefined' || typeof window === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+  return isIos && !isStandalone;
+}
+
+function canShowInstallButton() {
+  if (typeof window === 'undefined') return false;
+  const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+  if (isStandalone) return false;
+  return Boolean(ctx.state.deferredInstallPrompt) || isIosSafariNotStandalone();
+}
+
 function applyBodyClasses() {
   document.body.classList.toggle('dark-mode', Boolean(ctx.state.isDark));
   document.body.classList.toggle('reduce-motion', Boolean(ctx.settings.reduceMotion));
@@ -989,6 +1056,10 @@ function renderAppShell() {
               <i class="fas fa-comments"></i>
               <span>${escapeHtml(t.btnAskTutor)}</span>
             </button>
+            <button type="button" class="km-nav-tool-btn" id="installAppBtn" title="Install Kréyòl Matinik App" ${canShowInstallButton() ? '' : 'hidden'}>
+              <i class="fas fa-download"></i>
+              <span class="km-tool-label">Install</span>
+            </button>
             <button type="button" class="km-nav-tool-btn" data-jump="acc-admin" title="${escapeHtml(t.btnAdmin)}">
               <i class="fas fa-pen-to-square"></i>
               <span class="km-tool-label">${escapeHtml(t.btnAdmin)}</span>
@@ -1009,6 +1080,11 @@ function renderAppShell() {
     </header>
 
     <main class="km-shell" id="top">
+      <div id="offlineStatusBanner" class="km-offline-banner no-print" role="status" aria-live="polite" ${ctx.state.isOffline ? '' : 'hidden'}>
+        <i class="fas fa-cloud-arrow-down" aria-hidden="true"></i>
+        <span>Offline mode active — cached Creole vocabulary, curriculum tables, and proverbs remain ready.</span>
+      </div>
+
       <!-- ENGAGING EDITORIAL HERO WALL: PICTURE BANNER MOVED TO TOP + EDITORIAL & WORD OF THE DAY -->
       <section class="km-card km-hero-section km-hero-wall">
         <div class="km-hero-visual km-hero-top-banner">
@@ -1070,6 +1146,7 @@ function renderAppShell() {
 
           <div class="km-hero-showcase">
             <div id="wotdMount"></div>
+            <div id="dailyAffirmationMount"></div>
           </div>
         </div>
 
@@ -1299,6 +1376,7 @@ function renderAllViews() {
   renderHeroGreeting();
   renderHeroWeatherChip(ctx);
   renderWordOfTheDayWidget(document.getElementById('wotdMount'), ctx);
+  renderDailyAffirmationWidget(document.getElementById('dailyAffirmationMount'), ctx);
   renderLearningPathSection(document.getElementById('learningPathMount'), ctx);
   renderProgressDashboard(document.getElementById('progressMount'), ctx);
   renderLevelsAndLessons(document.getElementById('levelsMount'), ctx);
@@ -1865,6 +1943,24 @@ function wireGlobalShellEvents() {
     document.getElementById('tourModalBackdrop')?.classList.add('open');
     renderTourModal();
   });
+  document.getElementById('installAppBtn')?.addEventListener('click', async () => {
+    closeMobileMenu();
+    const promptEv = ctx.state.deferredInstallPrompt;
+    if (promptEv) {
+      try {
+        promptEv.prompt();
+        const choice = await promptEv.userChoice;
+        ctx.state.deferredInstallPrompt = null;
+        if (choice?.outcome === 'accepted') {
+          notify('Kréyòl Matinik installed for offline study!');
+          const btn = document.getElementById('installAppBtn');
+          if (btn) btn.hidden = true;
+        }
+      } catch (_err) {}
+    } else if (isIosSafariNotStandalone()) {
+      notify('On iPhone/iPad: tap Share in Safari, then choose "Add to Home Screen".');
+    }
+  });
 
   // Safe In-App Reset
   document.getElementById('cancelResetBtn')?.addEventListener('click', () => ctx.actions.openResetModal(false));
@@ -1995,6 +2091,38 @@ async function bootstrap() {
     }
   });
 
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch((err) => {
+      console.warn('Service Worker registration skipped:', err?.message || err);
+    });
+  }
+
+  const updateOnlineBanner = () => {
+    ctx.state.isOffline = !navigator.onLine;
+    const banner = document.getElementById('offlineStatusBanner');
+    if (banner) banner.hidden = !ctx.state.isOffline;
+    if (ctx.state.isOffline) {
+      notify('Offline mode active — core Creole vocabulary & lessons cached locally.');
+    }
+  };
+  window.addEventListener('offline', updateOnlineBanner);
+  window.addEventListener('online', () => {
+    updateOnlineBanner();
+    notify('Connection restored — cloud sync active.');
+  });
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    ctx.state.deferredInstallPrompt = e;
+    const installBtn = document.getElementById('installAppBtn');
+    if (installBtn) installBtn.hidden = false;
+  });
+  window.addEventListener('appinstalled', () => {
+    ctx.state.deferredInstallPrompt = null;
+    const installBtn = document.getElementById('installAppBtn');
+    if (installBtn) installBtn.hidden = true;
+  });
+
   try {
     const fb = await initFirebase();
     if (fb?.db) {
@@ -2017,6 +2145,22 @@ async function bootstrap() {
         refreshDynamicMapMarkers(ctx);
         renderAdminStudio(document.getElementById('adminMount'), ctx);
       });
+      subscribeProverbs((items) => {
+        ctx.cloud.proverbs = items;
+        renderAdminStudio(document.getElementById('adminMount'), ctx);
+        if ((!ctx.state.dailyAffirmation || !ctx.state.dailyAffirmation.isCloud) && items.length) {
+          ctx.state.dailyAffirmation = items[Math.floor(Math.random() * items.length)];
+          renderDailyAffirmationWidget(document.getElementById('dailyAffirmationMount'), ctx);
+        }
+      });
+      fetchRandomProverbFromFirestore()
+        .then((prov) => {
+          if (prov) {
+            ctx.state.dailyAffirmation = prov;
+            renderDailyAffirmationWidget(document.getElementById('dailyAffirmationMount'), ctx);
+          }
+        })
+        .catch(() => {});
     }
     observeAuth(async (user) => {
       ctx.user = user || null;

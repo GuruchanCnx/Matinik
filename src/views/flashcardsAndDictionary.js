@@ -1,4 +1,5 @@
 import { ARTWORKS, CURRICULUM_TERMS, FLASHCARD_DECKS } from '../data/vocab.js';
+import { sanitizeSafeUrl } from '../firebase.js';
 import {
   captureSpokenPhrase,
   computeSpeechSimilarity,
@@ -39,7 +40,7 @@ export function renderFlashcardDecksGrid(container, ctx) {
         const milestone = getMilestoneForDeck(key);
         return `
           <article class="km-vocab-card ${isUnlocked ? '' : 'is-deck-locked'}" style="padding:0; overflow:hidden; ${isUnlocked ? '' : 'opacity:0.86;'}">
-            <img src="${escapeHtml(deck.image || ARTWORKS.dictionary)}" alt="${escapeHtml(deck.title)}" referrerpolicy="no-referrer" style="width:100%; height:124px; object-fit:cover; ${isUnlocked ? '' : 'filter:grayscale(0.35);'}">
+            <img src="${escapeHtml(sanitizeSafeUrl(deck.image) || ARTWORKS.dictionary)}" alt="${escapeHtml(deck.title)}" referrerpolicy="no-referrer" style="width:100%; height:124px; object-fit:cover; ${isUnlocked ? '' : 'filter:grayscale(0.35);'}">
             <div style="padding:0.9rem; display:flex; flex-direction:column; gap:0.35rem; flex:1;">
               <div class="km-meta-line">${escapeHtml(deck.level)} · ${deck.cards.length} cards · ${isUnlocked ? 'Unlocked' : `Unlocks Stage ${milestone.step}`}</div>
               <strong style="font-size:0.98rem;">${escapeHtml(deck.title)}</strong>
@@ -94,7 +95,7 @@ export function getMergedDictionaryEntries(ctx) {
       explanation: d.explanation || '',
       funFact: d.funFact || '',
       example: d.example || '',
-      image: d.imageUrl || ARTWORKS.dictionary,
+      image: sanitizeSafeUrl(d.imageUrl) || ARTWORKS.dictionary,
       isAdmin: true
     })
   );
@@ -169,7 +170,7 @@ export function renderDictionarySection(container, ctx) {
     <div class="km-dict-grid">
       ${shown.map((e) => `
         <article class="km-vocab-card" style="padding:0; overflow:hidden;">
-          <img src="${escapeHtml(e.image)}" alt="${escapeHtml(e.word)}" referrerpolicy="no-referrer" style="width:100%; height:112px; object-fit:cover;">
+          <img src="${escapeHtml(sanitizeSafeUrl(e.image) || ARTWORKS.dictionary)}" alt="${escapeHtml(e.word)}" referrerpolicy="no-referrer" style="width:100%; height:112px; object-fit:cover;">
           <div style="padding:0.88rem; display:flex; flex-direction:column; gap:0.35rem; flex:1;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
               <div>
@@ -300,7 +301,7 @@ export function renderFlashcardModal(backdrop, ctx) {
       </div>
 
       <div class="km-fc-art-stage">
-        <img src="${escapeHtml(card.image || card._deckImage || ARTWORKS.greetings)}" alt="${escapeHtml(card.word)}" referrerpolicy="no-referrer">
+        <img src="${escapeHtml(sanitizeSafeUrl(card.image || card._deckImage) || ARTWORKS.greetings)}" alt="${escapeHtml(card.word)}" referrerpolicy="no-referrer">
         <div class="km-fc-art-caption">${escapeHtml(card.word)} · ${escapeHtml(card.en)}</div>
       </div>
 

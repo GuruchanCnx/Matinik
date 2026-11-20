@@ -39,7 +39,10 @@ service cloud.firestore {
     }
 
     function isBoundedStringArray(arr, maxLen) {
-      return arr is list && arr.size() <= maxLen && (arr.size() == 0 || (arr[0] is string && arr[0].size() <= 160));
+      return arr is list && arr.size() <= maxLen && (
+        arr.size() == 0 ||
+        (arr[0] is string && arr[0].size() <= 160 && arr[arr.size() - 1] is string && arr[arr.size() - 1].size() <= 160)
+      );
     }
 
     function isValidUserProgress(data, userId) {
@@ -290,6 +293,45 @@ service cloud.firestore {
           'audioPhrase', 'fact', 'tradition', 'proverb', 'imageUrl', 'updatedAt'
         ]);
       allow delete: if isValidId(locationId) && isAdmin();
+    }
+
+    function isValidProverb(data) {
+      return data.keys().hasAll(['creole', 'en', 'fr', 'authorId', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly([
+          'creole', 'phonetic', 'en', 'fr', 'meaning', 'origin',
+          'authorId', 'createdAt', 'updatedAt'
+        ])
+        && data.creole is string && data.creole.size() >= 2 && data.creole.size() <= 320
+        && (!('phonetic' in data) || (data.phonetic is string && data.phonetic.size() <= 320))
+        && data.en is string && data.en.size() >= 2 && data.en.size() <= 360
+        && data.fr is string && data.fr.size() >= 2 && data.fr.size() <= 360
+        && (!('meaning' in data) || (data.meaning is string && data.meaning.size() <= 600))
+        && (!('origin' in data) || (data.origin is string && data.origin.size() <= 140))
+        && data.authorId is string && data.authorId.size() <= 128
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Cultural Proverbs & Daily Affirmations
+    match /proverbs/{proverbId} {
+      allow get: if isValidId(proverbId);
+      allow list: if true;
+      allow create: if isValidId(proverbId)
+        && isAdmin()
+        && isValidProverb(incoming())
+        && incoming().authorId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(proverbId)
+        && isAdmin()
+        && isValidProverb(incoming())
+        && incoming().authorId == existing().authorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'creole', 'phonetic', 'en', 'fr', 'meaning', 'origin', 'updatedAt'
+        ]);
+      allow delete: if isValidId(proverbId) && isAdmin();
     }
   }
 }
