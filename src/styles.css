@@ -199,6 +199,146 @@ h1, h2, h3, .km-serif {
   color: var(--cobalt);
 }
 
+/* Integrated Topbar Global Search */
+.km-topbar-search {
+  position: relative;
+  flex: 0 1 230px;
+  min-width: 148px;
+}
+
+.km-topbar-search-icon {
+  position: absolute;
+  left: 0.68rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+.km-topbar-search-input {
+  width: 100%;
+  height: 35px;
+  padding: 0.3rem 0.72rem 0.3rem 2rem;
+  border-radius: 10px;
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface-solid);
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 0.81rem;
+  font-weight: 500;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.km-topbar-search-input::placeholder {
+  color: var(--ink-muted);
+}
+
+.km-topbar-search-input:focus {
+  outline: none;
+  border-color: var(--cobalt);
+  box-shadow: 0 0 0 3px var(--cobalt-soft);
+}
+
+.km-search-results {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: auto;
+  min-width: 310px;
+  max-width: min(410px, 92vw);
+  max-height: 370px;
+  overflow-y: auto;
+  background: var(--surface-solid);
+  border: 1px solid var(--hairline-strong);
+  border-radius: 14px;
+  box-shadow: var(--shadow-elevated);
+  padding: 0.35rem;
+  z-index: 1050;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+.km-search-results.open {
+  display: flex;
+}
+
+.km-search-result-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--ink-primary);
+  text-align: left;
+  padding: 0.52rem 0.62rem;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.22rem;
+  font-family: var(--font-sans);
+  transition: background-color 0.14s ease;
+}
+
+.km-search-result-item:hover,
+.km-search-result-item:focus-visible {
+  outline: none;
+  background: var(--surface-subtle);
+}
+
+.km-search-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cobalt);
+}
+
+.km-search-badge--module,
+.km-search-badge--path,
+.km-search-badge--level {
+  color: var(--emerald);
+}
+
+.km-search-badge--site {
+  color: var(--ochre);
+}
+
+.km-search-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.km-search-text strong {
+  font-size: 0.86rem;
+  color: var(--ink-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.km-search-text span {
+  font-size: 0.76rem;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.km-search-empty {
+  padding: 0.75rem;
+  font-size: 0.82rem;
+  color: var(--ink-secondary);
+  text-align: center;
+}
+
 .km-topbar-tools {
   display: flex;
   align-items: center;
@@ -295,18 +435,30 @@ h1, h2, h3, .km-serif {
   justify-content: center;
 }
 
-@media (max-width: 1310px) {
+@media (max-width: 1420px) {
   .km-tool-label {
     display: none;
   }
+  .km-nav-link {
+    padding: 0.32rem 0.46rem;
+    font-size: 0.8rem;
+  }
+  .km-topbar-search {
+    flex: 0 1 185px;
+    min-width: 135px;
+  }
 }
 
-@media (max-width: 1020px) {
+@media (max-width: 1120px) {
   .km-mobile-menu-btn {
     display: inline-flex;
   }
   .km-tool-label {
     display: inline;
+  }
+  .km-nav-link {
+    padding: 0.35rem 0.62rem;
+    font-size: 0.84rem;
   }
   .km-topbar-navwrap {
     display: none;
@@ -324,6 +476,16 @@ h1, h2, h3, .km-serif {
   }
   .km-topbar.menu-open .km-topbar-navwrap {
     display: flex;
+  }
+  .km-topbar-search {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+  }
+  .km-search-results {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
   }
   .km-nav-links {
     flex-wrap: wrap;
@@ -592,6 +754,13 @@ h1, h2, h3, .km-serif {
   line-height: 1.08;
   letter-spacing: -0.025em;
   color: var(--ink-primary);
+}
+
+.km-hero-user-greet {
+  display: block;
+  color: var(--cobalt);
+  font-size: 0.72em;
+  margin-bottom: 0.22rem;
 }
 
 .km-hero-sub {

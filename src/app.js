@@ -1,6 +1,7 @@
-import { HERO_BANNER_IMAGE, UI_STRINGS } from './data/curriculum.js';
+import { HERO_BANNER_IMAGE, HERITAGE_MODULES, UI_STRINGS } from './data/curriculum.js';
+import { LEARNING_PATH_MILESTONES } from './data/culturalData.js';
 import { MAP_LOCATIONS } from './data/mapData.js';
-import { ARTWORKS, FLASHCARD_DECKS } from './data/vocab.js';
+import { ARTWORKS, FLASHCARD_DECKS, MICRO_LESSONS } from './data/vocab.js';
 import {
   checkIsAdmin,
   createDictionaryEntry,
@@ -48,6 +49,7 @@ import {
 } from './views/curriculumAndQuiz.js';
 import {
   getActiveFlashcardList,
+  getMergedDictionaryEntries,
   renderDictionarySection,
   renderFlashcardDecksGrid,
   renderFlashcardModal,
@@ -197,6 +199,7 @@ const ctx = {
     lang: 'en',
     isDark: false,
     mobileMenuOpen: false,
+    topbarSearch: '',
     wotdIdx: dayOfYear % 12,
     openAccordions: new Set(['acc-path', 'acc-curriculum', 'acc-progress']),
     selectedPathId: 'path-1',
@@ -954,6 +957,16 @@ function renderAppShell() {
             <button type="button" class="km-nav-link" data-jump="acc-koudmen">${escapeHtml(t.navCommunity)}</button>
           </nav>
 
+          <div class="km-topbar-search" id="kmTopbarSearchWrap">
+            <i class="fas fa-search km-topbar-search-icon" aria-hidden="true"></i>
+            <input type="search" id="topbarGlobalSearch" class="km-topbar-search-input"
+              value="${escapeHtml(ctx.state.topbarSearch || '')}"
+              placeholder="${escapeHtml(t.searchPlaceholder || 'Search words, lessons, or sites...')}"
+              autocomplete="off"
+              aria-label="Search vocabulary, lessons, or cultural sites">
+            <div class="km-search-results" id="topbarSearchResults" role="listbox" aria-label="Search results"></div>
+          </div>
+
           <div class="km-topbar-tools">
             <div class="km-seg-group km-seg-compact" role="group" aria-label="Interface language selector">
               <button type="button" class="km-seg-btn ${lang === 'mq' ? 'active' : ''}" data-set-lang="mq">MQ</button>
@@ -1015,7 +1028,7 @@ function renderAppShell() {
               </div>
               <div id="heroWeatherChip"></div>
             </div>
-            <h1 class="km-hero-title">${escapeHtml(t.heroTitle)}</h1>
+            <h1 class="km-hero-title" id="heroGreetingTitle">${escapeHtml(t.heroTitle)}</h1>
             <p class="km-hero-sub">${escapeHtml(t.heroSubtitle)}</p>
 
             <div class="km-hero-cta-row">
@@ -1251,12 +1264,30 @@ function renderAppShell() {
   renderAllViews();
 }
 
+function getFirebaseUserDisplayName() {
+  if (!ctx.user) return '';
+  const raw = (ctx.user.displayName || ctx.user.email?.split('@')[0] || '').trim();
+  return raw ? raw.slice(0, 40) : '';
+}
+
+function renderHeroGreeting() {
+  const titleEl = document.getElementById('heroGreetingTitle');
+  if (!titleEl) return;
+  const t = UI_STRINGS[ctx.state.lang] || UI_STRINGS.en;
+  const name = getFirebaseUserDisplayName();
+  if (name) {
+    titleEl.innerHTML = `<span class="km-hero-user-greet">Bonjou, ${escapeHtml(name)}!</span> ${escapeHtml(t.heroTitle)}`;
+  } else {
+    titleEl.textContent = t.heroTitle;
+  }
+}
+
 function renderHeaderAuthButton() {
   const btn = document.getElementById('headerAccountBtn');
   if (!btn) return;
   const t = UI_STRINGS[ctx.state.lang] || UI_STRINGS.en;
   if (ctx.user) {
-    const label = ctx.user.displayName || ctx.user.email?.split('@')[0] || t.accountLabel;
+    const label = getFirebaseUserDisplayName() || t.accountLabel;
     btn.innerHTML = `<i class="fas fa-user-check"></i><span>${escapeHtml(label.slice(0, 14))}</span>`;
   } else {
     btn.innerHTML = `<i class="fas fa-user-circle"></i><span>${escapeHtml(t.signInCta)}</span>`;
@@ -1265,6 +1296,7 @@ function renderHeaderAuthButton() {
 
 function renderAllViews() {
   renderHeaderAuthButton();
+  renderHeroGreeting();
   renderHeroWeatherChip(ctx);
   renderWordOfTheDayWidget(document.getElementById('wotdMount'), ctx);
   renderLearningPathSection(document.getElementById('learningPathMount'), ctx);
@@ -1518,6 +1550,7 @@ function renderAuthModal(backdrop) {
       await signUpWithEmail(em, pw, nm);
       notify('Account created! Check your inbox to verify your email.');
       renderAuthModal(backdrop);
+      renderAllViews();
     } catch (err) { notify(err.message); }
   });
   backdrop.querySelector('#authForgotBtn')?.addEventListener('click', async () => {
@@ -1568,6 +1601,224 @@ function wireGlobalShellEvents() {
     ctx.state.mobileMenuOpen = !ctx.state.mobileMenuOpen;
     topbar?.classList.toggle('menu-open', ctx.state.mobileMenuOpen);
     mobileMenuBtn.setAttribute('aria-expanded', ctx.state.mobileMenuOpen ? 'true' : 'false');
+  });
+
+  // Topbar Global Quick Search (Vocabulary, Lessons, Cultural Sites)
+  const searchInput = document.getElementById('topbarGlobalSearch');
+  const searchResultsEl = document.getElementById('topbarSearchResults');
+  const searchWrap = document.getElementById('kmTopbarSearchWrap');
+  let activeMatches = [];
+
+  const closeSearchDropdown = () => {
+    if (searchResultsEl) searchResultsEl.classList.remove('open');
+  };
+
+  const buildTopbarSearchMatches = (rawQuery) => {
+    const q = String(rawQuery || '').trim().toLowerCase();
+    if (!q) return [];
+    const results = [];
+
+    // 1. Vocabulary matches
+    const vocabList = getMergedDictionaryEntries(ctx);
+    let vocabHits = 0;
+    for (const v of vocabList) {
+      const hay = `${v.word} ${v.en} ${v.fr} ${v.pronounce} ${v.explanation}`.toLowerCase();
+      if (hay.includes(q)) {
+        results.push({
+          kind: 'vocab',
+          badge: 'Vocabulary',
+          icon: 'fa-book-open',
+          title: v.word,
+          sub: `${v.en} · ${v.fr}`,
+          word: v.word
+        });
+        vocabHits += 1;
+        if (vocabHits >= 4) break;
+      }
+    }
+
+    // 2. Lesson matches (Modules, Path Milestones, Micro-Lessons, Admin Cloud Lessons)
+    let lessonHits = 0;
+    const langKey = ctx.state.lang || 'en';
+    for (const mod of HERITAGE_MODULES) {
+      const mTitle = mod.title[langKey] || mod.title.en;
+      const mIntro = mod.intro[langKey] || mod.intro.en;
+      if (`${mTitle} ${mIntro} ${mod.grammarTitle}`.toLowerCase().includes(q)) {
+        results.push({
+          kind: 'module',
+          badge: 'Lesson',
+          icon: 'fa-seedling',
+          title: mTitle,
+          sub: mIntro.slice(0, 72),
+          id: mod.id
+        });
+        lessonHits += 1;
+      }
+    }
+    if (lessonHits < 4) {
+      for (const ms of LEARNING_PATH_MILESTONES) {
+        if (`${ms.creoleTitle} ${ms.title} ${ms.summary} ${ms.grammarFocus}`.toLowerCase().includes(q)) {
+          results.push({
+            kind: 'path',
+            badge: 'Lesson',
+            icon: 'fa-route',
+            title: `${ms.creoleTitle} — ${ms.title}`,
+            sub: `Stage ${ms.step} · ${ms.grammarFocus}`,
+            id: ms.id
+          });
+          lessonHits += 1;
+          if (lessonHits >= 4) break;
+        }
+      }
+    }
+    if (lessonHits < 4) {
+      for (const ml of MICRO_LESSONS) {
+        if (`${ml.title} ${ml.creoleHook} ${ml.explanation}`.toLowerCase().includes(q)) {
+          results.push({
+            kind: 'level',
+            badge: 'Lesson',
+            icon: 'fa-bolt',
+            title: ml.title,
+            sub: `${ml.duration} · ${ml.creoleHook}`,
+            id: ml.id
+          });
+          lessonHits += 1;
+          if (lessonHits >= 4) break;
+        }
+      }
+    }
+    if (lessonHits < 4) {
+      for (const cl of (ctx.cloud.lessons || [])) {
+        if (`${cl.title} ${cl.creoleSummary}`.toLowerCase().includes(q)) {
+          results.push({
+            kind: 'level',
+            badge: 'Lesson',
+            icon: 'fa-feather-pointed',
+            title: cl.title,
+            sub: cl.creoleSummary || 'Admin Studio Lesson',
+            id: cl.id
+          });
+          lessonHits += 1;
+          if (lessonHits >= 4) break;
+        }
+      }
+    }
+
+    // 3. Cultural Sites matches (12 Communes, Historical Sites, Offbeat & Firestore Map Sites)
+    let siteHits = 0;
+    const allSites = Object.values(getMergedMapLocations(ctx));
+    for (const loc of allSites) {
+      if (`${loc.name} ${loc.creoleName} ${loc.region} ${loc.fact}`.toLowerCase().includes(q)) {
+        results.push({
+          kind: 'site',
+          badge: 'Cultural Site',
+          icon: 'fa-map-location-dot',
+          title: loc.name,
+          sub: loc.creoleName || loc.region,
+          id: loc.id
+        });
+        siteHits += 1;
+        if (siteHits >= 4) break;
+      }
+    }
+
+    return results;
+  };
+
+  const navigateToSearchResult = (item) => {
+    if (!item) return;
+    closeSearchDropdown();
+    closeMobileMenu();
+    if (item.kind === 'vocab') {
+      ctx.state.dictSearch = item.word;
+      ctx.state.dictLevel = 'all';
+      ctx.state.dictLimit = 12;
+      renderDictionarySection(document.getElementById('dictionaryMount'), ctx);
+      jumpToAccordion('acc-dictionary');
+    } else if (item.kind === 'module') {
+      ctx.state.activeModule = item.id;
+      ctx.state.activeOralTab = 'module';
+      ctx.state.curriculumSearch = '';
+      renderCurriculumAndOralLabs(document.getElementById('curriculumMount'), ctx);
+      jumpToAccordion('acc-curriculum');
+    } else if (item.kind === 'path') {
+      ctx.state.selectedPathId = item.id;
+      renderLearningPathSection(document.getElementById('learningPathMount'), ctx);
+      jumpToAccordion('acc-path');
+    } else if (item.kind === 'level') {
+      renderLevelsAndLessons(document.getElementById('levelsMount'), ctx);
+      jumpToAccordion('acc-levels');
+    } else if (item.kind === 'site') {
+      ctx.state.mapCategory = 'all';
+      ctx.state.selectedSiteId = item.id;
+      jumpToAccordion('acc-map');
+      ctx.actions.markSiteVisited(item.id);
+    }
+  };
+
+  const renderSearchDropdown = () => {
+    if (!searchResultsEl || !searchInput) return;
+    const q = searchInput.value.trim();
+    if (!q) {
+      activeMatches = [];
+      closeSearchDropdown();
+      return;
+    }
+    activeMatches = buildTopbarSearchMatches(q);
+    if (!activeMatches.length) {
+      searchResultsEl.innerHTML = `<div class="km-search-empty">No matching vocabulary, lessons, or sites for « ${escapeHtml(q)} ».</div>`;
+      searchResultsEl.classList.add('open');
+      return;
+    }
+    searchResultsEl.innerHTML = activeMatches.map((m, idx) => `
+      <button type="button" class="km-search-result-item" data-search-pick="${idx}" role="option">
+        <span class="km-search-badge km-search-badge--${escapeHtml(m.kind)}">
+          <i class="fas ${escapeHtml(m.icon)}"></i> ${escapeHtml(m.badge)}
+        </span>
+        <div class="km-search-text">
+          <strong>${escapeHtml(m.title)}</strong>
+          <span>${escapeHtml(m.sub)}</span>
+        </div>
+      </button>
+    `).join('');
+    searchResultsEl.classList.add('open');
+
+    searchResultsEl.querySelectorAll('[data-search-pick]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const picked = activeMatches[Number(btn.getAttribute('data-search-pick'))];
+        navigateToSearchResult(picked);
+      });
+    });
+  };
+
+  searchInput?.addEventListener('input', (ev) => {
+    ctx.state.topbarSearch = ev.target.value;
+    renderSearchDropdown();
+  });
+
+  searchInput?.addEventListener('focus', () => {
+    if (searchInput.value.trim()) renderSearchDropdown();
+  });
+
+  searchInput?.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') {
+      ev.preventDefault();
+      if (!activeMatches.length && searchInput.value.trim()) {
+        activeMatches = buildTopbarSearchMatches(searchInput.value);
+      }
+      if (activeMatches.length) {
+        navigateToSearchResult(activeMatches[0]);
+      }
+    } else if (ev.key === 'Escape') {
+      closeSearchDropdown();
+      searchInput.blur();
+    }
+  });
+
+  document.addEventListener('click', (ev) => {
+    if (searchWrap && !searchWrap.contains(ev.target)) {
+      closeSearchDropdown();
+    }
   });
 
   // Jump buttons (Nav, Steps, Dock, Admin)
