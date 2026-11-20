@@ -7,16 +7,22 @@ import {
   speakTermSequence,
   toggleTermVoiceRecording
 } from '../services/audioEngine.js';
-import { escapeHtml } from './curriculumAndQuiz.js';
+import {
+  escapeHtml,
+  renderCustomAudioPlayerBarHtml,
+  wireCustomAudioPlayers
+} from './curriculumAndQuiz.js';
+import { getMilestoneForDeck, getUnlockedVocabularyDecks } from './learningPathAndCulture.js';
 
 export function renderFlashcardDecksGrid(container, ctx) {
   if (!container) return;
   const dueCount = ctx.actions.getSmartReviewCount();
   const entries = Object.entries(FLASHCARD_DECKS);
+  const unlockedSet = getUnlockedVocabularyDecks(ctx);
 
   container.innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:0.9rem;">
-      <div class="km-meta-line">${entries.length} Thematic Decks · Swipe Right (Known) / Left (Review) · Speak-Along Verification</div>
+      <div class="km-meta-line">${unlockedSet.size} / ${entries.length} Decks Unlocked via Learning Path · Swipe Right (Known) / Left (Review) · Speak-Along</div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button type="button" class="km-btn km-btn-sm km-btn-primary" id="fcSmartReviewBtn">
           <i class="fas fa-brain"></i> Smart Review (${dueCount} due)
@@ -28,20 +34,30 @@ export function renderFlashcardDecksGrid(container, ctx) {
     </div>
 
     <div class="km-vocab-grid">
-      ${entries.map(([key, deck]) => `
-        <article class="km-vocab-card" style="padding:0; overflow:hidden;">
-          <img src="${escapeHtml(deck.image || ARTWORKS.dictionary)}" alt="${escapeHtml(deck.title)}" referrerpolicy="no-referrer" style="width:100%; height:124px; object-fit:cover;">
-          <div style="padding:0.9rem; display:flex; flex-direction:column; gap:0.35rem; flex:1;">
-            <div class="km-meta-line">${escapeHtml(deck.level)} · ${deck.cards.length} cards</div>
-            <strong style="font-size:0.98rem;">${escapeHtml(deck.title)}</strong>
-            <div style="margin-top:auto; padding-top:0.5rem;">
-              <button type="button" class="km-btn km-btn-sm km-btn-primary" style="width:100%;" data-fc-deck="${escapeHtml(key)}">
-                <i class="fas fa-play"></i> Open Deck
-              </button>
+      ${entries.map(([key, deck]) => {
+        const isUnlocked = unlockedSet.has(key);
+        const milestone = getMilestoneForDeck(key);
+        return `
+          <article class="km-vocab-card ${isUnlocked ? '' : 'is-deck-locked'}" style="padding:0; overflow:hidden; ${isUnlocked ? '' : 'opacity:0.86;'}">
+            <img src="${escapeHtml(deck.image || ARTWORKS.dictionary)}" alt="${escapeHtml(deck.title)}" referrerpolicy="no-referrer" style="width:100%; height:124px; object-fit:cover; ${isUnlocked ? '' : 'filter:grayscale(0.35);'}">
+            <div style="padding:0.9rem; display:flex; flex-direction:column; gap:0.35rem; flex:1;">
+              <div class="km-meta-line">${escapeHtml(deck.level)} · ${deck.cards.length} cards · ${isUnlocked ? 'Unlocked' : `Unlocks Stage ${milestone.step}`}</div>
+              <strong style="font-size:0.98rem;">${escapeHtml(deck.title)}</strong>
+              <div style="margin-top:auto; padding-top:0.5rem;">
+                ${isUnlocked ? `
+                  <button type="button" class="km-btn km-btn-sm km-btn-primary" style="width:100%;" data-fc-deck="${escapeHtml(key)}">
+                    <i class="fas fa-play"></i> Open Deck
+                  </button>
+                ` : `
+                  <button type="button" class="km-btn km-btn-sm" style="width:100%;" data-fc-unlock-path="${escapeHtml(milestone.id)}">
+                    <i class="fas fa-lock"></i> Unlock on Learning Path (Stage ${milestone.step})
+                  </button>
+                `}
+              </div>
             </div>
-          </div>
-        </article>
-      `).join('')}
+          </article>
+        `;
+      }).join('')}
     </div>
   `;
 
@@ -49,6 +65,12 @@ export function renderFlashcardDecksGrid(container, ctx) {
   container.querySelector('#fcHandsFreeLaunchBtn')?.addEventListener('click', () => ctx.actions.openHandsFree(true));
   container.querySelectorAll('[data-fc-deck]').forEach((btn) => {
     btn.addEventListener('click', () => ctx.actions.openFlashcards(btn.getAttribute('data-fc-deck')));
+  });
+  container.querySelectorAll('[data-fc-unlock-path]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      ctx.state.selectedPathId = btn.getAttribute('data-fc-unlock-path');
+      ctx.actions.jumpToAccordion('acc-path');
+    });
   });
 }
 
@@ -155,10 +177,8 @@ export function renderDictionarySection(container, ctx) {
                 <strong style="font-size:1.06rem; color:var(--ink-primary);">${escapeHtml(e.word)}</strong>
                 ${e.pronounce ? `<div class="km-meta-line km-mono">${escapeHtml(e.pronounce)}</div>` : ''}
               </div>
-              <button type="button" class="km-btn km-btn-sm km-btn-primary" data-dict-listen="${escapeHtml(e.word)}" data-dict-trans="${escapeHtml(ctx.state.lang === 'fr' ? e.fr : e.en)}">
-                <i class="fas fa-volume-up"></i>
-              </button>
             </div>
+            ${renderCustomAudioPlayerBarHtml(e.id, e.word, e.example, ctx.settings)}
             <div style="font-weight:700; font-size:0.9rem;">${escapeHtml(e.en)} <span class="km-meta-line">· ${escapeHtml(e.fr)}</span></div>
             ${e.explanation ? `<div style="font-size:0.82rem; color:var(--ink-secondary);">${escapeHtml(e.explanation)}</div>` : ''}
             ${e.example ? `<div style="font-size:0.81rem; font-style:italic; color:var(--cobalt);">« ${escapeHtml(e.example)} »</div>` : ''}
@@ -174,6 +194,16 @@ export function renderDictionarySection(container, ctx) {
       </div>
     ` : ''}
   `;
+
+  const dictTracks = new Map();
+  shown.forEach((e) => {
+    dictTracks.set(e.id, {
+      text: e.word,
+      exampleText: e.example || '',
+      translationText: ctx.state.lang === 'fr' ? e.fr : e.en
+    });
+  });
+  wireCustomAudioPlayers(container, dictTracks, ctx);
 
   const sInput = container.querySelector('#dictSearchInput');
   if (sInput) {
@@ -199,17 +229,6 @@ export function renderDictionarySection(container, ctx) {
   container.querySelector('#dictLoadMoreBtn')?.addEventListener('click', () => {
     ctx.state.dictLimit = (ctx.state.dictLimit || 12) + 12;
     renderDictionarySection(container, ctx);
-  });
-
-  container.querySelectorAll('[data-dict-listen]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      speakTermSequence(btn.getAttribute('data-dict-listen'), btn.getAttribute('data-dict-trans'), {
-        settings: ctx.settings,
-        lang: ctx.state.lang,
-        btnEl: btn,
-        onListened: ctx.actions.registerWordListened
-      });
-    });
   });
 }
 
@@ -269,7 +288,11 @@ export function renderFlashcardModal(backdrop, ctx) {
       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:0.65rem;">
         <select id="fcDeckSelect" class="km-select" style="flex:1; min-width:180px;">
           <option value="__smart__" ${ctx.state.fcDeckKey === '__smart__' ? 'selected' : ''}>Smart Spaced Review Queue</option>
-          ${Object.entries(FLASHCARD_DECKS).map(([k, d]) => `<option value="${escapeHtml(k)}" ${ctx.state.fcDeckKey === k ? 'selected' : ''}>${escapeHtml(d.title)} (${d.cards.length})</option>`).join('')}
+          ${Object.entries(FLASHCARD_DECKS).map(([k, d]) => {
+            const isUnl = getUnlockedVocabularyDecks(ctx).has(k);
+            const ms = getMilestoneForDeck(k);
+            return `<option value="${escapeHtml(k)}" ${ctx.state.fcDeckKey === k ? 'selected' : ''} ${isUnl ? '' : 'disabled'}>${isUnl ? '' : '🔒 '}${escapeHtml(d.title)} (${d.cards.length})${isUnl ? '' : ` — Stage ${ms.step}`}</option>`;
+          }).join('')}
         </select>
         <button type="button" class="km-btn km-btn-sm ${ctx.state.fcSpeakAlongActive ? 'km-btn-emerald' : ''}" id="fcSpeakAlongBtn">
           <i class="fas fa-microphone-lines"></i> ${ctx.state.fcSpeakAlongActive ? 'Speak-Along: Active' : 'Speak-Along Mode'}
@@ -289,14 +312,15 @@ export function renderFlashcardModal(backdrop, ctx) {
             ${s.pronunciation ? `<div class="km-meta-line km-mono">${escapeHtml(card.pronounce)}</div>` : ''}
           </div>
           <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button type="button" class="km-btn km-btn-sm km-btn-primary" id="fcFrontListenBtn">
-              <i class="fas fa-volume-up"></i> Listen
-            </button>
             <button type="button" class="km-btn km-btn-sm ${isRec ? 'playing' : recMeta ? 'recorded' : ''}" id="fcRecBtn" title="Record pronunciation">
               ${isRec ? '<span class="km-live-mic-dot"></span> Stop' : '<i class="fas fa-microphone"></i>'}
             </button>
             ${recMeta ? `<button type="button" class="km-btn km-btn-sm" id="fcReplayBtn" title="Play saved voice"><i class="fas fa-play"></i></button>` : ''}
           </div>
+        </div>
+
+        <div style="margin-top:0.75rem;">
+          ${renderCustomAudioPlayerBarHtml(card._tid, card.word, s.example && card.ex ? card.ex : '', s)}
         </div>
 
         ${ctx.state.fcFlipped ? `
@@ -364,15 +388,14 @@ export function renderFlashcardModal(backdrop, ctx) {
     renderFlashcardModal(backdrop, ctx);
   });
 
-  backdrop.querySelector('#fcFrontListenBtn')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    speakTermSequence(card.word, primaryTrans, {
-      settings: ctx.settings,
-      lang: ctx.state.lang,
-      btnEl: e.currentTarget,
-      onListened: ctx.actions.registerWordListened
-    });
-  });
+  const fcTracks = new Map([
+    [card._tid, {
+      text: card.word,
+      exampleText: s.example && card.ex ? card.ex : '',
+      translationText: primaryTrans
+    }]
+  ]);
+  wireCustomAudioPlayers(backdrop, fcTracks, ctx);
 
   backdrop.querySelector('#fcRecBtn')?.addEventListener('click', async (e) => {
     e.stopPropagation();
@@ -445,11 +468,11 @@ export function renderFlashcardModal(backdrop, ctx) {
   let dragStartX = null;
   if (faceEl) {
     faceEl.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('button')) return;
+      if (e.target.closest('button, input, .km-audio-player')) return;
       dragStartX = e.clientX;
     });
     faceEl.addEventListener('pointerup', (e) => {
-      if (e.target.closest('button')) return;
+      if (e.target.closest('button, input, .km-audio-player')) return;
       if (dragStartX !== null) {
         const dx = e.clientX - dragStartX;
         dragStartX = null;

@@ -253,9 +253,15 @@ export const CURRICULUM_TERMS = {
 // Complete 20 Flashcard Decks + 25+ Expanded Flashcards, Explanations, Fun Facts & AI Illustrations
 export const ARTWORKS = {
   greetings: './src/assets/images/flashcard_greetings_scene_1795116463426.jpg',
+  veranda: './src/assets/images/learning_path_veranda_1795183599209.jpg',
   market: './src/assets/images/flashcard_market_cuisine_1795116463413.jpg',
+  tropicalMarket: './src/assets/images/culinary_tropical_market_1795183598823.jpg',
+  colombo: './src/assets/images/culinary_colombo_feast_1795183598683.jpg',
   music: './src/assets/images/flashcard_music_bele_1795116463374.jpg',
   nature: './src/assets/images/flashcard_nature_pelee_1795116463051.jpg',
+  weatherBay: './src/assets/images/weather_tropical_bay_1795183599193.jpg',
+  cap110: './src/assets/images/cap_110_memorial_1795183599176.jpg',
+  grandRiviere: './src/assets/images/grand_riviere_cliffs_1795183598643.jpg',
   dictionary: './src/assets/images/dictionary_heritage_banner_1795116464309.jpg'
 };
 
@@ -446,7 +452,7 @@ export const FLASHCARD_DECKS = {
   family: {
     title: 'Family & Loved Ones (Fanmi)',
     level: 'beginner',
-    image: ARTWORKS.greetings,
+    image: ARTWORKS.veranda,
     cards: [
       c('Fanmi', 'Noun', '[fahn-mee]', 'Family', 'Famille', 'Fanmi nou an gran anpil.', 'Our family is very big.', 'Relatives, kin', 'Multigenerational circle plus godparents.', 'Paran', 'Étranjé', 'Tout fanmi-a', 'beginner', 'Put possessive words AFTER the noun: "fanmi mwen" = my family, "fanmi nou" = our family.', 'In Martinique, godparents ("marenn" & "parenn") hold lifelong family status.', ARTWORKS.greetings),
       c('Manman', 'Noun', '[mahn-mahn]', 'Mother / Mom', 'Mère / Maman', 'Manman mwen sé léspwa mwen.', 'My mother is my hope.', 'Mom, matriarch', 'Term of deep respect and affection for mother.', 'Manmi', 'Papa', 'Manman mwen', 'beginner', 'Pronounced with two crisp nasal vowels [mahn-mahn]. "Gran-manman" means grandmother.', 'Mothers and grandmothers ("gran-manman") are celebrated as keepers of home recipes and proverbs.', ARTWORKS.greetings),
@@ -473,21 +479,21 @@ export const FLASHCARD_DECKS = {
   food: {
     title: 'Martinican Cuisine (Manjé Kréyòl)',
     level: 'intermediate',
-    image: ARTWORKS.market,
+    image: ARTWORKS.colombo,
     cards: [
-      c('Manjé', 'Noun / Verb', '[mahn-zhay]', 'Food / To eat', 'Nourriture / Manger', 'Manjé-tala chwit anpil.', 'This food is very delicious.', 'Meal, cuisine', 'Both noun and action of eating.', 'Repa', 'Bwè', 'Manjé kréyòl', 'beginner', 'Works both as a noun ("an bon manjé") and a verb ("nou ka manjé").', 'Sunday family lunches in Martinique often stretch happily all afternoon!', ARTWORKS.market),
+      c('Manjé', 'Noun / Verb', '[mahn-zhay]', 'Food / To eat', 'Nourriture / Manger', 'Manjé-tala chwit anpil.', 'This food is very delicious.', 'Meal, cuisine', 'Both noun and action of eating.', 'Repa', 'Bwè', 'Manjé kréyòl', 'beginner', 'Works both as a noun ("an bon manjé") and a verb ("nou ka manjé").', 'Sunday family lunches in Martinique often stretch happily all afternoon!', ARTWORKS.colombo),
       c('Lanmori', 'Noun', '[lahn-moh-ree]', 'Salted codfish', 'Morue salée', 'Ti-nain lanmori sé délis Matinik.', 'Green bananas with codfish is a delicacy.', 'Salted cod', 'Essential island protein ingredient.', 'Pwason salé', 'Pwason frè', 'Akra lanmori', 'intermediate', 'Soaked overnight to remove salt, then flaked into crispy akra fritters or savory chiktay.', 'Ti-nain lanmori (green bananas + salted cod) is Martinique’s iconic Sunday breakfast!', ARTWORKS.market),
-      c('Kolombo', 'Noun', '[koh-lohm-boh]', 'Colombo curry dish', 'Plat au colombo', 'Nou fè kolombo pou fèt-la.', 'We made colombo for the celebration.', 'Spiced curry stew', 'Martinique’s beloved aromatic spice dish.', 'Kari', '—', 'Kolombo kabrit', 'intermediate', 'Named after Colombo (Sri Lanka) via 19th-century Tamil heritage; uses roasted coriander, turmeric, cumin & bois d’Inde.', 'Every household has its own secret balance of "poud kolombo" and fragrant habanero!', ARTWORKS.market),
-      c('Kasav', 'Noun', '[kah-sahv]', 'Cassava flatbread', 'Galette de manioc', 'Kasav dous an bouch mwen.', 'Cassava bread tastes sweet.', 'Manioc cake', 'Amerindian culinary heritage bread.', 'Galèt manyòk', 'Pen', 'Kasav koko', 'intermediate', 'Made from grated manioc flour toasted on hot cast-iron griddles — zero wheat flour!', 'A living gift from Martinique’s ancestral Kalinago & Taíno peoples.', ARTWORKS.market),
-      c('Chwit', 'Adjective', '[shweet]', 'Delicious / Flavorful', 'Délicieux / Savoureux', 'Soup-la chwit toubannman!', 'The soup is totally delicious!', 'Tasty, delightful', 'Warm Martinican expression of praise.', 'Bon anpil', 'Fad', 'Chwit toubannman', 'intermediate', 'A uniquely joyful Martinican exclamation meaning top-tier tasty, lively, or stylish!', 'Try saying "Manjé-a chwit toubannman!" after a good meal and watch the cook beam.', ARTWORKS.market),
-      c('Zaboka', 'Noun', '[zah-boh-kah]', 'Avocado', 'Avocat', 'Ban mwen an bèl zaboka mi.', 'Give me a nice ripe avocado.', 'Alligator pear', 'Creamy local staple blended into Féwòs zaboka.', '—', '—', 'Féwòs zaboka', 'intermediate', 'Absorbed the "z" sound from French "les avocats". Martinique grows giant buttery varieties!', 'Mashed with codfish and manioc flour, zaboka makes the famous spicy dip "Féwòs".', ARTWORKS.market),
+      c('Kolombo', 'Noun', '[koh-lohm-boh]', 'Colombo curry dish', 'Plat au colombo', 'Nou fè kolombo pou fèt-la.', 'We made colombo for the celebration.', 'Spiced curry stew', 'Martinique’s beloved aromatic spice dish.', 'Kari', '—', 'Kolombo kabrit', 'intermediate', 'Named after Colombo (Sri Lanka) via 19th-century Tamil heritage; uses roasted coriander, turmeric, cumin & bois d’Inde.', 'Every household has its own secret balance of "poud kolombo" and fragrant habanero!', ARTWORKS.colombo),
+      c('Kasav', 'Noun', '[kah-sahv]', 'Cassava flatbread', 'Galette de manioc', 'Kasav dous an bouch mwen.', 'Cassava bread tastes sweet.', 'Manioc cake', 'Amerindian culinary heritage bread.', 'Galèt manyòk', 'Pen', 'Kasav koko', 'intermediate', 'Made from grated manioc flour toasted on hot cast-iron griddles — zero wheat flour!', 'A living gift from Martinique’s ancestral Kalinago & Taíno peoples.', ARTWORKS.tropicalMarket),
+      c('Chwit', 'Adjective', '[shweet]', 'Delicious / Flavorful', 'Délicieux / Savoureux', 'Soup-la chwit toubannman!', 'The soup is totally delicious!', 'Tasty, delightful', 'Warm Martinican expression of praise.', 'Bon anpil', 'Fad', 'Chwit toubannman', 'intermediate', 'A uniquely joyful Martinican exclamation meaning top-tier tasty, lively, or stylish!', 'Try saying "Manjé-a chwit toubannman!" after a good meal and watch the cook beam.', ARTWORKS.colombo),
+      c('Zaboka', 'Noun', '[zah-boh-kah]', 'Avocado', 'Avocat', 'Ban mwen an bèl zaboka mi.', 'Give me a nice ripe avocado.', 'Alligator pear', 'Creamy local staple blended into Féwòs zaboka.', '—', '—', 'Féwòs zaboka', 'intermediate', 'Absorbed the "z" sound from French "les avocats". Martinique grows giant buttery varieties!', 'Mashed with codfish and manioc flour, zaboka makes the famous spicy dip "Féwòs".', ARTWORKS.tropicalMarket),
       c('Akra', 'Noun', '[ah-krah]', 'Crispy spiced cod fritters', 'Accras de morue', 'Nou ka manjé akra cho avan diné.', 'We eat warm accras before dinner.', 'Fritters', 'Golden bite-sized island appetizer.', 'Bényé', '—', 'Akra lanmori', 'intermediate', 'Spiced with chives ("ziyon"), garlic, parsley, and bird’s eye chili — also made with malanga!', 'The name derives from West African Yoruba "àkàrà" bean cakes.', ARTWORKS.market)
     ]
   },
   market: {
     title: 'Market & Shopping (Maché)',
     level: 'intermediate',
-    image: ARTWORKS.market,
+    image: ARTWORKS.tropicalMarket,
     cards: [
       c('Maché', 'Noun', '[mah-shay]', 'Market', 'Marché', 'Annou alé nan Gran Maché Fòdfrans.', "Let's go to Fort-de-France Grand Market.", 'Marketplace', 'Vibrant covered hub for spices and produce.', 'Boutik', '—', 'Gran Maché', 'beginner', 'Also means "to walk" as a verb! Context tells you instantly whether it means market or walking.', 'Fort-de-France’s Grand Marché Couvert bursts with cinnamon bark, vanilla pods, and madras.', ARTWORKS.market),
       c('Lajan', 'Noun', '[lah-zhahn]', 'Money', 'Argent', 'Konben lajan sa kouté?', 'How much money does this cost?', 'Cash, currency', 'Used for commerce and pricing.', 'Moné', 'Gratis', 'Ban mwen lajan', 'beginner', 'From French "l’argent" — pronounced smoothly without a final t.', 'In friendly neighborhood shops, vendors still wrap change with a warm "Mèsi doudou!"', ARTWORKS.market),
@@ -522,11 +528,11 @@ export const FLASHCARD_DECKS = {
   history: {
     title: 'Martinique History (Istwa Matinik)',
     level: 'master',
-    image: ARTWORKS.nature,
+    image: ARTWORKS.cap110,
     cards: [
-      c('Libèté', 'Noun', '[lee-beh-tay]', 'Freedom / Emancipation', 'Liberté / Émancipation', '22 Mé sé fèt libèté an Matinik.', 'May 22 is Emancipation Day in Martinique.', 'Liberation', 'Commemorating 1848 slave insurrection victory.', 'Lémansipasyon', 'Èsklavaj', '22 Mé Libèté', 'master', 'May 22, 1848 is Martinique’s proudest national holiday, won by enslaved people rising up before decree arrival.', 'Romain, an enslaved drummer, sounded the conch horn and revolt at Le Prêcheur.', ARTWORKS.music),
-      c('Mawon', 'Noun / Adj', '[mah-rohn]', 'Maroon freedom fighter', 'Marron / Résistant', 'Mawon-yo té doubout pou libèté.', 'The Maroons stood tall for freedom.', 'Resister', 'Escaped freedom fighters of the lush mornes.', 'Rézistan', '—', 'Nèg mawon', 'master', 'Means both historical freedom seekers in the forested mountains and bold independence today.', 'Notice "mawon" also names Martinique’s deep chestnut brown hue!', ARTWORKS.nature),
-      c('Zansèt', 'Noun', '[zahn-seht]', 'Ancestors', 'Ancêtres', 'Nou ka onoré mémwa zansèt nou.', 'We honor the memory of our ancestors.', 'Forebears', 'Honored in Cap 110 and cultural ceremonies.', 'Granmoun lontan', 'Désandan', 'Mémwa zansèt', 'master', 'Honoring zansèt connects Kalinago, African, Indian, and island-born heritage across time.', 'Monumental white statues at Cap 110 in Le Diamant gaze east across the Atlantic in remembrance.', ARTWORKS.nature),
+      c('Libèté', 'Noun', '[lee-beh-tay]', 'Freedom / Emancipation', 'Liberté / Émancipation', '22 Mé sé fèt libèté an Matinik.', 'May 22 is Emancipation Day in Martinique.', 'Liberation', 'Commemorating 1848 slave insurrection victory.', 'Lémansipasyon', 'Èsklavaj', '22 Mé Libèté', 'master', 'May 22, 1848 is Martinique’s proudest national holiday, won by enslaved people rising up before decree arrival.', 'Romain, an enslaved drummer, sounded the conch horn and revolt at Le Prêcheur.', ARTWORKS.cap110),
+      c('Mawon', 'Noun / Adj', '[mah-rohn]', 'Maroon freedom fighter', 'Marron / Résistant', 'Mawon-yo té doubout pou libèté.', 'The Maroons stood tall for freedom.', 'Resister', 'Escaped freedom fighters of the lush mornes.', 'Rézistan', '—', 'Nèg mawon', 'master', 'Means both historical freedom seekers in the forested mountains and bold independence today.', 'Notice "mawon" also names Martinique’s deep chestnut brown hue!', ARTWORKS.grandRiviere),
+      c('Zansèt', 'Noun', '[zahn-seht]', 'Ancestors', 'Ancêtres', 'Nou ka onoré mémwa zansèt nou.', 'We honor the memory of our ancestors.', 'Forebears', 'Honored in Cap 110 and cultural ceremonies.', 'Granmoun lontan', 'Désandan', 'Mémwa zansèt', 'master', 'Honoring zansèt connects Kalinago, African, Indian, and island-born heritage across time.', 'Monumental white statues at Cap 110 in Le Diamant gaze east across the Atlantic in remembrance.', ARTWORKS.cap110),
       c('Konk Lanbi', 'Noun', '[kohnk lahn-bee]', 'Conch shell horn', 'Conque de lambi', 'Son lanbi-a té ka révéyé tout mòn-yo.', 'The conch horn sound awakened all the hills.', 'Signal horn', 'Used historically for mountain signals and freedom calls.', 'Kòn', '—', 'Souflé lanbi', 'advanced', 'Carved from the giant queen conch shell; produces a deep, resonant tone audible miles across valleys.', 'Today you still hear lanbi horns at Bèlè festivals and Tour des Yoles finishes!', ARTWORKS.dictionary)
     ]
   },
@@ -591,12 +597,12 @@ export const FLASHCARD_DECKS = {
   weather: {
     title: 'Tropical Weather (Tan-an)',
     level: 'intermediate',
-    image: ARTWORKS.nature,
+    image: ARTWORKS.weatherBay,
     cards: [
-      c('Lapli', 'Noun', '[lah-plee]', 'Rain', 'Pluie', 'Lapli ka tonbé anlè Mònwouj.', 'Rain is falling over Morne-Rouge.', 'Shower, downpour', 'Short tropical showers are "ti grin lapli".', 'Grin lapli', 'Solèy', 'Lapli fin', 'beginner', 'Combines French "la pluie" into one word; say "Lapli ka tonbé!" when a shower starts.', 'Quick warm showers often create double rainbows over Fort-de-France bay!', ARTWORKS.nature),
-      c('Solèy', 'Noun', '[soh-leye]', 'Sun', 'Soleil', 'Solèy-la ka kléré bèl.', 'The sun is shining bright.', 'Sunshine', 'Vital energy of Caribbean harvests.', 'Chalè', 'Lapli', 'Solèy lévé', 'beginner', 'Ends in a gentle "-y" glide [soh-leye].', 'Martinique enjoys nearly 3,000 hours of tropical sunshine a year!', ARTWORKS.nature),
-      c('Alizé / Van', 'Noun', '[vahn]', 'Trade wind / Breeze', 'Alizé / Vent', 'Bèl ti van-an ka fréchi kaz-la.', 'The lovely breeze cools the house.', 'Island breeze', 'Atlantic trade winds cool the eastern shore.', 'Bris', 'Kalmi', 'Van lanmè', 'intermediate', 'Notice "van" is nasal [vahn] — pairs with "-an" definite suffix ("van-an").', 'Eastern trade winds ("alizé") power traditional racing yoles along the Atlantic coast.', ARTWORKS.nature),
-      c('Siklòn', 'Noun', '[see-klohn]', 'Hurricane / Cyclone', 'Cyclone', 'Nan sézon siklòn nou ka paré.', 'In hurricane season we prepare.', 'Storm', 'Season spans June to November.', 'Lòraj', 'Kalmi', 'Tan siklòn', 'intermediate', 'Follows GEREC spelling "siklòn" cleanly instead of "cyclone".', 'Island communities practice "koudmen" preparedness together before every rainy season.', ARTWORKS.nature)
+      c('Lapli', 'Noun', '[lah-plee]', 'Rain', 'Pluie', 'Lapli ka tonbé anlè Mònwouj.', 'Rain is falling over Morne-Rouge.', 'Shower, downpour', 'Short tropical showers are "ti grin lapli".', 'Grin lapli', 'Solèy', 'Lapli fin', 'beginner', 'Combines French "la pluie" into one word; say "Lapli ka tonbé!" when a shower starts.', 'Quick warm showers often create double rainbows over Fort-de-France bay!', ARTWORKS.weatherBay),
+      c('Solèy', 'Noun', '[soh-leye]', 'Sun', 'Soleil', 'Solèy-la ka kléré bèl.', 'The sun is shining bright.', 'Sunshine', 'Vital energy of Caribbean harvests.', 'Chalè', 'Lapli', 'Solèy lévé', 'beginner', 'Ends in a gentle "-y" glide [soh-leye].', 'Martinique enjoys nearly 3,000 hours of tropical sunshine a year!', ARTWORKS.weatherBay),
+      c('Alizé / Van', 'Noun', '[vahn]', 'Trade wind / Breeze', 'Alizé / Vent', 'Bèl ti van-an ka fréchi kaz-la.', 'The lovely breeze cools the house.', 'Island breeze', 'Atlantic trade winds cool the eastern shore.', 'Bris', 'Kalmi', 'Van lanmè', 'intermediate', 'Notice "van" is nasal [vahn] — pairs with "-an" definite suffix ("van-an").', 'Eastern trade winds ("alizé") power traditional racing yoles along the Atlantic coast.', ARTWORKS.weatherBay),
+      c('Siklòn', 'Noun', '[see-klohn]', 'Hurricane / Cyclone', 'Cyclone', 'Nan sézon siklòn nou ka paré.', 'In hurricane season we prepare.', 'Storm', 'Season spans June to November.', 'Lòraj', 'Kalmi', 'Tan siklòn', 'intermediate', 'Follows GEREC spelling "siklòn" cleanly instead of "cyclone".', 'Island communities practice "koudmen" preparedness together before every rainy season.', ARTWORKS.weatherBay)
     ]
   },
   animals: {

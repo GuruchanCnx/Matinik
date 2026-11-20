@@ -13,6 +13,50 @@ let activeMediaRecorder = null;
 let activeRecordingChunks = [];
 let activeRecordingTermId = null;
 let activePlaybackAudio = null;
+let mobileAudioUnlocked = false;
+const activeUtteranceKeepAlive = new Set();
+
+export function unlockMobileAudio() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) {
+      if (!sfxAudioCtx) sfxAudioCtx = new AC();
+      if (sfxAudioCtx.state === 'suspended') sfxAudioCtx.resume().catch(() => {});
+      if (!mobileAudioUnlocked) {
+        const silentBuf = sfxAudioCtx.createBuffer(1, 1, 22050);
+        const silentSrc = sfxAudioCtx.createBufferSource();
+        silentSrc.buffer = silentBuf;
+        silentSrc.connect(sfxAudioCtx.destination);
+        silentSrc.start(0);
+      }
+      if (natureAudioCtx && natureAudioCtx.state === 'suspended') {
+        natureAudioCtx.resume().catch(() => {});
+      }
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }
+    mobileAudioUnlocked = true;
+  } catch (e) {}
+}
+
+function runAfterSafeCancel(fn) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    fn();
+    return;
+  }
+  const ss = window.speechSynthesis;
+  if (ss.speaking || ss.pending) {
+    try { ss.cancel(); } catch (e) {}
+    // iOS Safari & Android Chrome drop synchronous speak() calls immediately after cancel()
+    setTimeout(fn, 65);
+  } else {
+    fn();
+  }
+}
 
 export function getSortedVoices() {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
@@ -91,20 +135,29 @@ export function speakTermSequence(creoleText, translationText, opts = {}) {
     onFinished = null
   } = opts;
 
+  unlockMobileAudio();
+
   if (!('speechSynthesis' in window)) {
     if (onFinished) onFinished();
     return false;
   }
 
-  window.speechSynthesis.cancel();
   const voices = getSortedVoices();
   const chosenVoice = settings.voiceURI ? voices.find((v) => v.voiceURI === settings.voiceURI) : null;
-  const frVoice = chosenVoice || voices.find((v) => v.lang && (v.lang === 'fr-FR' || v.lang.startsWith('fr'))) || voices[0];
-  const enVoice = voices.find((v) => v.lang && v.lang.startsWith('en')) || voices[0];
+  const frVoice = chosenVoice || voices.find((v) => v.lang && (v.lang === 'fr-FR' || v.lang.startsWith('fr'))) || null;
+  const enVoice = voices.find((v) => v.lang && v.lang.startsWith('en')) || null;
   const mainVol = Math.max(0, Math.min(1, Number(settings.mainVolume ?? 0.9)));
   const speechRate = Math.max(0.65, Math.min(1.25, Number(settings.speechRate ?? 0.9)));
 
+  let finishedOnce = false;
+  let watchdog1 = null;
+  let watchdog2 = null;
+
   const cleanup = () => {
+    if (watchdog1) clearTimeout(watchdog1);
+    if (watchdog2) clearTimeout(watchdog2);
+    if (finishedOnce) return;
+    finishedOnce = true;
     if (btnEl) btnEl.classList.remove('playing');
     if (onFinished) onFinished();
   };
@@ -116,28 +169,306 @@ export function speakTermSequence(creoleText, translationText, opts = {}) {
     }
     const utt2 = new SpeechSynthesisUtterance(translationText);
     utt2.lang = lang === 'fr' ? 'fr-FR' : 'en-US';
-    utt2.voice = lang === 'fr' ? frVoice : enVoice;
+    if (lang === 'fr' && frVoice) utt2.voice = frVoice;
+    else if (lang !== 'fr' && enVoice) utt2.voice = enVoice;
     utt2.rate = Math.min(1.2, speechRate + 0.05);
     utt2.volume = mainVol;
-    utt2.onend = cleanup;
-    utt2.onerror = cleanup;
+    activeUtteranceKeepAlive.add(utt2);
+
+    const estMs2 = Math.max(1600, estimatePronunciationDuration(translationText, utt2.rate) * 1000 + 1800);
+    watchdog2 = setTimeout(() => {
+      activeUtteranceKeepAlive.delete(utt2);
+      cleanup();
+    }, estMs2);
+
+    utt2.onend = () => {
+      activeUtteranceKeepAlive.delete(utt2);
+      cleanup();
+    };
+    utt2.onerror = () => {
+      activeUtteranceKeepAlive.delete(utt2);
+      cleanup();
+    };
     window.speechSynthesis.speak(utt2);
   };
 
   if (btnEl) btnEl.classList.add('playing');
-  const utt1 = new SpeechSynthesisUtterance(creoleText);
-  if (frVoice) utt1.voice = frVoice;
-  utt1.lang = frVoice?.lang || 'fr-FR';
-  utt1.rate = speechRate;
-  utt1.pitch = 1.04;
-  utt1.volume = mainVol;
-  utt1.onend = () => {
-    if (onListened) onListened(creoleText);
-    setTimeout(speakTranslation, 200);
-  };
-  utt1.onerror = cleanup;
-  window.speechSynthesis.speak(utt1);
+
+  runAfterSafeCancel(() => {
+    const utt1 = new SpeechSynthesisUtterance(creoleText);
+    if (frVoice) utt1.voice = frVoice;
+    utt1.lang = frVoice?.lang || 'fr-FR';
+    utt1.rate = speechRate;
+    utt1.pitch = 1.04;
+    utt1.volume = mainVol;
+    activeUtteranceKeepAlive.add(utt1);
+
+    let step1Done = false;
+    const finishStep1 = () => {
+      if (step1Done) return;
+      step1Done = true;
+      if (watchdog1) clearTimeout(watchdog1);
+      activeUtteranceKeepAlive.delete(utt1);
+      if (onListened) onListened(creoleText);
+      setTimeout(speakTranslation, 200);
+    };
+
+    const estMs1 = Math.max(1800, estimatePronunciationDuration(creoleText, speechRate) * 1000 + 2200);
+    watchdog1 = setTimeout(finishStep1, estMs1);
+
+    utt1.onend = finishStep1;
+    utt1.onerror = () => {
+      activeUtteranceKeepAlive.delete(utt1);
+      cleanup();
+    };
+    window.speechSynthesis.speak(utt1);
+  });
+
   return true;
+}
+
+// =========================================================
+// CUSTOM VOCABULARY AUDIO PLAYER (PLAY / PAUSE / SEEK BAR)
+// =========================================================
+const audioPlayerState = {
+  trackId: null,
+  fullText: '',
+  translationText: '',
+  words: [],
+  settings: {},
+  lang: 'en',
+  onListened: null,
+  status: 'idle', // 'idle' | 'playing' | 'paused'
+  progressPct: 0,
+  elapsedSec: 0,
+  durationSec: 2.5,
+  timerId: null,
+  lastTickMs: 0,
+  playToken: 0
+};
+
+const audioPlayerListeners = new Set();
+
+export function onTermAudioStateChange(fn) {
+  if (typeof fn !== 'function') return () => {};
+  audioPlayerListeners.add(fn);
+  return () => audioPlayerListeners.delete(fn);
+}
+
+export function getTermAudioPlayerState() {
+  return {
+    trackId: audioPlayerState.trackId,
+    status: audioPlayerState.status,
+    progressPct: audioPlayerState.progressPct,
+    elapsedSec: audioPlayerState.elapsedSec,
+    durationSec: audioPlayerState.durationSec
+  };
+}
+
+export function formatAudioTime(sec) {
+  const s = Math.max(0, Math.round(Number(sec || 0)));
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return `${m}:${String(rem).padStart(2, '0')}`;
+}
+
+export function estimatePronunciationDuration(text, speechRate = 0.9) {
+  const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+  const rate = Math.max(0.65, Math.min(1.25, Number(speechRate || 0.9)));
+  return Number(Math.max(1.8, (words.length * 0.56 + 0.55) / rate).toFixed(1));
+}
+
+function emitAudioPlayerState() {
+  const snap = getTermAudioPlayerState();
+  audioPlayerListeners.forEach((fn) => {
+    try { fn(snap); } catch (e) {}
+  });
+}
+
+function clearAudioTicker() {
+  if (audioPlayerState.timerId) {
+    clearInterval(audioPlayerState.timerId);
+    audioPlayerState.timerId = null;
+  }
+}
+
+function speakFromProgressOffset(startPct) {
+  unlockMobileAudio();
+  const token = ++audioPlayerState.playToken;
+  clearAudioTicker();
+
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    audioPlayerState.status = 'playing';
+    audioPlayerState.lastTickMs = Date.now();
+    audioPlayerState.timerId = setInterval(() => {
+      if (token !== audioPlayerState.playToken || audioPlayerState.status !== 'playing') return;
+      const now = Date.now();
+      const dt = (now - audioPlayerState.lastTickMs) / 1000;
+      audioPlayerState.lastTickMs = now;
+      audioPlayerState.elapsedSec = Math.min(audioPlayerState.durationSec, audioPlayerState.elapsedSec + dt);
+      audioPlayerState.progressPct = Math.min(100, Math.round((audioPlayerState.elapsedSec / audioPlayerState.durationSec) * 100));
+      emitAudioPlayerState();
+      if (audioPlayerState.elapsedSec >= audioPlayerState.durationSec) {
+        if (audioPlayerState.onListened) audioPlayerState.onListened(audioPlayerState.fullText);
+        stopTermAudioTrack();
+      }
+    }, 60);
+    emitAudioPlayerState();
+    return;
+  }
+
+  const words = audioPlayerState.words;
+  const wordIdx = Math.min(Math.max(0, Math.floor((startPct / 100) * words.length)), Math.max(0, words.length - 1));
+  const sliceText = words.slice(wordIdx).join(' ') || audioPlayerState.fullText;
+
+  const voices = getSortedVoices();
+  const s = audioPlayerState.settings || {};
+  const chosenVoice = s.voiceURI ? voices.find((v) => v.voiceURI === s.voiceURI) : null;
+  const frVoice = chosenVoice || voices.find((v) => v.lang && (v.lang === 'fr-FR' || v.lang.startsWith('fr'))) || null;
+  const mainVol = Math.max(0, Math.min(1, Number(s.mainVolume ?? 0.9)));
+  const speechRate = Math.max(0.65, Math.min(1.25, Number(s.speechRate ?? 0.9)));
+
+  audioPlayerState.status = 'playing';
+  audioPlayerState.lastTickMs = Date.now();
+
+  audioPlayerState.timerId = setInterval(() => {
+    if (token !== audioPlayerState.playToken || audioPlayerState.status !== 'playing') return;
+    const now = Date.now();
+    const dt = (now - audioPlayerState.lastTickMs) / 1000;
+    audioPlayerState.lastTickMs = now;
+    audioPlayerState.elapsedSec = Math.min(audioPlayerState.durationSec * 0.98, audioPlayerState.elapsedSec + dt);
+    audioPlayerState.progressPct = Math.min(98, Math.round((audioPlayerState.elapsedSec / audioPlayerState.durationSec) * 100));
+    emitAudioPlayerState();
+  }, 60);
+
+  runAfterSafeCancel(() => {
+    if (token !== audioPlayerState.playToken) return;
+    const utt = new SpeechSynthesisUtterance(sliceText);
+    if (frVoice) utt.voice = frVoice;
+    utt.lang = frVoice?.lang || 'fr-FR';
+    utt.rate = speechRate;
+    utt.pitch = 1.04;
+    utt.volume = mainVol;
+    activeUtteranceKeepAlive.add(utt);
+
+    let finished = false;
+    const finishPlayback = () => {
+      if (finished || token !== audioPlayerState.playToken) return;
+      finished = true;
+      activeUtteranceKeepAlive.delete(utt);
+      clearAudioTicker();
+      audioPlayerState.elapsedSec = audioPlayerState.durationSec;
+      audioPlayerState.progressPct = 100;
+      emitAudioPlayerState();
+      if (audioPlayerState.onListened) audioPlayerState.onListened(audioPlayerState.fullText);
+      setTimeout(() => {
+        if (token !== audioPlayerState.playToken) return;
+        audioPlayerState.status = 'idle';
+        audioPlayerState.elapsedSec = 0;
+        audioPlayerState.progressPct = 0;
+        emitAudioPlayerState();
+      }, 260);
+    };
+
+    const remainingMs = Math.max(1800, (audioPlayerState.durationSec - audioPlayerState.elapsedSec) * 1000 + 2500);
+    const watchdog = setTimeout(finishPlayback, remainingMs);
+
+    utt.onend = () => {
+      clearTimeout(watchdog);
+      finishPlayback();
+    };
+
+    utt.onerror = () => {
+      clearTimeout(watchdog);
+      activeUtteranceKeepAlive.delete(utt);
+      if (token !== audioPlayerState.playToken) return;
+      clearAudioTicker();
+      audioPlayerState.status = 'idle';
+      emitAudioPlayerState();
+    };
+
+    window.speechSynthesis.speak(utt);
+  });
+
+  emitAudioPlayerState();
+}
+
+export function toggleTermAudioTrack(trackId, config = {}) {
+  const {
+    text = '',
+    exampleText = '',
+    translationText = '',
+    settings = {},
+    lang = 'en',
+    onListened = null
+  } = config;
+
+  // Toggle Pause / Resume on currently active track
+  if (audioPlayerState.trackId === trackId && audioPlayerState.status === 'playing') {
+    audioPlayerState.status = 'paused';
+    audioPlayerState.playToken += 1;
+    clearAudioTicker();
+    try { window.speechSynthesis?.cancel(); } catch (e) {}
+    emitAudioPlayerState();
+    return;
+  }
+
+  if (audioPlayerState.trackId === trackId && audioPlayerState.status === 'paused') {
+    audioPlayerState.settings = settings;
+    speakFromProgressOffset(audioPlayerState.progressPct);
+    return;
+  }
+
+  // Start new track
+  const spokenBundle = exampleText ? `${text}. ${exampleText}` : String(text || '');
+  const durationSec = estimatePronunciationDuration(spokenBundle, settings.speechRate);
+
+  audioPlayerState.trackId = trackId;
+  audioPlayerState.fullText = text;
+  audioPlayerState.translationText = translationText;
+  audioPlayerState.words = spokenBundle.trim().split(/\s+/).filter(Boolean);
+  audioPlayerState.settings = settings;
+  audioPlayerState.lang = lang;
+  audioPlayerState.onListened = onListened;
+  audioPlayerState.durationSec = durationSec;
+  audioPlayerState.elapsedSec = 0;
+  audioPlayerState.progressPct = 0;
+
+  speakFromProgressOffset(0);
+}
+
+export function seekTermAudioTrack(trackId, pct, config = {}) {
+  const clamped = Math.max(0, Math.min(100, Number(pct || 0)));
+  if (audioPlayerState.trackId !== trackId) {
+    const spokenBundle = config.exampleText ? `${config.text || ''}. ${config.exampleText}` : String(config.text || '');
+    const durationSec = estimatePronunciationDuration(spokenBundle, config.settings?.speechRate);
+    audioPlayerState.trackId = trackId;
+    audioPlayerState.fullText = config.text || '';
+    audioPlayerState.translationText = config.translationText || '';
+    audioPlayerState.words = spokenBundle.trim().split(/\s+/).filter(Boolean);
+    audioPlayerState.settings = config.settings || {};
+    audioPlayerState.lang = config.lang || 'en';
+    audioPlayerState.onListened = config.onListened || null;
+    audioPlayerState.durationSec = durationSec;
+  }
+  audioPlayerState.progressPct = clamped;
+  audioPlayerState.elapsedSec = (clamped / 100) * audioPlayerState.durationSec;
+
+  if (audioPlayerState.status === 'playing') {
+    speakFromProgressOffset(clamped);
+  } else {
+    emitAudioPlayerState();
+  }
+}
+
+export function stopTermAudioTrack() {
+  audioPlayerState.playToken += 1;
+  clearAudioTicker();
+  try { window.speechSynthesis?.cancel(); } catch (e) {}
+  audioPlayerState.status = 'idle';
+  audioPlayerState.elapsedSec = 0;
+  audioPlayerState.progressPct = 0;
+  emitAudioPlayerState();
 }
 
 // =========================================================
@@ -404,7 +735,14 @@ export function isActivelyRecording(termId) {
   return Boolean(activeMediaRecorder && activeRecordingTermId === termId);
 }
 
+function pickBestRecorderMimeType() {
+  if (typeof MediaRecorder === 'undefined' || typeof MediaRecorder.isTypeSupported !== 'function') return '';
+  const candidates = ['audio/mp4', 'audio/aac', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg'];
+  return candidates.find((m) => MediaRecorder.isTypeSupported(m)) || '';
+}
+
 export async function toggleTermVoiceRecording(termId, { onSaved, onError } = {}) {
+  unlockMobileAudio();
   if (activeMediaRecorder && activeRecordingTermId === termId) {
     try { activeMediaRecorder.stop(); } catch (e) {}
     return false;
@@ -423,7 +761,8 @@ export async function toggleTermVoiceRecording(termId, { onSaved, onError } = {}
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     activeRecordingChunks = [];
     activeRecordingTermId = termId;
-    const recorder = new MediaRecorder(stream);
+    const preferredMime = pickBestRecorderMimeType();
+    const recorder = preferredMime ? new MediaRecorder(stream, { mimeType: preferredMime }) : new MediaRecorder(stream);
     activeMediaRecorder = recorder;
     const startedAt = Date.now();
 
@@ -433,7 +772,8 @@ export async function toggleTermVoiceRecording(termId, { onSaved, onError } = {}
 
     recorder.onstop = async () => {
       stream.getTracks().forEach((t) => t.stop());
-      const blob = new Blob(activeRecordingChunks, { type: recorder.mimeType || 'audio/webm' });
+      const resolvedMime = recorder.mimeType || preferredMime || 'audio/mp4';
+      const blob = new Blob(activeRecordingChunks, { type: resolvedMime });
       const durationSec = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
       const finishedId = activeRecordingTermId;
       activeMediaRecorder = null;
@@ -455,12 +795,13 @@ export async function toggleTermVoiceRecording(termId, { onSaved, onError } = {}
   } catch (err) {
     activeMediaRecorder = null;
     activeRecordingTermId = null;
-    if (onError) onError('Please allow microphone access to save your pronunciation.');
+    if (onError) onError('Please allow microphone access on your phone/tablet to save your pronunciation.');
     return false;
   }
 }
 
 export async function replayUserVoiceRecording(termId, { onMissing, onDone } = {}) {
+  unlockMobileAudio();
   try {
     const blob = await loadVoiceRecordingBlob(termId);
     if (!blob) {
@@ -473,10 +814,18 @@ export async function replayUserVoiceRecording(termId, { onMissing, onDone } = {
     }
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
+    audio.playsInline = true;
+    audio.setAttribute('playsinline', '');
     activePlaybackAudio = audio;
     audio.onended = () => {
       URL.revokeObjectURL(url);
+      if (activePlaybackAudio === audio) activePlaybackAudio = null;
       if (onDone) onDone();
+    };
+    audio.onerror = () => {
+      URL.revokeObjectURL(url);
+      if (activePlaybackAudio === audio) activePlaybackAudio = null;
+      if (onMissing) onMissing();
     };
     await audio.play();
     return true;

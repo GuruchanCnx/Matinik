@@ -35,12 +35,6 @@ export function getMergedMapLocations(ctx) {
   return merged;
 }
 
-function projectLatLngToSvg(lat, lng) {
-  const x = Math.max(24, Math.min(316, ((lng - (-61.24)) / (-60.81 - (-61.24))) * 280 + 30));
-  const y = Math.max(24, Math.min(376, ((14.89 - lat) / (14.89 - 14.38)) * 340 + 30));
-  return { x: Math.round(x), y: Math.round(y) };
-}
-
 function getCategoryMeta(cat) {
   if (cat === 'historical') {
     return { label: 'Historical Site', icon: 'fa-landmark', pinClass: 'km-osm-pin--historical', color: '#b45309' };
@@ -163,12 +157,11 @@ export function refreshDynamicMapMarkers(ctx) {
 
   const allMap = getMergedMapLocations(ctx);
   const filter = ctx.state.mapCategory || 'all';
-  const mode = ctx.state.mapMode || 'osm';
   const entries = Object.values(allMap).filter((loc) => filter === 'all' || loc.category === filter);
   const selected = allMap[ctx.state.selectedSiteId] || entries[0] || allMap['fort-de-france'];
   const visited = ctx.collection.visitedSites || [];
 
-  if (mode === 'osm' && leafletMapInstance && leafletMarkersLayer) {
+  if (leafletMapInstance && leafletMarkersLayer) {
     syncLeafletMarkers(entries, selected, (siteId, openPopup) => selectMapSite(container, siteId, openPopup, ctx));
     const chipsWrap = container.querySelector('#kmSiteChipsWrap');
     if (chipsWrap) {
@@ -196,10 +189,9 @@ function selectMapSite(container, siteId, openPopup, ctx) {
   ctx.state.selectedSiteId = siteId;
   ctx.actions.markSiteVisited(siteId);
   const updatedVisited = ctx.collection.visitedSites || [];
-  const mode = ctx.state.mapMode || 'osm';
   const detailPanel = container.querySelector('#kmMapDetailPanel');
 
-  if (mode === 'osm' && leafletMapInstance && leafletMarkersById.has(siteId)) {
+  if (leafletMapInstance && leafletMarkersById.has(siteId)) {
     renderMapDetailPanel(detailPanel, loc, updatedVisited, Object.keys(allMap).length, ctx);
     container.querySelectorAll('[data-site-select]').forEach((btn) => {
       const id = btn.getAttribute('data-site-select');
@@ -236,7 +228,6 @@ export function renderMartiniqueMapSection(container, ctx) {
   const cloudCount = (ctx?.cloud?.mapLocations || []).length;
 
   const filter = ctx.state.mapCategory || 'all';
-  const mode = ctx.state.mapMode || 'osm';
   const entries = allValues.filter((loc) => filter === 'all' || loc.category === filter);
   const selected = allMap[ctx.state.selectedSiteId] || entries[0] || allMap['fort-de-france'];
   const visited = ctx.collection.visitedSites || [];
@@ -250,49 +241,21 @@ export function renderMartiniqueMapSection(container, ctx) {
         <button type="button" class="km-seg-btn ${filter === 'offbeat' ? 'active' : ''}" data-map-cat="offbeat">Off the Beaten Path (${offbeatCount})</button>
       </div>
 
-      <div class="km-seg-group" role="tablist" aria-label="Map engine switch">
-        <button type="button" class="km-seg-btn ${mode === 'osm' ? 'active' : ''}" data-map-mode="osm"><i class="fas fa-earth-americas"></i> Live OSM Map</button>
-        <button type="button" class="km-seg-btn ${mode === 'svg' ? 'active' : ''}" data-map-mode="svg"><i class="fas fa-compass"></i> SVG Island Map</button>
-      </div>
+      <button type="button" class="km-btn km-btn-sm km-btn-emerald" id="mapOpenFullArchiveBtn">
+        <i class="fas fa-images"></i> Open 115+ Photo Gallery
+      </button>
     </div>
 
     <div class="km-osm-legend" aria-label="Map marker legend">
       <span class="km-osm-legend-item"><span class="km-osm-dot" style="background:#1d4ed8;"></span> Communes</span>
       <span class="km-osm-legend-item"><span class="km-osm-dot" style="background:#b45309;"></span> Historical Sites</span>
       <span class="km-osm-legend-item"><span class="km-osm-dot" style="background:#047857;"></span> Off the Beaten Path</span>
-      <span class="km-meta-line" style="margin-left:auto;">${cloudCount > 0 ? `${cloudCount} live Firestore markers synced` : 'Curated heritage dataset + live Firestore listener'}</span>
+      <span class="km-meta-line" style="margin-left:auto;">${cloudCount > 0 ? `${cloudCount} live Firestore markers synced` : 'OpenStreetMap Live Heritage Trail'}</span>
     </div>
 
     <div class="km-map-layout">
       <div>
-        ${mode === 'osm' ? `
-          <div id="kmLeafletMap" class="km-leaflet-canvas"></div>
-        ` : `
-          <div class="km-svg-map-box">
-            <svg viewBox="0 0 340 400" style="width:100%; height:360px;" role="img" aria-label="Interactive SVG map of Martinique">
-              <defs>
-                <linearGradient id="kmSeaGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#e0f2fe" />
-                  <stop offset="100%" stop-color="#ecfdf5" />
-                </linearGradient>
-              </defs>
-              <rect width="340" height="400" rx="14" fill="url(#kmSeaGrad)" />
-              <path d="M98 44 C122 36, 152 46, 178 72 C205 98, 224 128, 250 156 C272 178, 244 210, 232 232 C240 258, 266 286, 268 320 C268 352, 236 368, 206 356 C180 345, 162 318, 134 304 C112 292, 108 260, 126 232 C142 208, 128 186, 104 166 C82 146, 74 96, 86 64 Z"
-                fill="#bbf7d0" stroke="#047857" stroke-width="2.5" />
-              ${entries.map((loc) => {
-                const pt = projectLatLngToSvg(loc.lat, loc.lng);
-                const isSel = loc.id === selected.id;
-                const fill = getCategoryMeta(loc.category).color;
-                return `
-                  <g class="km-svg-pin ${isSel ? 'active' : ''}" data-svg-site="${escapeHtml(loc.id)}" tabindex="0" role="button" aria-label="Select ${escapeHtml(loc.name)}">
-                    <circle cx="${pt.x}" cy="${pt.y}" r="${isSel ? 8 : 6}" fill="${fill}" stroke="#ffffff" stroke-width="2" />
-                    <text x="${pt.x + 9}" y="${pt.y + 4}" font-size="10" font-weight="${isSel ? '700' : '600'}" fill="#0f172a">${escapeHtml(loc.name.split(' ')[0])}</text>
-                  </g>
-                `;
-              }).join('')}
-            </svg>
-          </div>
-        `}
+        <div id="kmLeafletMap" class="km-leaflet-canvas"></div>
 
         <div id="kmSiteChipsWrap" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:0.75rem;">
           ${entries.map((loc) => `
@@ -310,6 +273,11 @@ export function renderMartiniqueMapSection(container, ctx) {
   const detailPanel = container.querySelector('#kmMapDetailPanel');
   renderMapDetailPanel(detailPanel, selected, visited, allValues.length, ctx);
 
+  container.querySelector('#mapOpenFullArchiveBtn')?.addEventListener('click', () => {
+    ctx.state.cultureTab = 'gallery';
+    ctx.actions.jumpToAccordion('acc-culture');
+  });
+
   container.querySelectorAll('[data-map-cat]').forEach((b) => {
     b.addEventListener('click', () => {
       ctx.state.mapCategory = b.getAttribute('data-map-cat');
@@ -322,26 +290,13 @@ export function renderMartiniqueMapSection(container, ctx) {
     });
   });
 
-  container.querySelectorAll('[data-map-mode]').forEach((b) => {
-    b.addEventListener('click', () => {
-      ctx.state.mapMode = b.getAttribute('data-map-mode');
-      destroyLeafletMap();
-      renderMartiniqueMapSection(container, ctx);
-    });
-  });
-
   const handleSelectSite = (siteId, openPopup = true) => selectMapSite(container, siteId, openPopup, ctx);
 
   container.querySelectorAll('[data-site-select]').forEach((b) => {
     b.addEventListener('click', () => handleSelectSite(b.getAttribute('data-site-select'), true));
   });
-  container.querySelectorAll('[data-svg-site]').forEach((pin) => {
-    pin.addEventListener('click', () => handleSelectSite(pin.getAttribute('data-svg-site'), false));
-  });
 
-  if (mode === 'osm') {
-    initLeafletCanvas(container.querySelector('#kmLeafletMap'), entries, selected, handleSelectSite, ctx);
-  }
+  initLeafletCanvas(container.querySelector('#kmLeafletMap'), entries, selected, handleSelectSite, ctx);
 }
 
 export function destroyLeafletMap() {
@@ -396,25 +351,34 @@ function initLeafletCanvas(mapEl, entries, selected, onSelect, ctx) {
 
 export function renderGalleryModal(backdrop, ctx) {
   if (!backdrop) return;
+  const archiveList = Array.isArray(ctx.state.archiveGalleryList) && ctx.state.archiveGalleryList.length
+    ? ctx.state.archiveGalleryList
+    : null;
   const allMap = getMergedMapLocations(ctx);
   const site = allMap[ctx.state.gallerySiteId] || allMap['fort-de-france'];
-  const gallery = site.gallery || [];
+  const gallery = archiveList || (site.gallery || []);
   if (!gallery.length) return;
-  const idx = (ctx.state.galleryIdx || 0) % gallery.length;
+  const idx = ((ctx.state.galleryIdx || 0) + gallery.length) % gallery.length;
   const current = gallery[idx];
+  const heading = archiveList
+    ? `Martinique Heritage Archive · ${current.cat || 'Island'}`
+    : `${site.name} · Landscape Gallery`;
+
+  const thumbSliceStart = Math.max(0, Math.min(gallery.length - 8, idx - 3));
+  const thumbItems = gallery.slice(thumbSliceStart, thumbSliceStart + 8);
 
   backdrop.innerHTML = `
-    <div class="km-modal-card" role="dialog" aria-modal="true" aria-label="Martinique Commune Gallery">
+    <div class="km-modal-card" role="dialog" aria-modal="true" aria-label="Martinique Photo Gallery">
       <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:0.75rem;">
         <div>
-          <strong style="font-size:1.12rem;">${escapeHtml(site.name)} · Landscape Gallery</strong>
+          <strong style="font-size:1.12rem;">${escapeHtml(heading)}</strong>
           <div class="km-meta-line km-mono">Photo ${idx + 1} / ${gallery.length}</div>
         </div>
         <button type="button" class="km-btn km-btn-sm" id="galCloseBtn" aria-label="Close gallery"><i class="fas fa-times"></i></button>
       </div>
 
       <img src="${escapeHtml(current.src)}" alt="${escapeHtml(current.title)}" referrerpolicy="no-referrer"
-        style="width:100%; height:290px; object-fit:cover; border-radius:14px; border:1px solid var(--hairline);">
+        style="width:100%; height:310px; object-fit:cover; object-position:${escapeHtml(current.crop || '50% 50%')}; border-radius:14px; border:1px solid var(--hairline);">
 
       <div style="margin-top:0.75rem;">
         <strong>${escapeHtml(current.title)}</strong>
@@ -423,11 +387,14 @@ export function renderGalleryModal(backdrop, ctx) {
 
       <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:0.85rem;">
         <button type="button" class="km-btn km-btn-sm" id="galPrevBtn"><i class="fas fa-arrow-left"></i> Prev</button>
-        <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          ${gallery.map((g, i) => `
-            <img src="${escapeHtml(g.src)}" alt="${escapeHtml(g.title)}" referrerpolicy="no-referrer" data-gal-thumb="${i}"
-              style="width:52px; height:38px; object-fit:cover; border-radius:7px; cursor:pointer; border:2px solid ${i === idx ? 'var(--cobalt)' : 'transparent'};">
-          `).join('')}
+        <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center;">
+          ${thumbItems.map((g, offset) => {
+            const realIdx = thumbSliceStart + offset;
+            return `
+              <img src="${escapeHtml(g.src)}" alt="${escapeHtml(g.title)}" referrerpolicy="no-referrer" data-gal-thumb="${realIdx}"
+                style="width:48px; height:36px; object-fit:cover; object-position:${escapeHtml(g.crop || '50% 50%')}; border-radius:7px; cursor:pointer; border:2px solid ${realIdx === idx ? 'var(--cobalt)' : 'transparent'};">
+            `;
+          }).join('')}
         </div>
         <button type="button" class="km-btn km-btn-sm" id="galNextBtn">Next <i class="fas fa-arrow-right"></i></button>
       </div>

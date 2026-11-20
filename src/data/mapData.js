@@ -1,4 +1,4 @@
-// Martinique Interactive OSM & SVG Map Locations + Generated Commune Landscape Galleries
+// Martinique Interactive OpenStreetMap Locations + Commune Landscape Galleries
 
 export const IMG_FORT_DE_FRANCE = './src/assets/images/martinique_fort_de_france_1795111105144.jpg';
 export const IMG_SAINT_PIERRE = './src/assets/images/martinique_saint_pierre_pelee_1795111105506.jpg';
@@ -6,6 +6,12 @@ export const IMG_LE_DIAMANT = './src/assets/images/martinique_le_diamant_rock_17
 export const IMG_SAINTE_ANNE = './src/assets/images/martinique_sainte_anne_salines_1795111106566.jpg';
 export const IMG_LE_FRANCOIS = './src/assets/images/martinique_le_francois_yoles_1795111107434.jpg';
 export const IMG_RAINFOREST = './src/assets/images/martinique_northern_rainforest_1795111107328.jpg';
+export const IMG_CAP_110 = './src/assets/images/cap_110_memorial_1795183599176.jpg';
+export const IMG_GRAND_RIVIERE = './src/assets/images/grand_riviere_cliffs_1795183598643.jpg';
+export const IMG_WEATHER_BAY = './src/assets/images/weather_tropical_bay_1795183599193.jpg';
+export const IMG_COLOMBO = './src/assets/images/culinary_colombo_feast_1795183598683.jpg';
+export const IMG_TROPICAL_MARKET = './src/assets/images/culinary_tropical_market_1795183598823.jpg';
+export const IMG_VERANDA = './src/assets/images/learning_path_veranda_1795183599209.jpg';
 
 export const MAP_LOCATIONS = {
   // === 12 ICONIC COMMUNES ===
@@ -23,7 +29,9 @@ export const MAP_LOCATIONS = {
     proverb: '"An Fòdfrans tout moun ka kouri, mé tout moun ka di bonjou!" (In Fort-de-France everybody rushes, yet everyone still greets one another!)',
     gallery: [
       { src: IMG_FORT_DE_FRANCE, title: 'Baie de Fort-de-France & Creole Waterfront', caption: 'Historic colonial rooftops framing Fort Saint-Louis and the turquoise bay.' },
-      { src: IMG_LE_FRANCOIS, title: 'Bay Yole Regatta Heritage', caption: 'Traditional wooden sailing yoles anchored along Martinique’s Atlantic and bay channels.' },
+      { src: IMG_TROPICAL_MARKET, title: 'Grand Marché Couvert Spice Stalls', caption: 'Vibrant madras cloths stacked with vanilla pods, turmeric, and Julie mangoes.' },
+      { src: IMG_COLOMBO, title: 'Capital Street Kitchens & Kwizin Kréyòl', caption: 'Steaming artisanal Colombo and crisp cod accras prepared daily across Fort-de-France.' },
+      { src: IMG_WEATHER_BAY, title: 'Rainbow Horizon Over the Bay', caption: 'Sudden sunlit trade showers brightening coastal piers and sailing vessels.' },
       { src: IMG_RAINFOREST, title: 'Route de la Trace Foothills', caption: 'Minutes north of Fort-de-France, the emerald rainforest canopy climbs toward Balata.' }
     ]
   },
@@ -77,6 +85,7 @@ export const MAP_LOCATIONS = {
     proverb: '"Bèlè sé nanm Matinik!" (Bèlè is the very soul of Martinique!)',
     gallery: [
       { src: IMG_RAINFOREST, title: 'Lush Northern Hills of Sainte-Marie', caption: 'Rich tropical canopy feeding historic cacao, cane, and botanical estates.' },
+      { src: IMG_VERANDA, title: 'Intergenerational Storytelling Veranda', caption: 'Elders and youth sharing Creole bèlè heritage in Sainte-Marie.' },
       { src: IMG_LE_FRANCOIS, title: 'Atlantic Lagoon & Reefs', caption: 'Windward Atlantic waters shaping the seasonal Sainte-Marie coastline.' },
       { src: IMG_FORT_DE_FRANCE, title: 'Creole Cultural Heritage', caption: 'Architectural and musical traditions carried from rural mornes to town squares.' }
     ]
@@ -148,9 +157,9 @@ export const MAP_LOCATIONS = {
     tradition: 'Artisanal wooden doris fishing in powerful Atlantic swells and cacao craftsmanship.',
     proverb: '"Rivyè ki ka désann pa ka rété pou wòch!" (A rushing river does not halt for stones; keep moving forward!)',
     gallery: [
+      { src: IMG_GRAND_RIVIERE, title: 'Grand’Rivière Volcanic Cliffs & Boats', caption: 'Towering emerald headlands above glistening black-sand waters and bright wooden boats.' },
       { src: IMG_RAINFOREST, title: 'Emerald Gorges of Grand’Rivière', caption: 'Giant tree ferns, wild heliconia, and volcanic waterfalls bordering the village.' },
-      { src: IMG_SAINT_PIERRE, title: 'Shadow of Mount Pelée', caption: 'Volcanic ridges separating Grand’Rivière from the western coast.' },
-      { src: IMG_LE_FRANCOIS, title: 'Maritime Channel Tradition', caption: 'Fearless northern seafarers launching painted wooden boats at dawn.' }
+      { src: IMG_SAINT_PIERRE, title: 'Shadow of Mount Pelée', caption: 'Volcanic ridges separating Grand’Rivière from the western coast.' }
     ]
   },
   'morne-rouge': {
@@ -236,7 +245,9 @@ export const MAP_LOCATIONS = {
     tradition: 'Annual lantern and floral tributes preserving ancestral dignity and oral remembrance.',
     proverb: '"Mémwa pa ka néyé." (Memory never drowns.)',
     gallery: [
-      { src: IMG_LE_DIAMANT, title: 'Coastline Above Anse Caffard', caption: 'Dramatic southern cliffs overlooking Diamond Rock near Cap 110.' }
+      { src: IMG_CAP_110, title: 'Mémorial Cap 110 — 15 Ancestral Statues', caption: 'Sculptor Laurent Valère’s monumental stone figures gazing 110° East toward the Atlantic horizon.' },
+      { src: IMG_LE_DIAMANT, title: 'Coastline Above Anse Caffard', caption: 'Dramatic southern cliffs overlooking Diamond Rock near Cap 110.' },
+      { src: IMG_WEATHER_BAY, title: 'Diamond Channel Horizons', caption: 'Warm sunbeams and passing coastal mists beside Anse Caffard.' }
     ]
   },
   'cachot-cyparis': {
@@ -334,6 +345,7 @@ export const MAP_LOCATIONS = {
     tradition: 'Start of the legendary 18km Prêcheur–Grand’Rivière rainforest coastal hike.',
     proverb: '"Pli lwen chimèn-lan yé, pli bèl sékrè-a yé." (The farther the trail, the richer the secret.)',
     gallery: [
+      { src: IMG_GRAND_RIVIERE, title: 'Anse Couleuvre Black Sand Shores', caption: 'Wild northern volcanic sands framed by towering rainforest walls.' },
       { src: IMG_RAINFOREST, title: 'Jungle Trail to Anse Couleuvre', caption: 'Deep rainforest canyons and cascading falls tucked behind black sand shores.' }
     ]
   },

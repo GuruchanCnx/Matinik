@@ -31,17 +31,20 @@ import {
 import {
   captureSpokenPhrase,
   clearAllVoiceRecordings,
+  onTermAudioStateChange,
   playSfx,
   speakTermSequence,
   startNatureSounds,
   stopNatureSounds,
-  triggerHaptic
+  triggerHaptic,
+  unlockMobileAudio
 } from './services/audioEngine.js';
 import {
   escapeHtml,
   renderCurriculumAndOralLabs,
   renderLevelsAndLessons,
-  renderWordOfTheDayWidget
+  renderWordOfTheDayWidget,
+  syncAudioPlayerBarsDom
 } from './views/curriculumAndQuiz.js';
 import {
   getActiveFlashcardList,
@@ -50,6 +53,12 @@ import {
   renderFlashcardModal,
   renderHandsFreeModal
 } from './views/flashcardsAndDictionary.js';
+import {
+  fetchMartiniqueWeather,
+  renderCulinaryWeatherCultureSection,
+  renderHeroWeatherChip,
+  renderLearningPathSection
+} from './views/learningPathAndCulture.js';
 import {
   destroyLeafletMap,
   getMergedMapLocations,
@@ -139,11 +148,14 @@ const ctx = {
   progress: {
     modules: { module1: false, module2: false, module3: false, ...(savedProg.modules || {}) },
     quizzes: { quiz1: false, quiz2: false, quiz3: false, ...(savedProg.quizzes || {}) },
+    pathCompleted: Array.isArray(savedProg.pathCompleted) ? savedProg.pathCompleted : [],
     listenedWords: Array.isArray(savedProg.listenedWords) ? savedProg.listenedWords : [],
     reviewedCards: Array.isArray(savedProg.reviewedCards) ? savedProg.reviewedCards : [],
     xp: Number(savedProg.xp || 0),
     streak: Number(savedProg.streak || 1),
-    lastActivityDate: savedProg.lastActivityDate || todayIso()
+    lastActivityDate: savedProg.lastActivityDate || todayIso(),
+    streakFiredToday: savedProg.streakFiredToday || '',
+    streakHistory: Array.isArray(savedProg.streakHistory) && savedProg.streakHistory.length ? savedProg.streakHistory : [todayIso()]
   },
   collection: {
     points: Number(savedColl.points || 0),
@@ -186,7 +198,16 @@ const ctx = {
     isDark: false,
     mobileMenuOpen: false,
     wotdIdx: dayOfYear % 12,
-    openAccordions: new Set(['acc-curriculum', 'acc-progress']),
+    openAccordions: new Set(['acc-path', 'acc-curriculum', 'acc-progress']),
+    selectedPathId: 'path-1',
+    cultureTab: 'culinary',
+    selectedDishId: 'kolombo',
+    weatherCache: null,
+    weatherLoading: false,
+    galleryCat: 'all',
+    galleryQuery: '',
+    galleryLimit: 24,
+    archiveGalleryList: null,
     activeModule: 'module1',
     activeOralTab: 'module',
     curriculumSearch: '',
@@ -210,7 +231,6 @@ const ctx = {
     dictLevel: 'all',
     dictLimit: 12,
     mapCategory: 'all',
-    mapMode: 'osm',
     selectedSiteId: 'fort-de-france',
     gallerySiteId: 'fort-de-france',
     galleryIdx: 0,
@@ -221,6 +241,7 @@ const ctx = {
     tutorHistory: [],
     tutorLoading: false,
     lastCoachData: null,
+    streakJustIgnited: false,
     tourStep: 0,
     adminImageUrl: '',
     adminFileUrl: '',
@@ -255,6 +276,12 @@ function fireConfetti(opts = {}) {
 function checkDailyStreak() {
   const today = todayIso();
   const prev = ctx.progress.lastActivityDate;
+  if (!Array.isArray(ctx.progress.streakHistory)) {
+    ctx.progress.streakHistory = [];
+  }
+  if (!ctx.progress.streakHistory.includes(today)) {
+    ctx.progress.streakHistory = [...ctx.progress.streakHistory, today].slice(-14);
+  }
   if (!prev) {
     ctx.progress.lastActivityDate = today;
     ctx.progress.streak = 1;
@@ -318,6 +345,7 @@ function rerenderProgressAndNav() {
 ctx.actions = {
   notify,
   fireConfetti,
+  jumpToAccordion: (accId) => jumpToAccordion(accId),
   playSfx: (type) => {
     triggerHaptic(ctx.settings.vibration, type === 'right' ? 20 : 12);
     playSfx(ctx.settings, type);
@@ -388,20 +416,64 @@ ctx.actions = {
   toggleModuleComplete: (modId) => {
     const prev = Boolean(ctx.progress.modules[modId]);
     ctx.progress.modules[modId] = !prev;
+    const today = todayIso();
     if (!prev) {
+      checkDailyStreak();
+      ctx.progress.streak = Math.max(1, Number(ctx.progress.streak || 0));
+      ctx.progress.streakFiredToday = today;
+      if (!ctx.progress.streakHistory.includes(today)) {
+        ctx.progress.streakHistory = [...ctx.progress.streakHistory, today].slice(-14);
+      }
+      ctx.state.streakJustIgnited = true;
+      setTimeout(() => { ctx.state.streakJustIgnited = false; }, 1800);
       ctx.progress.xp += 30;
       ctx.collection.points += 20;
       ctx.collection.lessonPoints += 20;
       ctx.actions.playSfx('right');
       fireConfetti({ particleCount: 95, spread: 80 });
-      notify(modId === 'module1' ? 'Badge Unlocked: Beginner! First module complete (+30 XP, +20 Pts)' : 'Module completed! +30 XP & +20 Collection Pts');
+      notify(modId === 'module1'
+        ? 'Module complete! Streak Fire lit! (+30 XP, +20 Pts)'
+        : 'Module completed! Streak Fire lit! (+30 XP, +20 Pts)');
     } else {
       ctx.progress.xp = Math.max(0, ctx.progress.xp - 30);
       ctx.collection.points = Math.max(0, ctx.collection.points - 20);
       ctx.collection.lessonPoints = Math.max(0, ctx.collection.lessonPoints - 20);
+      const anyModuleLeft = Object.values(ctx.progress.modules).some(Boolean);
+      if (!anyModuleLeft) {
+        ctx.progress.streakFiredToday = '';
+        ctx.state.streakJustIgnited = false;
+      }
     }
     saveProgress();
+    renderLearningPathSection(document.getElementById('learningPathMount'), ctx);
+    renderFlashcardDecksGrid(document.getElementById('flashcardsDecksMount'), ctx);
     rerenderProgressAndNav();
+  },
+  completePathMilestone: (milestone) => {
+    if (!milestone || !milestone.id) return;
+    if (!Array.isArray(ctx.progress.pathCompleted)) ctx.progress.pathCompleted = [];
+    if (!ctx.progress.pathCompleted.includes(milestone.id)) {
+      ctx.progress.pathCompleted.push(milestone.id);
+      if (milestone.linkedModuleId) {
+        ctx.progress.modules[milestone.linkedModuleId] = true;
+      }
+      const today = todayIso();
+      checkDailyStreak();
+      ctx.progress.streakFiredToday = today;
+      ctx.state.streakJustIgnited = true;
+      setTimeout(() => { ctx.state.streakJustIgnited = false; }, 1800);
+      ctx.progress.xp += Number(milestone.rewardXp || 30);
+      ctx.collection.points += Number(milestone.rewardPts || 20);
+      ctx.collection.lessonPoints += Number(milestone.rewardPts || 20);
+      ctx.actions.playSfx('right');
+      fireConfetti({ particleCount: 95, spread: 80 });
+      ctx.actions.incrementDailyGoal(1);
+      saveProgress();
+      renderLearningPathSection(document.getElementById('learningPathMount'), ctx);
+      renderFlashcardDecksGrid(document.getElementById('flashcardsDecksMount'), ctx);
+      rerenderProgressAndNav();
+      notify(`${milestone.creoleTitle} mastered! Unlocked ${milestone.unlocksDecks.length} vocabulary decks!`);
+    }
   },
   completeQuiz: (quizId) => {
     if (!ctx.progress.quizzes[quizId]) {
@@ -549,6 +621,7 @@ ctx.actions = {
     }
   },
   openGallery: (siteId, idx = 0) => {
+    ctx.state.archiveGalleryList = null;
     ctx.state.gallerySiteId = siteId;
     ctx.state.galleryIdx = idx;
     const el = document.getElementById('galleryModalBackdrop');
@@ -557,7 +630,19 @@ ctx.actions = {
       renderGalleryModal(el, ctx);
     }
   },
-  closeGallery: () => document.getElementById('galleryModalBackdrop')?.classList.remove('open'),
+  openArchiveGallery: (list, idx = 0) => {
+    ctx.state.archiveGalleryList = Array.isArray(list) ? list : null;
+    ctx.state.galleryIdx = idx;
+    const el = document.getElementById('galleryModalBackdrop');
+    if (el) {
+      el.classList.add('open');
+      renderGalleryModal(el, ctx);
+    }
+  },
+  closeGallery: () => {
+    ctx.state.archiveGalleryList = null;
+    document.getElementById('galleryModalBackdrop')?.classList.remove('open');
+  },
   openSettings: (open) => {
     const el = document.getElementById('settingsDrawerBackdrop');
     if (!el) return;
@@ -860,8 +945,10 @@ function renderAppShell() {
 
         <div class="km-topbar-navwrap" id="kmTopbarNavwrap">
           <nav class="km-nav-links" aria-label="Primary Navigation">
+            <button type="button" class="km-nav-link" data-jump="acc-path">${escapeHtml(t.navPath)}</button>
             <button type="button" class="km-nav-link" data-jump="acc-curriculum">${escapeHtml(t.navLearn)}</button>
             <button type="button" class="km-nav-link" id="navCardsBtn">${escapeHtml(t.navCards)}</button>
+            <button type="button" class="km-nav-link" data-jump="acc-culture">${escapeHtml(t.navCulture)}</button>
             <button type="button" class="km-nav-link" data-jump="acc-dictionary">${escapeHtml(t.navDictionary)}</button>
             <button type="button" class="km-nav-link" data-jump="acc-map">${escapeHtml(t.navMap)}</button>
             <button type="button" class="km-nav-link" data-jump="acc-koudmen">${escapeHtml(t.navCommunity)}</button>
@@ -909,19 +996,31 @@ function renderAppShell() {
     </header>
 
     <main class="km-shell" id="top">
-      <!-- ENGAGING EDITORIAL HERO WALL + CTAS + WORD OF THE DAY -->
+      <!-- ENGAGING EDITORIAL HERO WALL: PICTURE BANNER MOVED TO TOP + EDITORIAL & WORD OF THE DAY -->
       <section class="km-card km-hero-section km-hero-wall">
-        <div class="km-hero-grid">
+        <div class="km-hero-visual km-hero-top-banner">
+          <img src="${HERO_BANNER_IMAGE}" alt="Martinican Creole wooden veranda overlooking lush Mount Pelee rainforest" referrerpolicy="no-referrer">
+          <div class="km-hero-scrim km-hero-top-scrim">
+            <span class="km-hero-kicker">MADININA · LIVING HERITAGE ARCHIVE</span>
+            <div class="km-hero-caption-title">Bèlè, Kwizin, Koudmen &amp; Oral Memory</div>
+            <div class="km-hero-caption-sub">GEREC Phonetic Standard · Martinique OpenStreetMap Trail · 115+ Gallery Archive</div>
+          </div>
+        </div>
+
+        <div class="km-hero-grid" style="margin-top:1.35rem;">
           <div class="km-hero-editorial">
-            <div class="km-hero-eyebrow">
-              <span>${escapeHtml(t.motto)}</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+              <div class="km-hero-eyebrow">
+                <span>${escapeHtml(t.motto)}</span>
+              </div>
+              <div id="heroWeatherChip"></div>
             </div>
             <h1 class="km-hero-title">${escapeHtml(t.heroTitle)}</h1>
             <p class="km-hero-sub">${escapeHtml(t.heroSubtitle)}</p>
 
             <div class="km-hero-cta-row">
-              <button type="button" class="km-btn km-btn-primary km-hero-cta-main" data-jump="acc-curriculum">
-                <i class="fas fa-play"></i> Start Module 1 · Bonjou
+              <button type="button" class="km-btn km-btn-primary km-hero-cta-main" data-jump="acc-path">
+                <i class="fas fa-route"></i> Follow Learning Path
               </button>
               <button type="button" class="km-btn" id="heroCardsBtn">
                 <i class="fas fa-layer-group"></i> 20 Visual Flashcard Decks
@@ -939,7 +1038,7 @@ function renderAppShell() {
                   <span>${escapeHtml(t.step1Desc)}</span>
                 </div>
               </button>
-              <button type="button" class="km-editorial-step" id="step2CardsBtn">
+              <button type="button" class="km-editorial-step" data-jump="acc-path">
                 <span class="km-step-index km-mono">02.</span>
                 <div>
                   <strong>${escapeHtml(t.step2Title.replace(/^\d+\.\s*/, ''))}</strong>
@@ -957,30 +1056,22 @@ function renderAppShell() {
           </div>
 
           <div class="km-hero-showcase">
-            <div class="km-hero-visual">
-              <img src="${HERO_BANNER_IMAGE}" alt="Martinican Creole wooden veranda overlooking lush Mount Pelee rainforest" referrerpolicy="no-referrer">
-              <div class="km-hero-scrim">
-                <span class="km-hero-kicker">MADININA · LIVING ARCHIVE</span>
-                <div class="km-hero-caption-title">Bèlè, Koudmen &amp; Oral Memory</div>
-                <div class="km-hero-caption-sub">GEREC Phonetic Standard · Martinique Heritage Trail</div>
-              </div>
-            </div>
             <div id="wotdMount"></div>
           </div>
         </div>
 
         <div class="km-heritage-strip" aria-label="Heritage Institutions and Curriculum Scope">
           <div class="km-heritage-cell">
-            <span class="km-heritage-num km-mono">20 Decks</span>
-            <span class="km-heritage-label">Visual Motion Flashcards &amp; Swipe</span>
+            <span class="km-heritage-num km-mono">6 Stages · 20 Decks</span>
+            <span class="km-heritage-label">Guided Path Progressively Unlocks Decks</span>
           </div>
           <div class="km-heritage-cell">
-            <span class="km-heritage-num km-mono">GEREC</span>
-            <span class="km-heritage-label">Institut du Créole &amp; Archives Standard</span>
+            <span class="km-heritage-num km-mono">GEREC + Weather</span>
+            <span class="km-heritage-label">Mobile Speech, Culinary Art &amp; Live Tan-an</span>
           </div>
           <div class="km-heritage-cell">
-            <span class="km-heritage-num km-mono">22+ Sites</span>
-            <span class="km-heritage-label">OSM Historical &amp; Offbeat Pins</span>
+            <span class="km-heritage-num km-mono">115+ Photos</span>
+            <span class="km-heritage-label">OSM Heritage Trail &amp; Visual Archive</span>
           </div>
           <div class="km-heritage-cell">
             <span class="km-heritage-num km-mono">UNESCO</span>
@@ -989,13 +1080,25 @@ function renderAppShell() {
         </div>
       </section>
 
+      <!-- GUIDED LEARNING PATH · INTERACTIVE MILESTONE MAP -->
+      <section class="km-accordion" id="acc-path" data-open="true">
+        <button type="button" class="km-accordion-trigger" aria-expanded="true">
+          <div class="km-accordion-heading">
+            <span class="km-accordion-title">${escapeHtml(t.pathTitle)}</span>
+            <span class="km-accordion-sub">Interactive Milestone Map · Dynamically Unlocks New Creole Vocabulary Sets as You Advance</span>
+          </div>
+          <span class="km-accordion-chevron"><i class="fas fa-chevron-down"></i></span>
+        </button>
+        <div class="km-accordion-body" id="learningPathMount"></div>
+      </section>
+
       <div class="km-duo-split">
         <!-- 1. PROGRESS, GOAL, FOCUS TIMER, BADGES & COLLECTION -->
         <section class="km-accordion" id="acc-progress" data-open="true">
           <button type="button" class="km-accordion-trigger" aria-expanded="true">
             <div class="km-accordion-heading">
               <span class="km-accordion-title">${escapeHtml(t.progressHeading)}</span>
-              <span class="km-accordion-sub">Daily Streak · Focus Timer · Collection Points · Achievement Badges</span>
+              <span class="km-accordion-sub">Daily Streak Fire · Focus Timer · Collection Points · Achievement Badges</span>
             </div>
             <span class="km-accordion-chevron"><i class="fas fa-chevron-down"></i></span>
           </button>
@@ -1020,32 +1123,44 @@ function renderAppShell() {
         <button type="button" class="km-accordion-trigger" aria-expanded="true">
           <div class="km-accordion-heading">
             <span class="km-accordion-title">${escapeHtml(t.curriculumTitle)} &amp; ${escapeHtml(t.oralLabTitle)}</span>
-            <span class="km-accordion-sub">Searchable GEREC Tables · Print Study Guide · Listening Quiz · AI Speaking Check</span>
+            <span class="km-accordion-sub">Custom Audio Player · Searchable GEREC Tables · Listening Quiz · AI Speaking Check</span>
           </div>
           <span class="km-accordion-chevron"><i class="fas fa-chevron-down"></i></span>
         </button>
         <div class="km-accordion-body" id="curriculumMount"></div>
       </section>
 
+      <!-- 4. MARTINICAN CULINARY ART, LIVE WEATHER & 115+ PHOTO GALLERY -->
+      <section class="km-accordion" id="acc-culture" data-open="false">
+        <button type="button" class="km-accordion-trigger" aria-expanded="false">
+          <div class="km-accordion-heading">
+            <span class="km-accordion-title">${escapeHtml(t.cultureTitle)}</span>
+            <span class="km-accordion-sub">Kwizin Matinik · Open-Meteo Live Weather · Cultural Heritage · 115+ Island Pictures</span>
+          </div>
+          <span class="km-accordion-chevron"><i class="fas fa-chevron-down"></i></span>
+        </button>
+        <div class="km-accordion-body" id="cultureMount"></div>
+      </section>
+
       <div class="km-duo-split">
-        <!-- 4. 20 VISUAL MOTION FLASHCARD DECKS -->
+        <!-- 5. 20 VISUAL MOTION FLASHCARD DECKS -->
         <section class="km-accordion" id="acc-flashcards" data-open="false">
           <button type="button" class="km-accordion-trigger" aria-expanded="false">
             <div class="km-accordion-heading">
               <span class="km-accordion-title">${escapeHtml(t.flashcardDecksTitle)}</span>
-              <span class="km-accordion-sub">Ken Burns Island Scenes · Swipe Right/Left · Speak-Along · Hands-Free Loop</span>
+              <span class="km-accordion-sub">Unlocked via Learning Path · Ken Burns Motion · Swipe Right/Left · Speak-Along</span>
             </div>
             <span class="km-accordion-chevron"><i class="fas fa-chevron-down"></i></span>
           </button>
           <div class="km-accordion-body" id="flashcardsDecksMount"></div>
         </section>
 
-        <!-- 5. ILLUSTRATED VOCABULARY DICTIONARY -->
+        <!-- 6. ILLUSTRATED VOCABULARY DICTIONARY -->
         <section class="km-accordion" id="acc-dictionary" data-open="false">
           <button type="button" class="km-accordion-trigger" aria-expanded="false">
             <div class="km-accordion-heading">
               <span class="km-accordion-title">${escapeHtml(t.dictionaryTitle)}</span>
-              <span class="km-accordion-sub">Filter by Level · Live Cloud &amp; GEREC Entries · Spoken Phonetics</span>
+              <span class="km-accordion-sub">Filter by Level · Live Cloud &amp; GEREC Entries · Custom Audio Player</span>
             </div>
             <span class="km-accordion-chevron"><i class="fas fa-chevron-down"></i></span>
           </button>
@@ -1053,19 +1168,19 @@ function renderAppShell() {
         </section>
       </div>
 
-      <!-- 6. MARTINIQUE CULTURAL MAP (OSM + SVG) -->
+      <!-- 7. MARTINIQUE CULTURAL MAP (OPENSTREETMAP) -->
       <section class="km-accordion" id="acc-map" data-open="false">
         <button type="button" class="km-accordion-trigger" aria-expanded="false">
           <div class="km-accordion-heading">
             <span class="km-accordion-title">${escapeHtml(t.mapTitle)}</span>
-            <span class="km-accordion-sub">OpenStreetMap &amp; SVG · 12 Communes · Historical Heritage · Landscape Gallery</span>
+            <span class="km-accordion-sub">OpenStreetMap Live · 12 Communes · Historical Sites · Off the Beaten Path · Landscape Galleries</span>
           </div>
           <span class="km-accordion-chevron"><i class="fas fa-chevron-down"></i></span>
         </button>
         <div class="km-accordion-body" id="mapMount"></div>
       </section>
 
-      <!-- 7. COMMUNITY KOUDMEN & HERITAGE INSTITUTIONS -->
+      <!-- 8. COMMUNITY KOUDMEN & HERITAGE INSTITUTIONS -->
       <section class="km-accordion" id="acc-koudmen" data-open="false">
         <button type="button" class="km-accordion-trigger" aria-expanded="false">
           <div class="km-accordion-heading">
@@ -1077,12 +1192,12 @@ function renderAppShell() {
         <div class="km-accordion-body" id="koudmenMount"></div>
       </section>
 
-      <!-- 8. ADMIN RICH-TEXT CONTENT STUDIO -->
+      <!-- 9. ADMIN RICH-TEXT CONTENT STUDIO -->
       <section class="km-accordion" id="acc-admin" data-open="false">
         <button type="button" class="km-accordion-trigger" aria-expanded="false">
           <div class="km-accordion-heading">
             <span class="km-accordion-title">Admin Content Studio</span>
-            <span class="km-accordion-sub">Rich-Text Lesson Authoring · Image &amp; Study File Uploads · Dictionary Publisher</span>
+            <span class="km-accordion-sub">Rich-Text Lesson Authoring · Image &amp; Study File Uploads · Dictionary &amp; Map Publisher</span>
           </div>
           <span class="km-accordion-chevron"><i class="fas fa-chevron-down"></i></span>
         </button>
@@ -1096,10 +1211,10 @@ function renderAppShell() {
 
     <!-- One-Hand Bottom Thumb Dock -->
     <nav class="km-onehand-dock no-print" aria-label="One-hand quick navigation">
+      <button type="button" class="km-dock-btn" data-jump="acc-path"><i class="fas fa-route"></i><span>Path</span></button>
       <button type="button" class="km-dock-btn" data-jump="acc-curriculum"><i class="fas fa-seedling"></i><span>${escapeHtml(t.navLearn)}</span></button>
       <button type="button" class="km-dock-btn" id="dockCardsBtn"><i class="fas fa-layer-group"></i><span>${escapeHtml(t.navCards)}</span></button>
-      <button type="button" class="km-dock-btn" id="dockHandsFreeBtn"><i class="fas fa-headphones"></i><span>Audio</span></button>
-      <button type="button" class="km-dock-btn" data-jump="acc-dictionary"><i class="fas fa-book-bookmark"></i><span>${escapeHtml(t.navDictionary)}</span></button>
+      <button type="button" class="km-dock-btn" data-jump="acc-culture"><i class="fas fa-utensils"></i><span>Culture</span></button>
       <button type="button" class="km-dock-btn" data-jump="acc-map"><i class="fas fa-map-location-dot"></i><span>${escapeHtml(t.navMap)}</span></button>
     </nav>
 
@@ -1120,7 +1235,7 @@ function renderAppShell() {
     <div id="resetModalBackdrop" class="km-modal-backdrop">
       <div class="km-modal-card" style="max-width:420px;" role="dialog" aria-modal="true" aria-label="Confirm Reset Progress">
         <h3 style="font-size:1.2rem; margin-bottom:0.4rem;">Reset Study Progress?</h3>
-        <p style="font-size:0.9rem; color:var(--ink-secondary); margin-bottom:1.1rem;">This resets your saved XP, quiz completions, collection points, and voice recordings on this browser.</p>
+        <p style="font-size:0.9rem; color:var(--ink-secondary); margin-bottom:1.1rem;">This resets your saved XP, quiz completions, collection points, milestone path, and voice recordings on this browser.</p>
         <div style="display:flex; justify-content:flex-end; gap:8px;">
           <button type="button" class="km-btn km-btn-sm" id="cancelResetBtn">Cancel</button>
           <button type="button" class="km-btn km-btn-sm" id="confirmResetBtn" style="background:var(--crimson); border-color:var(--crimson); color:#fff;">Reset All</button>
@@ -1150,10 +1265,13 @@ function renderHeaderAuthButton() {
 
 function renderAllViews() {
   renderHeaderAuthButton();
+  renderHeroWeatherChip(ctx);
   renderWordOfTheDayWidget(document.getElementById('wotdMount'), ctx);
+  renderLearningPathSection(document.getElementById('learningPathMount'), ctx);
   renderProgressDashboard(document.getElementById('progressMount'), ctx);
   renderLevelsAndLessons(document.getElementById('levelsMount'), ctx);
   renderCurriculumAndOralLabs(document.getElementById('curriculumMount'), ctx);
+  renderCulinaryWeatherCultureSection(document.getElementById('cultureMount'), ctx);
   renderFlashcardDecksGrid(document.getElementById('flashcardsDecksMount'), ctx);
   renderDictionarySection(document.getElementById('dictionaryMount'), ctx);
   renderMartiniqueMapSection(document.getElementById('mapMount'), ctx);
@@ -1285,11 +1403,11 @@ async function submitTutorChat(userText) {
 // GUIDED TOUR & AUTH MODAL
 // =========================================================
 const TOUR_STEPS = [
-  { emoji: '🌺', title: '1 · Listen to Word of the Day', body: 'Start at the top card every day. Tap Listen to hear authentic GEREC Creole pronunciation and Practice for +5 XP.', acc: 'top' },
-  { emoji: '📚', title: '2 · Study Modules & Record Your Voice', body: 'Open the 3 Heritage Modules to hear words, record your own pronunciation locally, take quizzes, or test Speaking AI.', acc: 'acc-curriculum' },
-  { emoji: '🃏', title: '3 · Swipe Motion Flashcards & Speak-Along', body: 'Open 20 visual decks. Swipe Right when you know a word, Left for review, or turn on Speak-Along for instant match checks.', acc: 'acc-flashcards' },
-  { emoji: '🗺️', title: '4 · Explore Madinina on OSM & SVG Maps', body: 'Click communes, historical sites like Cap 110, or secret spots to unlock Collection Points and open landscape photo galleries.', acc: 'acc-map' },
-  { emoji: '⏱️', title: '5 · Deep Study Timer & Cloud Account', body: 'Set your Daily Study Goal, play rainforest/ocean nature audio while studying, and Sign In to keep progress synced across devices.', acc: 'acc-progress' }
+  { emoji: '🌺', title: '1 · Listen to Word of the Day', body: 'Start at the Hero Wall Word of the Day. Play crisp GEREC audio on any desktop, phone, or tablet and practice for +5 XP.', acc: 'top' },
+  { emoji: '🧭', title: '2 · Advance Along the Guided Learning Path', body: 'Complete stages on the Milestone Map to dynamically unlock new themed flashcard decks and earn Collection Points.', acc: 'acc-path' },
+  { emoji: '🍲', title: '3 · Explore Kwizin, Weather & 115+ Photos', body: 'Discover Colombo, Féwòs, live Open-Meteo Creole weather forecasts across 4 microclimates, and over 115 island images.', acc: 'acc-culture' },
+  { emoji: '🗺️', title: '4 · Explore Madinina on OpenStreetMap', body: 'Tap communes, historical memorials like Cap 110, or offbeat locations on the live OpenStreetMap trail to open galleries.', acc: 'acc-map' },
+  { emoji: '🔥', title: '5 · Daily Streak Fire & Deep Study Timer', body: 'Light your daily Streak Fire by completing modules, study with nature audio, and Sign In to keep progress synced across devices.', acc: 'acc-progress' }
 ];
 
 function renderTourModal() {
@@ -1500,7 +1618,21 @@ function wireGlobalShellEvents() {
   // Safe In-App Reset
   document.getElementById('cancelResetBtn')?.addEventListener('click', () => ctx.actions.openResetModal(false));
   document.getElementById('confirmResetBtn')?.addEventListener('click', async () => {
-    ctx.progress = { modules: { module1: false, module2: false, module3: false }, quizzes: { quiz1: false, quiz2: false, quiz3: false }, listenedWords: [], reviewedCards: [], xp: 0, streak: 1, lastActivityDate: todayIso() };
+    const today = todayIso();
+    ctx.progress = {
+      modules: { module1: false, module2: false, module3: false },
+      quizzes: { quiz1: false, quiz2: false, quiz3: false },
+      pathCompleted: [],
+      listenedWords: [],
+      reviewedCards: [],
+      xp: 0,
+      streak: 1,
+      lastActivityDate: today,
+      streakFiredToday: '',
+      streakHistory: [today]
+    };
+    ctx.state.streakJustIgnited = false;
+    ctx.state.selectedPathId = 'path-1';
     ctx.collection = { points: 0, flashcardPoints: 0, lessonPoints: 0, mapPoints: 0, visitedSites: [], termStats: {} };
     ctx.recordedMeta = {};
     writeJson(STORAGE_KEYS.RECORD_META, {});
@@ -1572,16 +1704,45 @@ document.addEventListener('keydown', (e) => {
 // BOOTSTRAP
 // =========================================================
 async function bootstrap() {
-  const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
-  const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  ctx.state.isDark = savedTheme ? savedTheme === 'dark' : sysDark;
-  checkDailyStreak();
-  applyBodyClasses();
-  renderAppShell();
+  try {
+    const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
+    const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    ctx.state.isDark = savedTheme ? savedTheme === 'dark' : sysDark;
+    checkDailyStreak();
+    applyBodyClasses();
+    renderAppShell();
+    onTermAudioStateChange(syncAudioPlayerBarsDom);
+  } catch (renderErr) {
+    console.error('UI initialization fallback:', renderErr);
+    const root = document.getElementById('app');
+    if (root) {
+      root.innerHTML = `<div style="max-width:540px;margin:3rem auto;padding:1.5rem;border:1px solid #cbd5e1;border-radius:16px;font-family:sans-serif;">
+        <h2>Kréyòl Matinik</h2>
+        <p style="margin-top:0.5rem;color:#475569;">Please refresh the page to reload learning modules.</p>
+      </div>`;
+    }
+    return;
+  }
 
   if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
   }
+
+  // Unlock iOS / Android mobile & tablet audio cleanly on first gesture
+  const handleFirstMobileTouch = () => {
+    unlockMobileAudio();
+  };
+  window.addEventListener('touchstart', handleFirstMobileTouch, { capture: true, once: true, passive: true });
+  window.addEventListener('pointerdown', handleFirstMobileTouch, { capture: true, once: true, passive: true });
+
+  // Fetch live Martinique weather in background cleanly
+  fetchMartiniqueWeather(ctx).then(() => {
+    renderHeroWeatherChip(ctx);
+    const cultureMount = document.getElementById('cultureMount');
+    if (cultureMount && ctx.state.cultureTab === 'weather') {
+      renderCulinaryWeatherCultureSection(cultureMount, ctx);
+    }
+  });
 
   try {
     const fb = await initFirebase();

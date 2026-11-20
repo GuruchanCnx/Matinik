@@ -691,6 +691,48 @@ h1, h2, h3, .km-serif {
   color: #f8fafc;
 }
 
+.km-hero-top-banner {
+  width: 100%;
+  height: clamp(210px, 28vw, 310px);
+  min-height: 210px;
+  max-height: 310px;
+  flex: none;
+}
+
+.km-hero-top-banner img {
+  height: 100%;
+  min-height: 210px;
+  object-fit: cover;
+  object-position: 50% 44%;
+}
+
+.km-hero-top-scrim {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.08) 18%, rgba(15, 23, 42, 0.84) 100%);
+  padding: 1.25rem 1.45rem;
+}
+
+.km-hero-weather-btn {
+  min-height: 34px;
+  padding: 0.28rem 0.7rem;
+  border-radius: 99px;
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface-solid);
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.km-hero-weather-btn:hover {
+  border-color: var(--cobalt);
+  background: var(--surface-subtle);
+}
+
 .km-hero-kicker {
   font-family: var(--font-mono);
   font-size: 0.72rem;
@@ -701,14 +743,14 @@ h1, h2, h3, .km-serif {
 
 .km-hero-caption-title {
   font-family: var(--font-display);
-  font-size: 1.24rem;
+  font-size: clamp(1.24rem, 2.2vw, 1.6rem);
   font-weight: 700;
   line-height: 1.2;
 }
 
 .km-hero-caption-sub {
-  font-size: 0.8rem;
-  color: rgba(248, 250, 252, 0.85);
+  font-size: 0.82rem;
+  color: rgba(248, 250, 252, 0.88);
 }
 
 .km-wotd-box {
@@ -1011,6 +1053,158 @@ body.iphone-duo-layout .km-duo-split {
   opacity: 0.35;
 }
 
+/* Daily Streak Tracker & Reactive Streak Fire */
+.km-stat-streak-lit {
+  border-color: #ea580c;
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.12), rgba(234, 88, 12, 0.04));
+}
+
+.km-tile-flame {
+  color: var(--ink-muted);
+  font-size: 1.05rem;
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.km-tile-flame.is-ignited {
+  color: #ea580c;
+  filter: drop-shadow(0 2px 6px rgba(234, 88, 12, 0.35));
+}
+
+.km-streak-tracker {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.km-streak-tracker.is-ignited {
+  border-color: rgba(234, 88, 12, 0.45);
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.1), rgba(245, 158, 11, 0.03));
+}
+
+.km-streak-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.km-streak-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.km-streak-fire-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  background: var(--surface-subtle);
+  color: var(--ink-muted);
+  border: 1px solid var(--hairline-strong);
+  flex-shrink: 0;
+  transition: all 0.28s ease;
+}
+
+.km-streak-fire-badge.is-ignited {
+  background: linear-gradient(135deg, #f97316, #dc2626);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 8px 20px -4px rgba(234, 88, 12, 0.55);
+}
+
+.km-streak-tracker.just-ignited .km-streak-fire-badge.is-ignited {
+  animation: kmFlamePulse 0.7s ease 2;
+}
+
+@keyframes kmFlamePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.14); }
+}
+
+.km-streak-count-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.km-streak-days {
+  font-size: 1.05rem;
+  color: var(--ink-primary);
+}
+
+.km-streak-status {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.km-streak-status.is-ignited {
+  color: #c2410c;
+}
+
+body.dark-mode .km-streak-status.is-ignited {
+  color: #fb923c;
+}
+
+.km-streak-days-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.km-streak-day-cell {
+  background: var(--surface-subtle);
+  border: 1px solid var(--hairline);
+  border-radius: 11px;
+  padding: 0.42rem 0.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.km-streak-day-cell.is-active {
+  border-color: var(--emerald);
+  background: var(--emerald-soft);
+}
+
+.km-streak-day-cell.is-today {
+  border-color: var(--cobalt);
+}
+
+.km-streak-day-cell.is-ignited {
+  border-color: #ea580c;
+  background: rgba(249, 115, 22, 0.14);
+}
+
+.km-streak-day-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-secondary);
+  text-transform: uppercase;
+}
+
+.km-streak-day-dot {
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+}
+
+.km-streak-day-cell.is-active .km-streak-day-dot {
+  color: var(--emerald);
+}
+
+.km-streak-day-cell.is-ignited .km-streak-day-dot {
+  color: #ea580c;
+}
+
 /* =========================================================
    CURRICULUM MODULES, VOCAB CARDS, QUIZ & AUDIO/SPEAKING LAB
 ========================================================= */
@@ -1104,6 +1298,102 @@ body.iphone-duo-layout .km-duo-split {
   50% { transform: scale(1.35); opacity: 0.55; }
 }
 
+/* Custom Vocabulary Audio Player (Play/Pause + Seek Bar) */
+.km-audio-player {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.42rem 0.62rem;
+  border-radius: 12px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--hairline);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.km-audio-player.is-playing {
+  border-color: var(--cobalt);
+  background: var(--cobalt-soft);
+}
+
+.km-ap-toggle-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--cobalt);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.14s ease, background 0.16s ease;
+}
+
+.km-ap-toggle-btn:hover {
+  transform: scale(1.05);
+}
+
+.km-ap-toggle-btn.is-playing {
+  background: var(--emerald);
+}
+
+.km-audio-seek-wrap {
+  flex: 1;
+  min-width: 70px;
+  display: flex;
+  align-items: center;
+}
+
+.km-audio-seek {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 99px;
+  background: linear-gradient(
+    to right,
+    var(--cobalt) 0%,
+    var(--cobalt) var(--seek-pct, 0%),
+    var(--hairline-strong) var(--seek-pct, 0%),
+    var(--hairline-strong) 100%
+  );
+  outline: none;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.km-audio-seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--cobalt);
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+  cursor: pointer;
+}
+
+.km-audio-seek::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--cobalt);
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+  cursor: pointer;
+}
+
+.km-audio-time {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* =========================================================
    DICTIONARY, MAP & COMMUNE GALLERY
 ========================================================= */
@@ -1135,23 +1425,196 @@ body.iphone-duo-layout .km-duo-split {
   z-index: 1;
 }
 
-.km-svg-map-box {
+/* =========================================================
+   GUIDED LEARNING PATH MILESTONE MAP & KWIZIN / WEATHER / GALLERY
+   ========================================================= */
+.km-milestone-map {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.7rem;
+  position: relative;
+}
+
+@media (max-width: 1120px) {
+  .km-milestone-map {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .km-milestone-map {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.km-milestone-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.52rem;
+  padding: 0.85rem 0.78rem;
+  border-radius: 14px;
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface-solid);
+  color: var(--ink-primary);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: border-color 0.16s ease, transform 0.15s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+
+.km-milestone-node:hover {
+  border-color: var(--cobalt);
+  transform: translateY(-1px);
+}
+
+.km-milestone-node.is-selected {
+  border-color: var(--cobalt);
+  box-shadow: 0 0 0 2px var(--cobalt-soft), var(--shadow-card);
+}
+
+.km-milestone-node.is-completed {
+  border-color: var(--emerald);
+  background: linear-gradient(180deg, var(--emerald-soft) 0%, var(--surface-solid) 65%);
+}
+
+.km-milestone-node.is-unlocked:not(.is-completed) {
+  border-color: var(--cobalt);
+}
+
+.km-milestone-node.is-locked {
+  opacity: 0.72;
+  background: var(--surface-subtle);
+}
+
+.km-milestone-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.96rem;
+  background: var(--surface-subtle);
+  color: var(--ink-muted);
+  border: 1px solid var(--hairline-strong);
+  flex-shrink: 0;
+}
+
+.km-milestone-node.is-completed .km-milestone-badge {
+  background: var(--emerald);
+  border-color: var(--emerald);
+  color: #ffffff;
+}
+
+.km-milestone-node.is-unlocked .km-milestone-badge {
+  background: var(--cobalt);
+  border-color: var(--cobalt);
+  color: #ffffff;
+}
+
+.km-milestone-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.16rem;
+  min-width: 0;
   width: 100%;
+}
+
+.km-milestone-meta strong {
+  font-size: 0.9rem;
+  line-height: 1.2;
+  color: var(--ink-primary);
+}
+
+.km-path-detail-grid {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 1.1rem;
+  align-items: start;
+}
+
+.km-culinary-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 1.1rem;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .km-path-detail-grid,
+  .km-culinary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.km-weather-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.85rem;
+}
+
+.km-gallery-archive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 0.85rem;
+}
+
+.km-gallery-photo-card {
   background: var(--surface-solid);
   border: 1px solid var(--hairline);
-  border-radius: 16px;
-  padding: 0.85rem;
-}
-
-.km-svg-pin {
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   cursor: pointer;
-  transition: transform 0.16s ease;
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
-.km-svg-pin:hover circle,
-.km-svg-pin.active circle {
-  fill: var(--emerald);
-  r: 8;
+.km-gallery-photo-card:hover,
+.km-gallery-photo-card:focus-visible {
+  outline: none;
+  border-color: var(--cobalt);
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+}
+
+.km-gallery-photo-frame {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--surface-subtle);
+}
+
+.km-gallery-photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+.km-gallery-photo-card:hover .km-gallery-photo-frame img {
+  transform: scale(1.04);
+}
+
+.km-gallery-photo-meta {
+  padding: 0.72rem 0.82rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+@media (pointer: coarse) {
+  .km-audio-seek::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+  .km-audio-seek::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 /* Custom OSM Leaflet Markers & Info Card Popups */
@@ -1569,7 +2032,6 @@ body.reduce-motion *::after {
 /* Print Study Guide Stylesheet */
 @media print {
   .km-topbar,
-  .km-utility-strip,
   .km-onehand-dock,
   .km-back-top-btn,
   .km-toast,

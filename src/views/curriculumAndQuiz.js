@@ -14,9 +14,14 @@ import {
 import {
   captureSpokenPhrase,
   computeSpeechSimilarity,
+  estimatePronunciationDuration,
+  formatAudioTime,
+  getTermAudioPlayerState,
   isActivelyRecording,
   replayUserVoiceRecording,
+  seekTermAudioTrack,
   speakTermSequence,
+  toggleTermAudioTrack,
   toggleTermVoiceRecording
 } from '../services/audioEngine.js';
 
@@ -44,6 +49,117 @@ export function sanitizeRichHtml(rawHtml) {
     });
   });
   return root.innerHTML;
+}
+
+export function renderCustomAudioPlayerBarHtml(trackId, word, exampleText = '', settings = {}) {
+  const spokenBundle = exampleText ? `${word}. ${exampleText}` : String(word || '');
+  const estDuration = estimatePronunciationDuration(spokenBundle, settings?.speechRate);
+  const durLabel = formatAudioTime(estDuration);
+  const snap = getTermAudioPlayerState();
+  const isThisTrack = snap.trackId === trackId && snap.status !== 'idle';
+  const isPlaying = snap.trackId === trackId && snap.status === 'playing';
+  const pct = isThisTrack ? snap.progressPct : 0;
+  const elapsedLabel = isThisTrack ? formatAudioTime(snap.elapsedSec) : '0:00';
+  const totalLabel = isThisTrack ? formatAudioTime(snap.durationSec) : durLabel;
+
+  return `
+    <div class="km-audio-player no-print ${isPlaying ? 'is-playing' : ''}" data-ap-bar="${escapeHtml(trackId)}" data-ap-dur="${escapeHtml(durLabel)}">
+      <button type="button" class="km-ap-toggle-btn ${isPlaying ? 'is-playing' : ''}" data-ap-toggle="${escapeHtml(trackId)}"
+        aria-label="${isPlaying ? 'Pause' : 'Play'} Martinican Creole pronunciation for ${escapeHtml(word)}">
+        <i class="fas ${isPlaying ? 'fa-pause' : 'fa-play'}"></i>
+      </button>
+      <div class="km-audio-seek-wrap">
+        <input type="range" class="km-audio-seek" data-ap-seek="${escapeHtml(trackId)}"
+          min="0" max="100" step="1" value="${pct}" style="--seek-pct:${pct}%;"
+          aria-label="Seek pronunciation audio for ${escapeHtml(word)}">
+      </div>
+      <span class="km-audio-time km-mono" data-ap-time>${elapsedLabel} / ${totalLabel}</span>
+    </div>
+  `;
+}
+
+export function syncAudioPlayerBarsDom(snap) {
+  if (typeof document === 'undefined' || !snap) return;
+  document.querySelectorAll('.km-audio-player[data-ap-bar]').forEach((bar) => {
+    const id = bar.getAttribute('data-ap-bar');
+    const isMatch = snap.trackId === id && snap.status !== 'idle';
+    const isPlaying = snap.trackId === id && snap.status === 'playing';
+    bar.classList.toggle('is-playing', isPlaying);
+
+    const toggleBtn = bar.querySelector('[data-ap-toggle]');
+    if (toggleBtn) {
+      toggleBtn.classList.toggle('is-playing', isPlaying);
+      const icon = toggleBtn.querySelector('i');
+      if (icon) {
+        icon.className = `fas ${isPlaying ? 'fa-pause' : 'fa-play'}`;
+      }
+    }
+
+    const seekEl = bar.querySelector('[data-ap-seek]');
+    if (seekEl) {
+      const pct = isMatch ? Math.max(0, Math.min(100, Number(snap.progressPct || 0))) : 0;
+      if (document.activeElement !== seekEl) {
+        seekEl.value = String(pct);
+      }
+      seekEl.style.setProperty('--seek-pct', `${pct}%`);
+    }
+
+    const timeEl = bar.querySelector('[data-ap-time]');
+    if (timeEl) {
+      const baseDur = bar.getAttribute('data-ap-dur') || '0:02';
+      timeEl.textContent = isMatch
+        ? `${formatAudioTime(snap.elapsedSec)} / ${formatAudioTime(snap.durationSec)}`
+        : `0:00 / ${baseDur}`;
+    }
+  });
+}
+
+export function wireCustomAudioPlayers(container, tracksById, ctx) {
+  if (!container) return;
+
+  container.querySelectorAll('[data-ap-bar]').forEach((bar) => {
+    bar.addEventListener('pointerdown', (e) => e.stopPropagation());
+    bar.addEventListener('pointerup', (e) => e.stopPropagation());
+    bar.addEventListener('click', (e) => e.stopPropagation());
+  });
+
+  container.querySelectorAll('[data-ap-toggle]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-ap-toggle');
+      const track = tracksById.get(id);
+      if (!track) return;
+      toggleTermAudioTrack(id, {
+        text: track.text,
+        exampleText: track.exampleText || '',
+        translationText: track.translationText || '',
+        settings: ctx.settings,
+        lang: ctx.state.lang,
+        onListened: ctx.actions.registerWordListened
+      });
+    });
+  });
+
+  container.querySelectorAll('[data-ap-seek]').forEach((input) => {
+    const handleSeek = (e) => {
+      e.stopPropagation();
+      const id = input.getAttribute('data-ap-seek');
+      const pct = Number(input.value || 0);
+      input.style.setProperty('--seek-pct', `${pct}%`);
+      const track = tracksById.get(id);
+      if (!track) return;
+      seekTermAudioTrack(id, pct, {
+        text: track.text,
+        exampleText: track.exampleText || '',
+        translationText: track.translationText || '',
+        settings: ctx.settings,
+        lang: ctx.state.lang,
+        onListened: ctx.actions.registerWordListened
+      });
+    };
+    input.addEventListener('input', handleSeek);
+    input.addEventListener('change', handleSeek);
+  });
 }
 
 export function renderWordOfTheDayWidget(container, ctx) {
@@ -426,11 +542,10 @@ export function renderCurriculumAndOralLabs(container, ctx) {
 
 function renderTermStudyCardHtml(term, ctx) {
   const s = ctx.settings;
-  const lang = ctx.state.lang;
-  const primaryTrans = lang === 'fr' ? term.fr : term.en;
   const isRecActive = isActivelyRecording(term.id);
   const recMeta = ctx.recordedMeta[term.id];
   const stats = ctx.actions.getTermStats(term.id);
+  const spokenExample = s.example && term.example ? term.example : '';
 
   return `
     <article class="km-vocab-card">
@@ -441,15 +556,14 @@ function renderTermStudyCardHtml(term, ctx) {
           ${s.pronunciation ? `<div class="km-meta-line km-mono">${escapeHtml(term.pronounce)}</div>` : ''}
         </div>
         <div class="no-print" style="display:flex; gap:5px; flex-wrap:wrap;">
-          <button type="button" class="km-btn km-btn-sm km-btn-primary" data-term-listen="${escapeHtml(term.word)}" data-term-trans="${escapeHtml(primaryTrans)}" title="Listen">
-            <i class="fas fa-volume-up"></i> Listen
-          </button>
           <button type="button" class="km-btn km-btn-sm ${isRecActive ? 'playing' : recMeta ? 'recorded' : ''}" data-term-rec="${escapeHtml(term.id)}" title="Record voice">
             ${isRecActive ? '<span class="km-live-mic-dot"></span> Stop' : '<i class="fas fa-microphone"></i>'}
           </button>
           ${recMeta ? `<button type="button" class="km-btn km-btn-sm" data-term-replay="${escapeHtml(term.id)}" title="Replay my voice"><i class="fas fa-play"></i></button>` : ''}
         </div>
       </div>
+
+      ${renderCustomAudioPlayerBarHtml(term.id, term.word, spokenExample, s)}
 
       <div style="font-weight:700; font-size:0.96rem;">${escapeHtml(term.en)} <span class="km-meta-line">· ${escapeHtml(term.fr)}</span></div>
       ${s.otherTranslations && term.otherTranslations ? `<div style="font-size:0.82rem; color:var(--ink-secondary);"><strong>Other nuance:</strong> ${escapeHtml(term.otherTranslations)}</div>` : ''}
@@ -472,6 +586,17 @@ function renderTermStudyCardHtml(term, ctx) {
 }
 
 export function wireVocabCardActions(container, ctx, onRerender) {
+  const tracksById = new Map();
+  const lang = ctx.state.lang;
+  Object.values(CURRICULUM_TERMS).flat().forEach((term) => {
+    tracksById.set(term.id, {
+      text: term.word,
+      exampleText: ctx.settings.example && term.example ? term.example : '',
+      translationText: lang === 'fr' ? term.fr : term.en
+    });
+  });
+  wireCustomAudioPlayers(container, tracksById, ctx);
+
   container.querySelectorAll('[data-term-listen]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();

@@ -50,6 +50,23 @@ export function renderProgressDashboard(container, ctx) {
     if (p.xp >= lvl.minXp) activeLvlIdx = i;
   });
 
+  const todayStr = new Date().toISOString().split('T')[0];
+  const streakCount = Math.max(1, Number(p.streak || 1));
+  const isStreakIgnited = p.streakFiredToday === todayStr;
+  const historySet = new Set(Array.isArray(p.streakHistory) && p.streakHistory.length ? p.streakHistory : [todayStr]);
+  const sevenDays = Array.from({ length: 7 }, (_, i) => {
+    const offsetDays = 6 - i;
+    const d = new Date(Date.now() - offsetDays * 86400000);
+    const iso = d.toISOString().split('T')[0];
+    const dayLabel = d.toLocaleDateString(ctx.state.lang === 'fr' ? 'fr-FR' : 'en-US', { weekday: 'short' }).slice(0, 2);
+    return {
+      iso,
+      dayLabel,
+      isToday: iso === todayStr,
+      isActive: historySet.has(iso) || offsetDays < streakCount
+    };
+  });
+
   container.innerHTML = `
     <div class="km-stats-row">
       <div class="km-stat-tile">
@@ -57,10 +74,15 @@ export function renderProgressDashboard(container, ctx) {
         <div class="km-stat-val" id="dashXpVal">${p.xp} XP</div>
         <div class="km-meta-line">${escapeHtml(getLevelName(p.xp))}</div>
       </div>
-      <div class="km-stat-tile">
+      <div class="km-stat-tile ${isStreakIgnited ? 'km-stat-streak-lit' : ''}">
         <div class="km-stat-label">Daily Streak</div>
-        <div class="km-stat-val">${p.streak || 1} Day${(p.streak || 1) === 1 ? '' : 's'}</div>
-        <div class="km-meta-line">Keep habit alive</div>
+        <div class="km-stat-val" style="display:flex; align-items:center; gap:0.4rem;">
+          <span class="km-tile-flame ${isStreakIgnited ? 'is-ignited' : ''}" aria-hidden="true">
+            <i class="fas fa-fire"></i>
+          </span>
+          <span>${streakCount} Day${streakCount === 1 ? '' : 's'}</span>
+        </div>
+        <div class="km-meta-line">${isStreakIgnited ? 'Streak fire lit today' : 'Complete a module to ignite'}</div>
       </div>
       <div class="km-stat-tile">
         <div class="km-stat-label">Collection Pts</div>
@@ -96,6 +118,40 @@ export function renderProgressDashboard(container, ctx) {
     </div>
 
     <div id="agenticCoachMount" style="margin-top:0.85rem;"></div>
+
+    <!-- Daily Streak Tracker with Reactive Streak Fire Icon -->
+    <section class="km-subpanel km-streak-tracker ${isStreakIgnited ? 'is-ignited' : ''} ${ctx.state.streakJustIgnited ? 'just-ignited' : ''}" id="dailyStreakTracker" aria-label="Daily Streak Tracker">
+      <div class="km-streak-header">
+        <div class="km-streak-identity">
+          <div class="km-streak-fire-badge ${isStreakIgnited ? 'is-ignited' : ''}" id="streakFireIcon" aria-label="${isStreakIgnited ? 'Streak fire lit' : 'Streak fire resting'}">
+            <i class="fas fa-fire"></i>
+          </div>
+          <div>
+            <div class="km-stat-label">Daily Streak Tracker</div>
+            <div class="km-streak-count-row">
+              <strong class="km-streak-days km-mono">${streakCount} Consecutive Day${streakCount === 1 ? '' : 's'}</strong>
+              <span class="km-streak-status ${isStreakIgnited ? 'is-ignited' : ''}">
+                ${isStreakIgnited ? 'Streak Fire Lit Today' : 'Complete a module to ignite fire'}
+              </span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="km-btn km-btn-sm ${isStreakIgnited ? 'km-btn-emerald' : 'km-btn-primary'}" id="streakModuleShortcutBtn">
+          <i class="fas ${isStreakIgnited ? 'fa-check-circle' : 'fa-bolt'}"></i>
+          ${isStreakIgnited ? `${modsDone}/3 Modules Done` : 'Complete a Module'}
+        </button>
+      </div>
+      <div class="km-streak-days-row" aria-label="7-day consecutive learning streak">
+        ${sevenDays.map((day) => `
+          <div class="km-streak-day-cell ${day.isActive ? 'is-active' : ''} ${day.isToday ? 'is-today' : ''} ${day.isToday && isStreakIgnited ? 'is-ignited' : ''}">
+            <span class="km-streak-day-label">${escapeHtml(day.dayLabel)}</span>
+            <span class="km-streak-day-dot">
+              <i class="fas ${day.isToday && isStreakIgnited ? 'fa-fire' : day.isActive ? 'fa-check' : 'fa-circle'}"></i>
+            </span>
+          </div>
+        `).join('')}
+      </div>
+    </section>
 
     <div class="km-goal-focus-grid">
       <!-- Daily Study Goal -->
@@ -286,6 +342,9 @@ export function renderProgressDashboard(container, ctx) {
   `;
 
   // Wire dashboard controls
+  container.querySelector('#streakModuleShortcutBtn')?.addEventListener('click', () => {
+    ctx.actions.jumpToAccordion?.('acc-curriculum');
+  });
   container.querySelector('#shareAchievementBtn')?.addEventListener('click', () => ctx.actions.shareProgress());
   container.querySelector('#triggerResetBtn')?.addEventListener('click', () => ctx.actions.openResetModal(true));
 
